@@ -1001,7 +1001,12 @@ alGUIColorTheme* alLib::GetDefaultColorTheme()
 		
 		
 		
-
+		g_alLib->m_colorTheme.m_list_bg = 0xFFEFF4FF;
+		g_alLib->m_colorTheme.m_list_bgItemHover = 0xFF0C97FF;
+		g_alLib->m_colorTheme.m_list_bgItemSelected = 0xFF0074C6;
+		g_alLib->m_colorTheme.m_list_text = 0xFF111111;
+		g_alLib->m_colorTheme.m_list_textHover = 0xFFEFF4FF;
+		g_alLib->m_colorTheme.m_list_textSelected = ColorWhite;
 		
 		g_alLib->m_colorTheme.m_combo_bg_enabled = 0xFF2B63FF;
 		g_alLib->m_colorTheme.m_combo_bg_disabled = 0xFFA0A0A0;

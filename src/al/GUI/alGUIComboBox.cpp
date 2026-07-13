@@ -268,7 +268,7 @@ void alGUIComboBox::Rebuild()
 	m_visibleItemsNum = 0;
 	if(areaHeight > 0.f)
 		m_visibleItemsNum = areaHeight / m_itemHeight;
-	if (m_font && textSz)
+	if (m_font)
 	{
 		uint8_t* ptr = (uint8_t*)m_items;
 		size_t index = m_startIndex;

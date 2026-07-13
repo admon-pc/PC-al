@@ -45,6 +45,14 @@ public:
 	virtual ~DemoExample_gui_all2_combo() {}
 	virtual void OnComboSelectItem(size_t) override;
 };
+class DemoExample_gui_all2_list : public alGUIListBox
+{
+public:
+	DemoExample_gui_all2_list(alGUIContext* ct)
+		:alGUIListBox(ct) {}
+	virtual ~DemoExample_gui_all2_list() {}
+	virtual void OnListSelectItem(size_t) override;
+};
 
 class DemoExample_gui_all2 : public alDemoExample
 {
@@ -77,12 +85,15 @@ public:
 	DemoExample_gui_all2_button* m_button_deactivateEditor = 0;
 	alSystemPopup* m_textInput_editorPopup = 0;
 	DemoExample_gui_all2_combo* m_combobox1 = 0;
+	DemoExample_gui_all2_list* m_listbox1 = 0;
 
 	struct directory_files
 	{
+		uint32_t m_flags = 0;
 		uint32_t m_importantData[4];
 		char32_t m_name[100];
 		uint32_t m_importantData2[4];
+		
 	};
 	alArray<directory_files> m_dirFiles;
 

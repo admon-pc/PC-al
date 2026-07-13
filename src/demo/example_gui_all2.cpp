@@ -134,6 +134,22 @@ void DemoExample_gui_all2_combo::OnComboSelectItem(size_t index)
 	m_text = (char32_t*)(&ptr[index * m_stride] + m_textOffset);
 }
 
+void DemoExample_gui_all2_list::OnListSelectItem(size_t index)
+{
+	DemoExample_gui_all2* ex = (DemoExample_gui_all2*)GetUserData();
+	uint8_t* ptr = (uint8_t*)m_items;
+	ex->m_combobox1->m_text = (char32_t*)(&ptr[index * m_stride] + m_textOffset);
+	uint32_t* flags = (uint32_t*)(&ptr[index * m_stride] + m_flagsOffset);
+	if (*flags & flag_selected)
+	{
+		*flags &= ~flag_selected;
+	}
+	else
+	{
+		*flags |= flag_selected;
+	}
+}
+
 bool DemoExample_gui_all2::Init()
 {
 	m_gs = g_demo->m_gs;
@@ -257,12 +273,23 @@ bool DemoExample_gui_all2::Init()
 	}
 
 	m_combobox1 = alCreate<DemoExample_gui_all2_combo>(g_demo->m_GUI);
+	m_combobox1->SetUserData(this);
 	m_combobox1->m_position.Set(5, 300);
 	m_combobox1->m_size.Set(100, 30);
 	m_combobox1->SetFont(g_demo->m_guiFont);
 	m_combobox1->m_text.Assign(U"...");
 	m_combobox1->SetItems(m_dirFiles.m_data, m_dirFiles.size(),
-		sizeof(directory_files), 16);
+		sizeof(directory_files), 20);
+
+	m_listbox1 = alCreate<DemoExample_gui_all2_list>(g_demo->m_GUI);
+	m_listbox1->SetUserData(this);
+	m_listbox1->m_position.Set(105, 300);
+	m_listbox1->m_size.Set(100, 300);
+	m_listbox1->SetFont(g_demo->m_guiFont);
+	m_listbox1->SetItems(
+		m_dirFiles.m_data, 
+		m_dirFiles.size(),
+		sizeof(directory_files), 20, 0);
 
 	m_GUIPanel = g_demo->m_GUI->GetNewPanel();
 	m_GUIPanel->m_drawBG = false;
@@ -274,6 +301,7 @@ bool DemoExample_gui_all2::Init()
 	m_GUIPanel->AddElement(m_button_deactivateEditor);
 	m_GUIPanel->AddElement(m_textInput_editor_oneLine);
 	m_GUIPanel->AddElement(m_combobox1);
+	m_GUIPanel->AddElement(m_listbox1);
 
 	m_GUIPanel->m_size.Set(g_demo->m_mainWindow->m_clientSize.x,
 		g_demo->m_mainWindow->m_clientSize.y);
@@ -284,6 +312,15 @@ bool DemoExample_gui_all2::Init()
 
 void DemoExample_gui_all2::Shutdown()
 {
+	AL_DESTROY(m_textInput_editor);
+	AL_DESTROY(m_textInput_editor2);
+	AL_DESTROY(m_checkbox_usehscroll);
+	AL_DESTROY(m_checkbox_usevscroll);
+	AL_DESTROY(m_button_deactivateEditor);
+	AL_DESTROY(m_textInput_editor_oneLine);
+	AL_DESTROY(m_combobox1);
+	AL_DESTROY(m_listbox1);
+
 	AL_DESTROY(m_textInput_editorPopup);
 	AL_DESTROY(m_textureAtlas);
 	m_name.Clear();

@@ -63,6 +63,14 @@ struct alGUIColorTheme
 	alColor m_combo_textColor_disabled;
 	alColor m_combo_textColor_mouseHover;
 	alColor m_combo_textColor_press;
+	
+	alColor m_list_bg;
+	alColor m_list_bgItemHover;
+	alColor m_list_bgItemSelected;
+	alColor m_list_text;
+	alColor m_list_textHover;
+	alColor m_list_textSelected;
+	
 };
 
 #endif
