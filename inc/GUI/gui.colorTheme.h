@@ -71,6 +71,9 @@ struct alGUIColorTheme
 	alColor m_list_textHover;
 	alColor m_list_textSelected;
 	
+	alColor m_slider_bg;
+	alColor m_slider_color;
+	alColor m_slider_text;
 };
 
 #endif

@@ -3,6 +3,7 @@
 
 #include "../al_internal.h"
 extern alLibGlobalData g_alLibGlobalData;
+extern alLibImpl* g_alLib;
 
 alCursorWin32::alCursorWin32()
 {
@@ -19,7 +20,8 @@ void alCursorWin32::OnCreate(alCursorType ct)
 
 void alCursorWin32::Activate()
 {
-	::SetCursor(m_handle);
+	if (g_alLib->m_showCursor)
+		::SetCursor(m_handle);
 }
 
 void* alCursorWin32::GetHandle()

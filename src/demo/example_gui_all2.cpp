@@ -291,6 +291,28 @@ bool DemoExample_gui_all2::Init()
 		m_dirFiles.size(),
 		sizeof(directory_files), 20, 0);
 
+	m_slider1 = alCreate<DemoExample_gui_all2_slider1>(g_demo->m_GUI);
+	m_slider1->SetUserData(this);
+	m_slider1->m_position.Set(210, 300);
+	m_slider1->m_size.Set(100, 20);
+	m_slider1->SetFont(g_demo->m_guiFont);
+	m_slider1->m_type = alGUIRangeSlider1::Type::type_IntLimits;
+	m_slider1->m_minMax_i[0] = 0;
+	m_slider1->m_minMax_i[1] = 100;
+	m_slider1->SetPtri(&m_slider1Var);
+	m_slider1Var = 50;
+
+	m_slider2 = alCreate<DemoExample_gui_all2_slider2>(g_demo->m_GUI);
+	m_slider2->SetUserData(this);
+	m_slider2->m_position.Set(210, 330);
+	m_slider2->m_size.Set(100, 20);
+	m_slider2->SetFont(g_demo->m_guiFont);
+	m_slider2->m_type = alGUIRangeSlider1::Type::type_FloatLimits;
+	m_slider2->m_minMax_f[0] = -100;
+	m_slider2->m_minMax_f[1] = 100;
+	m_slider2->SetPtrf(&m_slider2Var);
+	m_slider2Var = 0;
+
 	m_GUIPanel = g_demo->m_GUI->GetNewPanel();
 	m_GUIPanel->m_drawBG = false;
 	m_GUIPanel->m_position.Set(0.f, 0.f);
@@ -302,6 +324,8 @@ bool DemoExample_gui_all2::Init()
 	m_GUIPanel->AddElement(m_textInput_editor_oneLine);
 	m_GUIPanel->AddElement(m_combobox1);
 	m_GUIPanel->AddElement(m_listbox1);
+	m_GUIPanel->AddElement(m_slider1);
+	m_GUIPanel->AddElement(m_slider2);
 
 	m_GUIPanel->m_size.Set(g_demo->m_mainWindow->m_clientSize.x,
 		g_demo->m_mainWindow->m_clientSize.y);
@@ -312,6 +336,8 @@ bool DemoExample_gui_all2::Init()
 
 void DemoExample_gui_all2::Shutdown()
 {
+	AL_DESTROY(m_slider2);
+	AL_DESTROY(m_slider1);
 	AL_DESTROY(m_textInput_editor);
 	AL_DESTROY(m_textInput_editor2);
 	AL_DESTROY(m_checkbox_usehscroll);

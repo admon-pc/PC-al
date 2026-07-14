@@ -54,6 +54,21 @@ public:
 	virtual void OnListSelectItem(size_t) override;
 };
 
+class DemoExample_gui_all2_slider1 : public alGUIRangeSlider1
+{
+public:
+	DemoExample_gui_all2_slider1(alGUIContext* ct)
+		:alGUIRangeSlider1(ct) {}
+	virtual ~DemoExample_gui_all2_slider1() {}
+};
+class DemoExample_gui_all2_slider2 : public alGUIRangeSlider1
+{
+public:
+	DemoExample_gui_all2_slider2(alGUIContext* ct)
+		:alGUIRangeSlider1(ct) {}
+	virtual ~DemoExample_gui_all2_slider2() {}
+};
+
 class DemoExample_gui_all2 : public alDemoExample
 {
 	alGS* m_gs = 0;
@@ -86,6 +101,12 @@ public:
 	alSystemPopup* m_textInput_editorPopup = 0;
 	DemoExample_gui_all2_combo* m_combobox1 = 0;
 	DemoExample_gui_all2_list* m_listbox1 = 0;
+	
+	DemoExample_gui_all2_slider1* m_slider1 = 0;
+	int32_t m_slider1Var = 0;
+
+	DemoExample_gui_all2_slider2* m_slider2 = 0;
+	float32_t m_slider2Var = 0;
 
 	struct directory_files
 	{

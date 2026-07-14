@@ -27,6 +27,7 @@
 
 #include "System/alSystemPopup.h"
 #include "System/alSystemPopupWin32.h"
+#include "System/alSystemWindow.h"
 
 alLibGlobalData g_alLibGlobalData;
 
@@ -518,18 +519,7 @@ void alLib::ResetCursor(alCursorType ct)
 
 void alLib::ShowCursor(bool v)
 {
-	if (v)
-	{
-		GetCursor(alCursorType::Arrow)->Activate();
-	}
-	else
-	{
-#ifdef AL_PLATFORM_WIN32
-		::SetCursor(0); // hide
-#else
-#error Need to implement
-#endif
-	}
+	g_alLib->m_showCursor = v;
 }
 
 void alLib::SetCursorClip(alVec4i* New, alVec4i* Old, alSystemWindow* w)
@@ -558,8 +548,7 @@ void alLib::SetCursorClip(alVec4i* New, alVec4i* Old, alSystemWindow* w)
 		POINT p2;
 		p2.x = (LONG)g_alLib->m_cursorClip.z;
 		p2.y = (LONG)g_alLib->m_cursorClip.w;
-		
-		alSystemWindowOSDataWin32* data_win32 = new alSystemWindowOSDataWin32;
+		alSystemWindowOSDataWin32* data_win32 = (alSystemWindowOSDataWin32*)w->GetOSData();
 
 		ClientToScreen(data_win32->m_hwnd, &p1);
 		ClientToScreen(data_win32->m_hwnd, &p2);
@@ -999,7 +988,9 @@ alGUIColorTheme* alLib::GetDefaultColorTheme()
 		g_alLib->m_colorTheme.m_edit_lineBarText = 0xFF111111;
 		g_alLib->m_colorTheme.m_edit_currlineBG = 0xFFD2DFF7;
 		
-		
+		g_alLib->m_colorTheme.m_slider_bg = 0xFF888888;
+		g_alLib->m_colorTheme.m_slider_text = 0xFFFFFFFF;
+		g_alLib->m_colorTheme.m_slider_color = 0xFF0074C6;
 		
 		g_alLib->m_colorTheme.m_list_bg = 0xFFEFF4FF;
 		g_alLib->m_colorTheme.m_list_bgItemHover = 0xFF0C97FF;

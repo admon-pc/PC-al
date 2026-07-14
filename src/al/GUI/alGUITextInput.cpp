@@ -542,6 +542,15 @@ void alGUITextInput::Update(float32_t dt)
 	alVec2f fontSize(m_font->m_maxWidth, m_font->m_maxHeight);
 	_updateRects();
 
+	if (!m_cursorInTextEditor)
+	{
+		m_cursorInTextEditor = alMath::PointInRect(input->m_cursorCoordsForGUI.x,
+			input->m_cursorCoordsForGUI.y, m_editorArea);
+	}
+	else
+	{
+		m_cursorInTextEditor = false;
+	}
 
 	if (m_useVerticalScrollbar)
 	{
@@ -698,11 +707,8 @@ void alGUITextInput::Update(float32_t dt)
 	// для прокрутки колесом мышки используем отдельный if
 	if (m_isEditActive)
 	{
-		if (alMath::PointInRect(input->m_cursorCoordsForGUI.x,
-			input->m_cursorCoordsForGUI.y, m_editorArea))
+		if (m_cursorInTextEditor)
 		{
-
-
 			if (input->m_wheelDelta &&
 				input->m_kbm != alKeyboardModifier::Ctrl)
 			{
@@ -710,6 +716,17 @@ void alGUITextInput::Update(float32_t dt)
 					_moveUpView(3);
 				if (input->m_wheelDelta < 0.f)
 					_moveDownView(3);
+			}
+		}
+		else
+		{
+			if (input->m_isLMBDown)
+			{
+				if (m_isEditActive)
+				{
+					Deactivate(true);
+					return;
+				}
 			}
 		}
 	}
@@ -725,10 +742,10 @@ void alGUITextInput::Update(float32_t dt)
 			}
 		}
 
-		if (!m_cursorInTextEditor)
+		/*if (!m_cursorInTextEditor)
 		{
 			m_cursorInTextEditor = true;
-		}
+		}*/
 		m_context->m_cursorType = alCursorType::IBeam;
 
 		if (input->m_wheelDelta && !m_oneLine)
@@ -769,10 +786,7 @@ void alGUITextInput::Update(float32_t dt)
 	}
 	else
 	{
-		if (m_cursorInTextEditor)
-		{
-			m_cursorInTextEditor = false;
-		}
+		
 
 
 	}
@@ -929,6 +943,10 @@ void alGUITextInput::Update(float32_t dt)
 				m_textMouseScrollTimerLimit = 0.05f;
 			else if (d > 20.f)
 				m_textMouseScrollTimerLimit = 0.08f;
+		}
+		else
+		{
+
 		}
 	}
 	//if (m_isSelected)

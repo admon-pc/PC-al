@@ -147,56 +147,58 @@ void alGUIComboBox::Update(float32_t dt)
 
 	alGUIElement::Update(dt);
 	
-	if (alMath::PointInRect(input->m_cursorCoordsForGUI.x,
-		input->m_cursorCoordsForGUI.y, m_popupArea))
+	if (m_active)
 	{
-		if (m_tooManyItems)
+		if (alMath::PointInRect(input->m_cursorCoordsForGUI.x,
+			input->m_cursorCoordsForGUI.y, m_popupArea))
 		{
+			if (m_tooManyItems)
+			{
 
-			if (input->m_wheelDelta)
-			{
-				if (input->m_wheelDelta > 0.f)
+				if (input->m_wheelDelta)
 				{
-					//down
-					if (m_startIndex)
-						--m_startIndex;
+					if (input->m_wheelDelta > 0.f)
+					{
+						//down
+						if (m_startIndex)
+							--m_startIndex;
+					}
+					if (input->m_wheelDelta < 0.f)
+					{
+						size_t lastIndex = m_itemsNum - m_visibleItemsNum + 1;
+						//move up
+						++m_startIndex;
+						if (m_startIndex > lastIndex)
+							m_startIndex = lastIndex;
+					}
 				}
-				if (input->m_wheelDelta < 0.f)
-				{
-					size_t lastIndex = m_itemsNum - m_visibleItemsNum+1;
-					//move up
-					++m_startIndex;
-					if (m_startIndex > lastIndex)
-						m_startIndex = lastIndex;
-				}
-			}
 
-			if (alMath::PointInRect(input->m_cursorCoordsForGUI.x,
-				input->m_cursorCoordsForGUI.y, m_upBtnRect))
-			{
-				m_scrollTimer += dt;
-				if (m_scrollTimer > 0.03)
+				if (alMath::PointInRect(input->m_cursorCoordsForGUI.x,
+					input->m_cursorCoordsForGUI.y, m_upBtnRect))
 				{
-					m_scrollTimer = 0.f;
-					if (m_startIndex)
-						--m_startIndex;
+					m_scrollTimer += dt;
+					if (m_scrollTimer > 0.03)
+					{
+						m_scrollTimer = 0.f;
+						if (m_startIndex)
+							--m_startIndex;
+					}
 				}
-			}
-			else if (alMath::PointInRect(input->m_cursorCoordsForGUI.x,
-				input->m_cursorCoordsForGUI.y, m_downBtnRect))
-			{
-				m_scrollTimer += dt;
-				if (m_scrollTimer > 0.03)
+				else if (alMath::PointInRect(input->m_cursorCoordsForGUI.x,
+					input->m_cursorCoordsForGUI.y, m_downBtnRect))
 				{
-					m_scrollTimer = 0.f;
-					size_t lastIndex = m_itemsNum - m_visibleItemsNum + 1;
-					++m_startIndex;
-					if (m_startIndex > lastIndex)
-						m_startIndex = lastIndex;
+					m_scrollTimer += dt;
+					if (m_scrollTimer > 0.03)
+					{
+						m_scrollTimer = 0.f;
+						size_t lastIndex = m_itemsNum - m_visibleItemsNum + 1;
+						++m_startIndex;
+						if (m_startIndex > lastIndex)
+							m_startIndex = lastIndex;
+					}
 				}
 			}
 		}
-
 		if (input->m_isLMBDown && m_isItemMouseHover)
 		{
 			OnComboSelectItem(m_itemSelected);
@@ -216,11 +218,25 @@ void alGUIComboBox::Update(float32_t dt)
 		}
 	}
 
-	if (m_isLMBClicked)
+	if (alMath::PointInRect(input->m_cursorCoordsForGUI.x,
+		input->m_cursorCoordsForGUI.y, m_buildArea))
 	{
-		m_context->m_activeElement = this;
-		m_active = true;
-		OnComboActivate();
+		if (input->m_isLMBDown)
+		{
+			if (m_active)
+			{
+				m_context->m_activeElement = 0;
+				m_active = false;
+				OnComboDeactivate();
+				return;
+			}
+			else
+			{
+				m_context->m_activeElement = this;
+				m_active = true;
+				OnComboActivate();
+			}
+		}
 	}
 }
 

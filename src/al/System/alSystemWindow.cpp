@@ -5,6 +5,7 @@
 
 #include "../al_internal.h"
 extern alLibGlobalData g_alLibGlobalData;
+extern alLibImpl* g_alLib;
 
 #ifdef AL_PLATFORM_WIN32
 LRESULT CALLBACK alSystemWindow_WndProc(HWND, UINT, WPARAM, LPARAM);
@@ -441,6 +442,12 @@ LRESULT CALLBACK alSystemWindow_WndProc(HWND hWnd, UINT message, WPARAM wParam, 
 	}
 	case WM_SETCURSOR:
 	{
+		if (!g_alLib->m_showCursor)
+		{
+			SetCursor(NULL); // Hides cursor in client area
+			return TRUE;    // Prevents default cursor handling
+		}
+
 		if (alLib::GetCursorDisableAutoChange())
 			return TRUE;
 		auto id = LOWORD(lParam);
@@ -593,6 +600,12 @@ LRESULT CALLBACK alSystemWindow_WndProc(HWND hWnd, UINT message, WPARAM wParam, 
 		}
 			break;
 		}
+		break;
+	}
+	case WM_SYSCOMMAND:
+	{
+		if (wParam == SC_KEYMENU)
+			return 0;
 		break;
 	}
 	case WM_SYSKEYDOWN:

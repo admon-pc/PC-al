@@ -70,7 +70,7 @@ void alGUIListBox::Draw(float32_t dt)
 			alVec4f itemRect;
 			itemRect.x = m_listClipArea.x;
 			itemRect.y = posY;
-			itemRect.z = m_listClipArea.w;
+			itemRect.z = m_listClipArea.z;
 			itemRect.w = itemRect.y + m_itemHeight-1;
 
 			auto textColor = m_colorTheme->m_popup_itemText;

@@ -48,6 +48,7 @@ public:
 
 	alInput* m_input = 0;
 	bool m_cursorDisableAutoChange = false;
+	bool m_showCursor = true;
 
 	alSystemWindow* CreateSystemWindow(alSystemWindowCallback*);
 	alEvent m_events[AL_EVENT_MAX];
