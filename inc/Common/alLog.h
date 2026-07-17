@@ -8,6 +8,8 @@ public:
 	static void PrintInfo(const char*, ...);
 	static void PrintWarning(const char*, ...);
 	static void PrintError(const char*, ...);
+
+	static void SetPrintFunction(void(*)(const char*));
 };
 
 #endif

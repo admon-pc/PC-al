@@ -23,14 +23,14 @@
 	   337.5 : 5.8904862
 		 360 : 0
 	*/
-const float32_t PIf = static_cast<float32_t>(3.14159265358979323846);
-const float32_t PIfHalf = static_cast<float32_t>(3.14159265358979323846 * 0.5);
-const float32_t PIfPlusHalf = static_cast<float32_t>(3.14159265358979323846 + PIfHalf);
-const float32_t PIPIf = 6.2831853f;
-const float64_t PI = 3.14159265358979323846;
-const float64_t PIHalf = 3.14159265358979323846 * 0.5;
-const float64_t PIPlusHalf = 3.14159265358979323846 + PIHalf;
-const float64_t PIPI = PI+PI;
+constexpr float32_t PIf = static_cast<float32_t>(3.14159265358979323846);
+constexpr float32_t PIfHalf = static_cast<float32_t>(3.14159265358979323846 * 0.5);
+constexpr float32_t PIfPlusHalf = static_cast<float32_t>(3.14159265358979323846 + PIfHalf);
+constexpr float32_t PIPIf = 6.2831853f;
+constexpr float64_t PI = 3.14159265358979323846;
+constexpr float64_t PIHalf = 3.14159265358979323846 * 0.5;
+constexpr float64_t PIPlusHalf = 3.14159265358979323846 + PIHalf;
+constexpr float64_t PIPI = PI+PI;
 
 
 #include "Math/alVector.h"

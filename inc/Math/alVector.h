@@ -1,7 +1,8 @@
 ﻿#ifndef _AL_MATHVECTOR_H_
 #define _AL_MATHVECTOR_H_
 
-
+template<typename Type>
+class alVec4_t;
 
 template<typename Type>
 class alVec2_t
@@ -43,7 +44,7 @@ class alVec3_t
 {
 public:
 	alVec3_t<Type>(){}
-	//alVec3_t<Type>(const alVec4_t<Type>& v);// : x(v.x), y(v.y), z(v.z) {}
+	alVec3_t<Type>(const alVec4_t<Type>& v);// : x(v.x), y(v.y), z(v.z) {}
 	alVec3_t<Type>(Type _v) :x(_v), y(_v), z(_v) {}
 	alVec3_t<Type>(Type _x, Type _y, Type _z) :x(_x), y(_y), z(_z) {}
 	Type x = 0;
@@ -155,6 +156,11 @@ public:
 		out.y = (z * a.x) - (x * a.z);
 		out.z = (x * a.y) - (y * a.x);
 	}
+	void Cross2(const alVec4_t<Type>& a, alVec3_t<Type>& out)const {
+		out.x = (y * a.z) - (z * a.y);
+		out.y = (z * a.x) - (x * a.z);
+		out.z = (x * a.y) - (y * a.x);
+	}
 	Type LengthSqrt()const { return(x * x) + (y * y) + (z * z); }
 	Type Length()const { return std::sqrt(LengthSqrt()); }
 	Type Distance(const alVec4_t<Type>& from)const { return alVec4_t<Type>(x - from.x, y - from.y, z - from.z, 1.f).Length(); }
@@ -185,6 +191,14 @@ AL_FORCE_INLINE alVec4_t<float32_t> operator-(const alVec4_t<float32_t>& s, cons
 	r.z = s.z - (float32_t)v.z;
 	r.w = s.w - (float32_t)v.w;
 	return r;
+}
+
+template<typename T>
+alVec3_t<T>::alVec3_t(const alVec4_t<T>& v)
+{
+	x = v.x;
+	y = v.y;
+	z = v.z;
 }
 
 using alVec2f = alVec2_t<float32_t>;

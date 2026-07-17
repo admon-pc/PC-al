@@ -113,6 +113,18 @@ enum class alSaveImageType
 	png,
 };
 
+enum class alDirection : uint32_t
+{
+	North,
+	NorthEast,
+	East,
+	SouthEast,
+	South,
+	SouthWest,
+	West,
+	NorthWest
+};
+
 /*
 * Добавлять архивы чтобы потом загружать файлы из них НЕНАДО
 * Пусть это будет реализовано на стороне приложения. Так будет гибче.

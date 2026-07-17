@@ -20,23 +20,23 @@
 
 AL_LINK_LIBRARY(al);
 
-enum
-{
-	TextureID_NEW_GREEN,
-	TextureID_NEW_RED,
-	TextureID_OPEN_GREEN,
-	TextureID_OPEN_RED,
-	TextureID_PLUS_GREEN,
-	TextureID_PLUS_RED,
-	TextureID_MINUS_GREEN,
-	TextureID_MINUS_RED,
-	TextureID_FROMSCRATCH_GREEN,
-	TextureID_FROMSCRATCH_RED,
-	TextureID_GENERATE_GREEN,
-	TextureID_GENERATE_RED,
-	
-	TextureID__end,
-};
+//enum
+//{
+//	TextureID_NEW_GREEN,
+//	TextureID_NEW_RED,
+//	TextureID_OPEN_GREEN,
+//	TextureID_OPEN_RED,
+//	TextureID_PLUS_GREEN,
+//	TextureID_PLUS_RED,
+//	TextureID_MINUS_GREEN,
+//	TextureID_MINUS_RED,
+//	TextureID_FROMSCRATCH_GREEN,
+//	TextureID_FROMSCRATCH_RED,
+//	TextureID_GENERATE_GREEN,
+//	TextureID_GENERATE_RED,
+//	
+//	TextureID__end,
+//};
 
 struct GlyphNode
 {
@@ -62,12 +62,12 @@ struct GlyphNode
 class SystemWindowCallback;
 class FontTool
 {
-	void _state_NewOrOpen();
-	void _state_GenerateOrFromScratch();
-	void _state_Generate();
-	void _state_Edit();
+	//void _state_NewOrOpen();
+	//void _state_GenerateOrFromScratch();
+	//void _state_Generate();
+	//void _state_Edit();
 
-	void (FontTool::*OnRun)();
+//	void (FontTool::*OnRun)();
 
 public:
 	FontTool();
@@ -88,8 +88,8 @@ public:
 
 	alGSTexture* m_whiteTexture = 0;
 	
-	alGSTextureCacheNode* m_guiTextureNodes[TextureID__end];
-	alGSTextureCache* m_guiTextures = 0;
+	//alGSTextureCacheNode* m_guiTextureNodes[TextureID__end];
+	//alGSTextureCache* m_guiTextures = 0;
 };
 
 class SystemWindowCallback : public alSystemWindowCallback
@@ -207,17 +207,17 @@ void CPopup::Show(uint32_t x, uint32_t y)
 FontTool::FontTool()
 {
 	CPopup* pp = new CPopup;
-	OnRun = &FontTool::_state_NewOrOpen;
+//	OnRun = &FontTool::_state_NewOrOpen;
 
 	for (size_t i = 0; i < 0x10FFFF; i++)
 	{
 		myglyphs[i] = 0;
 	}
 
-	for (int i = 0; i < TextureID__end; ++i)
+	/*for (int i = 0; i < TextureID__end; ++i)
 	{
 		m_guiTextureNodes[i] = 0;
-	}
+	}*/
 	m_windowCallback = alCreate<SystemWindowCallback>(this);
 }
 
@@ -232,7 +232,7 @@ FontTool::~FontTool()
 
 		AL_DESTROY(myglyphs[i]);
 	}
-	AL_DESTROY(m_guiTextures);
+	//AL_DESTROY(m_guiTextures);
 	AL_DESTROY(m_gs);
 	AL_DESTROY(m_windowCallback);
 	AL_DESTROY(m_mainWindow);
@@ -252,7 +252,7 @@ bool FontTool::Init()
 		return false;
 
 	m_whiteTexture = m_gs->GetWhiteTexture();
-	m_guiTextures = alCreate<alGSTextureCache>(m_gs);
+	/*m_guiTextures = alCreate<alGSTextureCache>(m_gs);
 	m_guiTextureNodes[TextureID_FROMSCRATCH_GREEN] = m_guiTextures->GetTexture("../data/tools/fonttool/fscrg.png");
 	m_guiTextureNodes[TextureID_FROMSCRATCH_RED] = m_guiTextures->GetTexture("../data/tools/fonttool/fscrr.png");
 	m_guiTextureNodes[TextureID_GENERATE_GREEN] = m_guiTextures->GetTexture("../data/tools/fonttool/geng.png");
@@ -264,7 +264,7 @@ bool FontTool::Init()
 	m_guiTextureNodes[TextureID_OPEN_GREEN] = m_guiTextures->GetTexture("../data/tools/fonttool/openg.png");
 	m_guiTextureNodes[TextureID_OPEN_RED] = m_guiTextures->GetTexture("../data/tools/fonttool/openr.png");
 	m_guiTextureNodes[TextureID_PLUS_GREEN] = m_guiTextures->GetTexture("../data/tools/fonttool/plsg.png");
-	m_guiTextureNodes[TextureID_PLUS_RED] = m_guiTextures->GetTexture("../data/tools/fonttool/plsr.png");
+	m_guiTextureNodes[TextureID_PLUS_RED] = m_guiTextures->GetTexture("../data/tools/fonttool/plsr.png");*/
 
 	return true;
 }
@@ -278,135 +278,135 @@ void FontTool::Run()
 	{
 		alLib::Update();
 
-		((*this).*(OnRun))();
+		//((*this).*(OnRun))();
 
 	}
 }
 
-void FontTool::_state_NewOrOpen()
-{
-	m_gs->SetViewport(0, 0, m_mainWindow->m_clientSize.x, m_mainWindow->m_clientSize.y);
-	m_gs->BeginDraw();
-	m_gs->ClearAll();
-	m_gs->EndDraw();
-	m_gs->BeginDrawGUI();
-
-	uint32_t tw = m_guiTextureNodes[TextureID_NEW_RED]->m_texture->GetWidth();
-	uint32_t th = m_guiTextureNodes[TextureID_NEW_RED]->m_texture->GetHeight();
-
-	alVec4f buttonRect;
-	buttonRect.x = 0.f;
-	buttonRect.y = 0.f;
-	buttonRect.z = tw;
-	buttonRect.w = th;
-
-	auto input = alLib::GetInput();
-
-	int textureID = TextureID_NEW_RED;
-	if (alMath::PointInRect(input->m_cursorCoords.x, input->m_cursorCoords.y, buttonRect))
-	{
-		textureID = TextureID_NEW_GREEN;
-
-		if (input->m_isLMBDown)
-		{
-			OnRun = &FontTool::_state_GenerateOrFromScratch;
-		}
-	}
-
-	m_gs->DrawRectangle(buttonRect, ColorWhite, ColorWhite,
-		m_guiTextureNodes[textureID]->m_texture);
-
-
-	tw = m_guiTextureNodes[TextureID_OPEN_RED]->m_texture->GetWidth();
-	th = m_guiTextureNodes[TextureID_OPEN_RED]->m_texture->GetHeight();
-	buttonRect.x = 0.f;
-	buttonRect.y += buttonRect.w + 5.f;
-	buttonRect.z = tw;
-	buttonRect.w = buttonRect.y + th;
-
-	textureID = TextureID_OPEN_RED;
-	if (alMath::PointInRect(input->m_cursorCoords.x, input->m_cursorCoords.y, buttonRect))
-	{
-		textureID = TextureID_OPEN_GREEN;
-
-		if (input->m_isLMBDown)
-		{
-			//OnRun = &FontTool::_state_GenerateOrFromScratch;
-		}
-	}
-	m_gs->DrawRectangle(buttonRect, ColorWhite, ColorWhite,
-		m_guiTextureNodes[textureID]->m_texture);
-
-	m_gs->EndDrawGUI();
-	m_gs->SwapBuffers();
-}
-
-void FontTool::_state_GenerateOrFromScratch()
-{
-	m_gs->SetViewport(0, 0, m_mainWindow->m_clientSize.x, m_mainWindow->m_clientSize.y);
-	m_gs->BeginDraw();
-	m_gs->ClearAll();
-	m_gs->EndDraw();
-	m_gs->BeginDrawGUI();
-
-	int textureID = TextureID_GENERATE_RED;
-	uint32_t tw = m_guiTextureNodes[textureID]->m_texture->GetWidth();
-	uint32_t th = m_guiTextureNodes[textureID]->m_texture->GetHeight();
-
-	alVec4f buttonRect;
-	buttonRect.x = 0.f;
-	buttonRect.y = 0.f;
-	buttonRect.z = tw;
-	buttonRect.w = th;
-
-	auto input = alLib::GetInput();
-
-	if (alMath::PointInRect(input->m_cursorCoords.x, input->m_cursorCoords.y, buttonRect))
-	{
-		textureID = TextureID_GENERATE_GREEN;
-
-		if (input->m_isLMBDown)
-		{
-			OnRun = &FontTool::_state_Generate;
-
-			create_tmp_font();
-		}
-	}
-
-	m_gs->DrawRectangle(buttonRect, ColorWhite, ColorWhite,
-		m_guiTextureNodes[textureID]->m_texture);
-
-	textureID = TextureID_FROMSCRATCH_RED;
-	tw = m_guiTextureNodes[textureID]->m_texture->GetWidth();
-	th = m_guiTextureNodes[textureID]->m_texture->GetHeight();
-	buttonRect.x = 0.f;
-	buttonRect.y += buttonRect.w + 5.f;
-	buttonRect.z = (float32_t)tw;
-	buttonRect.w = buttonRect.y + th;
-
-	if (alMath::PointInRect(input->m_cursorCoords.x, input->m_cursorCoords.y, buttonRect))
-	{
-		textureID = TextureID_FROMSCRATCH_GREEN;
-
-		if (input->m_isLMBDown)
-		{
-			//OnRun = &FontTool::_state_Generate;
-		}
-	}
-	m_gs->DrawRectangle(buttonRect, ColorWhite, ColorWhite,
-		m_guiTextureNodes[textureID]->m_texture);
-
-	m_gs->EndDrawGUI();
-	m_gs->SwapBuffers();
-}
-
-void FontTool::_state_Generate()
-{
-}
-
-void FontTool::_state_Edit()
-{
-}
+//void FontTool::_state_NewOrOpen()
+//{
+//	m_gs->SetViewport(0, 0, m_mainWindow->m_clientSize.x, m_mainWindow->m_clientSize.y);
+//	m_gs->BeginDraw();
+//	m_gs->ClearAll();
+//	m_gs->EndDraw();
+//	m_gs->BeginDrawGUI();
+//
+//	uint32_t tw = m_guiTextureNodes[TextureID_NEW_RED]->m_texture->GetWidth();
+//	uint32_t th = m_guiTextureNodes[TextureID_NEW_RED]->m_texture->GetHeight();
+//
+//	alVec4f buttonRect;
+//	buttonRect.x = 0.f;
+//	buttonRect.y = 0.f;
+//	buttonRect.z = tw;
+//	buttonRect.w = th;
+//
+//	auto input = alLib::GetInput();
+//
+//	int textureID = TextureID_NEW_RED;
+//	if (alMath::PointInRect(input->m_cursorCoords.x, input->m_cursorCoords.y, buttonRect))
+//	{
+//		textureID = TextureID_NEW_GREEN;
+//
+//		if (input->m_isLMBDown)
+//		{
+//			OnRun = &FontTool::_state_GenerateOrFromScratch;
+//		}
+//	}
+//
+//	m_gs->DrawRectangle(buttonRect, ColorWhite, ColorWhite,
+//		m_guiTextureNodes[textureID]->m_texture);
+//
+//
+//	tw = m_guiTextureNodes[TextureID_OPEN_RED]->m_texture->GetWidth();
+//	th = m_guiTextureNodes[TextureID_OPEN_RED]->m_texture->GetHeight();
+//	buttonRect.x = 0.f;
+//	buttonRect.y += buttonRect.w + 5.f;
+//	buttonRect.z = tw;
+//	buttonRect.w = buttonRect.y + th;
+//
+//	textureID = TextureID_OPEN_RED;
+//	if (alMath::PointInRect(input->m_cursorCoords.x, input->m_cursorCoords.y, buttonRect))
+//	{
+//		textureID = TextureID_OPEN_GREEN;
+//
+//		if (input->m_isLMBDown)
+//		{
+//			//OnRun = &FontTool::_state_GenerateOrFromScratch;
+//		}
+//	}
+//	m_gs->DrawRectangle(buttonRect, ColorWhite, ColorWhite,
+//		m_guiTextureNodes[textureID]->m_texture);
+//
+//	m_gs->EndDrawGUI();
+//	m_gs->SwapBuffers();
+//}
+//
+//void FontTool::_state_GenerateOrFromScratch()
+//{
+//	m_gs->SetViewport(0, 0, m_mainWindow->m_clientSize.x, m_mainWindow->m_clientSize.y);
+//	m_gs->BeginDraw();
+//	m_gs->ClearAll();
+//	m_gs->EndDraw();
+//	m_gs->BeginDrawGUI();
+//
+//	int textureID = TextureID_GENERATE_RED;
+//	uint32_t tw = m_guiTextureNodes[textureID]->m_texture->GetWidth();
+//	uint32_t th = m_guiTextureNodes[textureID]->m_texture->GetHeight();
+//
+//	alVec4f buttonRect;
+//	buttonRect.x = 0.f;
+//	buttonRect.y = 0.f;
+//	buttonRect.z = tw;
+//	buttonRect.w = th;
+//
+//	auto input = alLib::GetInput();
+//
+//	if (alMath::PointInRect(input->m_cursorCoords.x, input->m_cursorCoords.y, buttonRect))
+//	{
+//		textureID = TextureID_GENERATE_GREEN;
+//
+//		if (input->m_isLMBDown)
+//		{
+//			OnRun = &FontTool::_state_Generate;
+//
+//			create_tmp_font();
+//		}
+//	}
+//
+//	m_gs->DrawRectangle(buttonRect, ColorWhite, ColorWhite,
+//		m_guiTextureNodes[textureID]->m_texture);
+//
+//	textureID = TextureID_FROMSCRATCH_RED;
+//	tw = m_guiTextureNodes[textureID]->m_texture->GetWidth();
+//	th = m_guiTextureNodes[textureID]->m_texture->GetHeight();
+//	buttonRect.x = 0.f;
+//	buttonRect.y += buttonRect.w + 5.f;
+//	buttonRect.z = (float32_t)tw;
+//	buttonRect.w = buttonRect.y + th;
+//
+//	if (alMath::PointInRect(input->m_cursorCoords.x, input->m_cursorCoords.y, buttonRect))
+//	{
+//		textureID = TextureID_FROMSCRATCH_GREEN;
+//
+//		if (input->m_isLMBDown)
+//		{
+//			//OnRun = &FontTool::_state_Generate;
+//		}
+//	}
+//	m_gs->DrawRectangle(buttonRect, ColorWhite, ColorWhite,
+//		m_guiTextureNodes[textureID]->m_texture);
+//
+//	m_gs->EndDrawGUI();
+//	m_gs->SwapBuffers();
+//}
+//
+//void FontTool::_state_Generate()
+//{
+//}
+//
+//void FontTool::_state_Edit()
+//{
+//}
 
 void FontTool::create_tmp_font()
 {

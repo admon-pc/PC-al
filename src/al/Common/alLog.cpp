@@ -33,6 +33,13 @@ void alLogDefaultPrintfFunction(const char* str)
 	fprintf(g_alLogImpl.m_outType, "%s", str);
 }
 
+void alLog::SetPrintFunction(void(*f)(const char*))
+{
+	g_alLogImpl.m_printFunction = f;
+	if(!f)
+		g_alLogImpl.m_printFunction = alLogDefaultPrintfFunction;
+}
+
 void alLog::Print(const char* s, ...)
 {
 	va_list ap;

@@ -542,15 +542,8 @@ void alGUITextInput::Update(float32_t dt)
 	alVec2f fontSize(m_font->m_maxWidth, m_font->m_maxHeight);
 	_updateRects();
 
-	if (!m_cursorInTextEditor)
-	{
-		m_cursorInTextEditor = alMath::PointInRect(input->m_cursorCoordsForGUI.x,
-			input->m_cursorCoordsForGUI.y, m_editorArea);
-	}
-	else
-	{
-		m_cursorInTextEditor = false;
-	}
+	m_cursorInTextEditor = alMath::PointInRect(input->m_cursorCoordsForGUI.x,
+		input->m_cursorCoordsForGUI.y, m_editorArea);
 
 	if (m_useVerticalScrollbar)
 	{

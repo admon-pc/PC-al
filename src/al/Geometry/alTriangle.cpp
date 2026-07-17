@@ -88,6 +88,50 @@ bool alTriangle::RayTest_MT(const alRay& ray, bool withBackFace, float& T, float
 	return true;
 }
 
+bool alTriangle::RayTest_MT(const alRay& ray, bool withBackFace, float64_t& T, float& U, float& V, float& W)
+{
+	alVec4  pvec;
+	ray.m_direction.Cross2(alVec4(e2.x, e2.y, e2.z, e2.w), pvec);
+	float det = e1.Dot(alVec4f((float32_t)pvec.x, (float32_t)pvec.y, (float32_t)pvec.z, (float32_t)pvec.w));
+
+	if (withBackFace)
+	{
+		if (std::fabs(det) < alEpsilon)
+			return false;
+	}
+	else
+	{
+		if (det < alEpsilon && det > -alEpsilon)
+			return false;
+	}
+
+	alVec4 tvec(
+		ray.m_origin.x - v1.x,
+		ray.m_origin.y - v1.y,
+		ray.m_origin.z - v1.z,
+		0.f);
+
+	float64_t inv_det = 1. / det;
+	U = tvec.Dot(pvec) * inv_det;
+
+	if (U < 0.f || U > 1.f)
+		return false;
+
+	alVec4  qvec;
+	tvec.Cross2(alVec4(e1.x, e1.y, e1.z, e1.w), qvec);
+	V = ray.m_direction.Dot(qvec) * inv_det;
+
+	if (V < 0.f || U + V > 1.f)
+		return false;
+
+	T = e2.Dot(alVec4f((float32_t)qvec.x, (float32_t)qvec.y, (float32_t)qvec.z, (float32_t)qvec.w)) * inv_det;
+
+	if (T < alEpsilon) return false;
+
+	W = 1.f - U - V;
+	return true;
+}
+
 bool alTriangle::RayTest_Watertight(const alRay& ray, bool withBackFace, float& T, float& U, float& V, float& W)
 {
 	v1.w = 1.f;

@@ -23,7 +23,8 @@ public:
 
 	void Update();
 	void Center(alVec4f& out);
-	bool RayTest_MT(const alRay& ray, bool withBackFace, float& T, float& U, float& V, float& W);
+	bool RayTest_MT(const alRay& ray, bool withBackFace, float32_t& T, float& U, float& V, float& W);
+	bool RayTest_MT(const alRay& ray, bool withBackFace, float64_t& T, float& U, float& V, float& W);
 	bool RayTest_Watertight(const alRay& ray, bool withBackFace, float& T, float& U, float& V, float& W);
 };
 
