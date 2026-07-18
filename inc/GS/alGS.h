@@ -52,7 +52,7 @@ public:
 	virtual void DrawMeshGUI(alGSMesh* mesh, const alVec2f& offset, const alColor& color) = 0;
 
 	virtual void EndDraw() = 0;
-	virtual void BeginDrawGUI() = 0;
+	virtual void BeginDrawGUI(bool clear = true) = 0;
 	virtual void EndDrawGUI() = 0;
 	virtual void SwapBuffers() = 0;
 	virtual void UpdateWindowData() = 0;

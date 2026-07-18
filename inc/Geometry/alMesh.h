@@ -49,14 +49,12 @@ struct alVertexAnimatedTriangle
 struct alVertexLine
 {
 	alVec3f Position;
-	alVec3f Normal;
 	alVec4f Color;
 };
 
 struct alVertexAnimatedLine
 {
 	alVec3f Position;
-	alVec3f Normal;
 	alVec4f Color;
 
 	alVec4f Weights; // потом надо переделать на байты чтобы уменьшить вес

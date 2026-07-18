@@ -730,13 +730,13 @@ void alGSD3D11::UpdateGUIProjection()
 void alGSD3D11::SetShader(alGSShader* s)
 {
 	alD3D11Shader* shader = dynamic_cast<alD3D11Shader*>(s);
-	m_currShader = shader;
-	m_d3d11DevCon->IASetInputLayout(shader->m_vLayout);
-	m_d3d11DevCon->VSSetShader(shader->m_vShader, 0, 0);
-	m_d3d11DevCon->GSSetShader(shader->m_gShader, 0, 0);
-	m_d3d11DevCon->PSSetShader(shader->m_pShader, 0, 0);
+		m_currShader = shader;
+		m_d3d11DevCon->IASetInputLayout(shader->m_vLayout);
+		m_d3d11DevCon->VSSetShader(shader->m_vShader, 0, 0);
+		m_d3d11DevCon->GSSetShader(shader->m_gShader, 0, 0);
+		m_d3d11DevCon->PSSetShader(shader->m_pShader, 0, 0);
 
-	m_currShader->m_info.m_callback->OnSetShader();
+		m_currShader->m_info.m_callback->OnSetShader();
 }
 
 alGSTexture* alGSD3D11::GetWhiteTexture()
@@ -791,6 +791,15 @@ void alGSD3D11::DrawRectangle(const alVec4f& corners,
 	alGSTexture* texture, alVec4f* UVs)
 {
 	//alMat4* m = alLib::GetMatrix(alMatrixType::GUIProjection);
+	/*if (m_currShader != m_shaderGUIRectangle->m_shader)
+	{
+		m_d3d11DevCon->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+		const float blend_factor[4] = { 0.f, 0.f, 0.f, 0.f };
+		m_d3d11DevCon->OMSetBlendState(m_blendStateAlphaEnabled, blend_factor, 0xffffffff);
+		m_d3d11DevCon->OMSetDepthStencilState(m_depthStencilStateDisabled, 0);
+		m_d3d11DevCon->RSSetState(m_RasterizerSolidNoBackFaceCulling);
+		SetShader(m_shaderGUIRectangle->m_shader);
+	}*/
 
 	m_shaderGUIRectangle->m_cbVertex_impl.m_Corners = corners;
 	m_shaderGUIRectangle->m_cbVertex_impl.m_Color1 = color1;
@@ -823,13 +832,14 @@ void alGSD3D11::DrawRectangle(const alVec4f& corners,
 	DrawRectangle(corners, color,color,texture,UVs);
 }
 
-void alGSD3D11::BeginDrawGUI()
+void alGSD3D11::BeginDrawGUI(bool clear)
 {
 	m_shaderGUIRectangle->m_cbVertex_impl.m_ProjMtx = m_GUIProjMtx;
 	m_shaderGUIMesh->m_cbVertex_impl.m_ProjMtx = m_GUIProjMtx;
 	const float clearColor[4] = { 0.f,0.f,0.f,0.f };
 	SetRenderTarget(m_GUIRTT);
-	m_d3d11DevCon->ClearRenderTargetView(m_GUIRTT->m_RTV, clearColor);
+	if(clear)
+		m_d3d11DevCon->ClearRenderTargetView(m_GUIRTT->m_RTV, clearColor);
 
 	SetViewport(0, 0, m_activeWindow->m_clientSize.x, m_activeWindow->m_clientSize.y);
 	SetScissorRect(alVec4f(0, 0, (float32_t)m_activeWindow->m_clientSize.x, (float32_t)m_activeWindow->m_clientSize.y));

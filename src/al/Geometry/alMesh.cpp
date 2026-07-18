@@ -326,7 +326,6 @@ void alMesh::PrintAllInfo(bool onlyPosition)
 			alLog::Print("#%i P[%f][%f][%f]\n", i, ptr->Position.x, ptr->Position.y, ptr->Position.z);
 			if (onlyPosition)
 				break;
-			alLog::Print("#%i N[%f][%f][%f]\n", i, ptr->Normal.x, ptr->Normal.y, ptr->Normal.z);
 			alLog::Print("#%i C[%f][%f][%f]\n", i, ptr->Color.x, ptr->Color.y, ptr->Color.z);
 		}break;
 		case alMeshVertexType::AnimatedLine:
@@ -335,7 +334,6 @@ void alMesh::PrintAllInfo(bool onlyPosition)
 			alLog::Print("#%i P[%f][%f][%f]\n", i, ptr->Position.x, ptr->Position.y, ptr->Position.z);
 			if (onlyPosition)
 				break;
-			alLog::Print("#%i N[%f][%f][%f]\n", i, ptr->Normal.x, ptr->Normal.y, ptr->Normal.z);
 			alLog::Print("#%i C[%f][%f][%f]\n", i, ptr->Color.x, ptr->Color.y, ptr->Color.z);
 			alLog::Print("#%i I[%u][%u][%u][%u]\n", i, ptr->Bones.x, ptr->Bones.y, ptr->Bones.z, ptr->Bones.w);
 			alLog::Print("#%i W[%f][%f][%f][%f]\n", i, ptr->Weights.x, ptr->Weights.y, ptr->Weights.z, ptr->Weights.w);

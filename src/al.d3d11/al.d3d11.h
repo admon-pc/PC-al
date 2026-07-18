@@ -176,7 +176,7 @@ public:
 	virtual void Draw() override;
 	virtual void DrawMeshGUI(alGSMesh* mesh, const alVec2f& offset, const alColor& color) override;
 	virtual void EndDraw() override;
-	virtual void BeginDrawGUI() override;
+	virtual void BeginDrawGUI(bool clear) override;
 	virtual void EndDrawGUI() override;
 	virtual void SwapBuffers() override;
 	virtual void UpdateWindowData() override;
