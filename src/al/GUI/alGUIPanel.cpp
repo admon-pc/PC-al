@@ -15,6 +15,10 @@ alGUIPanel::alGUIPanel(alGUIContext* ct)
 
 alGUIPanel::~alGUIPanel()
 {
+	for (size_t i = 0; i < m_elementsOwn.m_size; ++i)
+	{
+		alDestroy(m_elementsOwn.m_data[i]);
+	}
 }
 
 void alGUIPanel::Draw(float32_t dt)
@@ -64,9 +68,13 @@ void alGUIPanel::Update(float32_t dt)
 	alGUIElement::Update(dt);
 }
 
-void alGUIPanel::AddElement(alGUIElement* e)
+void alGUIPanel::AddElement(alGUIElement* e, bool own)
 {
 	m_elements.push_back(e);
 	e->SetParent(this);
+
+	if(own)
+		m_elementsOwn.push_back(e);
+
 }
 

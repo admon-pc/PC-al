@@ -162,6 +162,12 @@ public:
 	alUnicodeString& operator=(const alUnicodeString&);
 	alUnicodeString& operator=(alUnicodeString&&) noexcept;
 
+	void operator+=(const char* str) { Append(str); }
+	void operator+=(const char8_t* str) { Append(str); }
+	void operator+=(const char16_t* str) { Append(str); }
+	void operator+=(const char32_t* str) { Append(str); }
+
+
 	//m_size = size;
 	void _set_size(size_t size);
 };
