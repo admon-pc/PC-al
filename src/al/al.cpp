@@ -238,15 +238,15 @@ void alLib::InitializeLib()
 	}
 }
 
-bool alLib::GetCursorDisableAutoChange()
-{
-	return g_alLib->m_cursorDisableAutoChange;
-}
+//bool alLib::GetCursorDisableAutoChange()
+//{
+//	return g_alLib->m_cursorDisableAutoChange;
+//}
 
-void alLib::SetCursorDisableAutoChange(bool v)
-{
-	g_alLib->m_cursorDisableAutoChange = v;
-}
+//void alLib::SetCursorDisableAutoChange(bool v)
+//{
+//	g_alLib->m_cursorDisableAutoChange = v;
+//}
 
 alSystemWindow* alLib::CreateSystemWindow(alSystemWindowCallback* cb)
 {

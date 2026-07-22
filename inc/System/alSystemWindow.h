@@ -46,6 +46,7 @@ public:
 	virtual void OnDeactivate(alSystemWindow*) {}
 	virtual void OnPaint(alSystemWindow*) {}
 	virtual alVec2i OnMinMaxInfo(alSystemWindow*) { return alVec2i(800, 600); }
+	virtual void OnSetCursor();
 
 	// if we drop 10 files then 
 	//   num is == 10

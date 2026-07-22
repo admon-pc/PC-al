@@ -24,6 +24,8 @@ public:
 	float32_t DistanceToLine(const alVec4& lineP0, const alVec4& lineP1);
 	void Update();
 	void GetIntersectionPoint(int32_t t, alVec4& ip);
+	void GetIntersectionPoint(float32_t t, alVec4& ip);
+	void GetIntersectionPoint(float64_t t, alVec4& ip);
 	bool PlaneIntersection(const alVec4& planePoint, const alVec4f& planeNormal, float64_t& T);
 };
 

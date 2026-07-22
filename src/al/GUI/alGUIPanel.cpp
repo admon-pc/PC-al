@@ -78,3 +78,14 @@ void alGUIPanel::AddElement(alGUIElement* e, bool own)
 
 }
 
+alGUIElement* alGUIPanel::GetElementByID(uint32_t id)
+{
+	for (size_t i = 0; i < m_elements.m_size; ++i)
+	{
+		if (m_elements.m_data[i]->GetID() == id)
+			return m_elements.m_data[i];
+	}
+
+	return 0;
+}
+

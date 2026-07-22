@@ -156,13 +156,15 @@ public:
 
 	static alCursor* CreateCursor(alCursorType ct, const char* fn);
 	static alCursor* GetCursor(alCursorType ct);
-	static bool GetCursorDisableAutoChange();
+	//static bool GetCursorDisableAutoChange();
 	static void ResetCursor(alCursorType ct);
 	static void SetCursor(alCursorType ct, alCursor* c);
 	static void SetCursorClip(alVec4i* New, alVec4i* Old, alSystemWindow* w);
+	
 	// If you change your cursor, it will be changed again
 	// when you move cursor over border.
-	static void SetCursorDisableAutoChange(bool);
+	//static void SetCursorDisableAutoChange(bool);
+
 	static void ShowCursor(bool v);
 
 	static alGS* CreateGS(alVideoDriverType);

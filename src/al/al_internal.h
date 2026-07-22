@@ -47,7 +47,7 @@ public:
 	~alLibImpl();
 
 	alInput* m_input = 0;
-	bool m_cursorDisableAutoChange = false;
+	//bool m_cursorDisableAutoChange = false;
 	bool m_showCursor = true;
 
 	alSystemWindow* CreateSystemWindow(alSystemWindowCallback*);

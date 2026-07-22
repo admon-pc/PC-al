@@ -122,6 +122,16 @@ void alRay::GetIntersectionPoint(int32_t t, alVec4& ip)
 	ip = m_origin + (float32_t)t * m_direction;
 }
 
+void alRay::GetIntersectionPoint(float32_t t, alVec4& ip)
+{
+	ip = m_origin + t * m_direction;
+}
+
+void alRay::GetIntersectionPoint(float64_t t, alVec4& ip)
+{
+	ip = m_origin + t * m_direction;
+}
+
 bool alRay::PlaneIntersection(const alVec4& planePoint, const alVec4f& planeNormal, float64_t& T)
 {
 	float64_t det = (planeNormal.x * m_direction.x) + (planeNormal.y * m_direction.y) + (planeNormal.z * m_direction.z);

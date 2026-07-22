@@ -2,6 +2,7 @@
 #include "Input/alInput.h"
 #include "System/alSystemWindow.h"
 #include "System/alSystemWindowWin32.h"
+#include "System/alCursor.h"
 
 #include "../al_internal.h"
 extern alLibGlobalData g_alLibGlobalData;
@@ -10,6 +11,14 @@ extern alLibImpl* g_alLib;
 #ifdef AL_PLATFORM_WIN32
 LRESULT CALLBACK alSystemWindow_WndProc(HWND, UINT, WPARAM, LPARAM);
 #endif
+
+// ==================================================
+//                             alSystemWindowCallback
+// ==================================================
+void alSystemWindowCallback::OnSetCursor()
+{
+	g_alLib->m_cursors[(uint32_t)alCursorType::Arrow]->Activate();
+}
 
 // ==================================================
 //                                          alLibImpl
@@ -436,6 +445,10 @@ LRESULT CALLBACK alSystemWindow_WndProc(HWND hWnd, UINT message, WPARAM wParam, 
 	}
 	case WM_PAINT:
 	{
+		PAINTSTRUCT ps;
+		HDC hdc = BeginPaint(hWnd, &ps);
+		EndPaint(hWnd, &ps);
+
 		if (wnd)
 			wnd->GetWindowCallback()->OnPaint(wnd);
 		break;
@@ -448,41 +461,33 @@ LRESULT CALLBACK alSystemWindow_WndProc(HWND hWnd, UINT message, WPARAM wParam, 
 			return TRUE;    // Prevents default cursor handling
 		}
 
-		if (alLib::GetCursorDisableAutoChange())
-			return TRUE;
 		auto id = LOWORD(lParam);
 		switch (id)
 		{
-		default:
-			SetCursor((HCURSOR)alLib::GetCursor(alCursorType::Arrow)->GetHandle());
-			return TRUE;
+		case HTCLIENT:
+		{
+			if (wnd)
+			{
+				wnd->GetWindowCallback()->OnSetCursor();
+				return TRUE;
+			}
+		}break;
 		case HTLEFT:
-			SetCursor((HCURSOR)alLib::GetCursor(alCursorType::SizeWE)->GetHandle());
-			return TRUE;
 		case HTRIGHT:
-			SetCursor((HCURSOR)alLib::GetCursor(alCursorType::SizeWE)->GetHandle());
-			return TRUE;
 		case HTTOP:
-			SetCursor((HCURSOR)alLib::GetCursor(alCursorType::SizeNS)->GetHandle());
-			return TRUE;
+			break;
 		case HTBOTTOM:
-			SetCursor((HCURSOR)alLib::GetCursor(alCursorType::SizeNS)->GetHandle());
-			return TRUE;
+			break;
 		case HTTOPLEFT:
-			SetCursor((HCURSOR)alLib::GetCursor(alCursorType::SizeNWSE)->GetHandle());
-			return TRUE;
+			break;
 		case HTBOTTOMRIGHT:
-			SetCursor((HCURSOR)alLib::GetCursor(alCursorType::SizeNWSE)->GetHandle());
-			return TRUE;
+			break;
 		case HTBOTTOMLEFT:
-			SetCursor((HCURSOR)alLib::GetCursor(alCursorType::SizeNESW)->GetHandle());
-			return TRUE;
+			break;
 		case HTTOPRIGHT:
-			SetCursor((HCURSOR)alLib::GetCursor(alCursorType::SizeNESW)->GetHandle());
-			return TRUE;
+			break;
 		case HTHELP:
-			SetCursor((HCURSOR)alLib::GetCursor(alCursorType::Help)->GetHandle());
-			return TRUE;
+			break;
 		}
 	}break;
 	case WM_SIZE:

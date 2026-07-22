@@ -16,6 +16,7 @@ public:
 	void Rebuild() override;
 
 	void AddElement(alGUIElement* e, bool own = false);
+	alGUIElement* GetElementByID(uint32_t);
 
 	bool m_drawBG = true;
 };
