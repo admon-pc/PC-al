@@ -271,19 +271,12 @@ public:
 	
 	// It will be set by panel
 	// It will be used in aligment calculation
-	alVec4f m_buildAreaOnCreation;
 	void SetPositionAndSize(float32_t pX, float32_t pY, float32_t sX, float32_t sY)
 	{
 		m_position.x = pX;
 		m_position.y = pY;
 		m_size.x = sX;
 		m_size.y = sY;
-
-		// NOT HERE
-		/*m_buildAreaOnCreation.x = pX;
-		m_buildAreaOnCreation.y = pY;
-		m_buildAreaOnCreation.z = pX + sX;
-		m_buildAreaOnCreation.w = pY + sY;*/
 	}
 
 	// for some reason you can change sensor area

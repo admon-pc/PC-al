@@ -73,7 +73,7 @@ void alGUIPanel::AddElement(alGUIElement* e, bool own)
 	m_elements.push_back(e);
 	e->SetParent(this);
 	
-	e->SetPositionAndSize(e->m_position.x, e->m_position.y, e->m_size.x, e->m_size.y);
+	//e->SetPositionAndSize(e->m_position.x, e->m_position.y, e->m_size.x, e->m_size.y);
 
 	if(own)
 		m_elementsOwn.push_back(e);
