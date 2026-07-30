@@ -345,7 +345,7 @@ class alGUITextInput : public alGUIElement
 	};
 	History m_history;
 public:
-	alGUITextInput(alGUIContext* ct);
+	alGUITextInput(alGUIContext* ct, const alVec2f& position, const alVec2f& size);
 	virtual ~alGUITextInput();
 
 	virtual void Draw(float32_t dt) override;

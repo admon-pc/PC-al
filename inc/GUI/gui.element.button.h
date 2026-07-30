@@ -12,7 +12,7 @@ class alGUIButton : public alGUIElement
 	alGSMesh* m_bgMesh = 0;
 	alGSMesh* m_bgMeshBorder = 0;
 public:
-	alGUIButton(alGUIContext* ct);
+	alGUIButton(alGUIContext* ct, const alVec2f& position, const alVec2f& size);
 	virtual ~alGUIButton();
 
 	virtual void Draw(float32_t dt) override;

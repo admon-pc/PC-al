@@ -7,7 +7,7 @@ protected:
 	alVec4f m_pictureBoxBuildRect;
 	alGSTexture* m_texture = 0;
 public:
-	alGUIPictureBox(alGUIContext* ct);
+	alGUIPictureBox(alGUIContext* ct, const alVec2f& position, const alVec2f& size);
 	virtual ~alGUIPictureBox();
 
 	virtual void Draw(float32_t dt) override;

@@ -53,7 +53,7 @@ public:
 	}
 };
 
-#define AL_DECLARE_DEFAULT_ALLOCATOR(x)void* x::operator new(std::size_t s){return alMemory::Malloc(s);}\
-void x::operator delete(void*p){alMemory::Free(p);}
+#define AL_DECLARE_DEFAULT_ALLOCATOR(x) void* operator new(std::size_t s){return alMemory::Malloc(s);}\
+void operator delete(void*p){alMemory::Free(p);}
 
 #endif

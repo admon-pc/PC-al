@@ -6,8 +6,8 @@ class alGUIRangeSlider1 : public alGUIElement
 	class TextInput : public alGUITextInput
 	{
 	public:
-		TextInput(alGUIContext* ct) :
-			alGUITextInput(ct)
+		TextInput(alGUIContext* ct, const alVec2f& position, const alVec2f& size) :
+			alGUITextInput(ct,position,size)
 		{}
 		virtual ~TextInput() {}
 
@@ -52,7 +52,7 @@ protected:
 	
 	bool m_isClicked = false;
 public:
-	alGUIRangeSlider1(alGUIContext* ct);
+	alGUIRangeSlider1(alGUIContext* ct, const alVec2f& position, const alVec2f& size);
 	virtual ~alGUIRangeSlider1();
 
 	virtual void Draw(float32_t dt) override;

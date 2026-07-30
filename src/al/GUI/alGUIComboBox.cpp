@@ -7,9 +7,9 @@
 #include "../al_internal.h"
 extern alLibGlobalData g_alLibGlobalData;
 
-alGUIComboBox::alGUIComboBox(alGUIContext* ct)
+alGUIComboBox::alGUIComboBox(alGUIContext* ct, const alVec2f& position, const alVec2f& size)
 	:
-	alGUIElement(ct)
+	alGUIElement(ct,position,size)
 {
 	//m_popup = alCreate<alGUIPopup>(ct);
 	SetFont(alLib::GetDefaultFont());

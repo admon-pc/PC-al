@@ -7,9 +7,9 @@
 #include "../al_internal.h"
 extern alLibGlobalData g_alLibGlobalData;
 
-alGUIPanel::alGUIPanel(alGUIContext* ct)
+alGUIPanel::alGUIPanel(alGUIContext* ct, const alVec2f& position, const alVec2f& size)
 	:
-	alGUIElement(ct)
+	alGUIElement(ct,position,size)
 {
 }
 
@@ -41,7 +41,7 @@ void alGUIPanel::Draw(float32_t dt)
 void alGUIPanel::Rebuild()
 {
 	alGUIElement::Rebuild();
-
+	alGUIElement::UpdateTransform();
 
 	for (size_t i = 0; i < m_elements.m_size; ++i)
 	{
@@ -72,6 +72,8 @@ void alGUIPanel::AddElement(alGUIElement* e, bool own)
 {
 	m_elements.push_back(e);
 	e->SetParent(this);
+	
+	e->SetPositionAndSize(e->m_position.x, e->m_position.y, e->m_size.x, e->m_size.y);
 
 	if(own)
 		m_elementsOwn.push_back(e);

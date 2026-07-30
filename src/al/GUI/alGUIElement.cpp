@@ -7,14 +7,20 @@
 #include "../al_internal.h"
 extern alLibGlobalData g_alLibGlobalData;
 
-alGUIElement::alGUIElement(alGUIContext* ctx) 
+alGUIElement::alGUIElement(alGUIContext* ctx, const alVec2f& position, const alVec2f& size)
 	:
-	m_context(ctx)
+	m_context(ctx),
+	m_position(position),
+	m_size(size)
 {
 	m_gs = m_context->GetGS();
 	m_input = alLib::GetInput();
 	m_colorTheme = alLib::GetDefaultColorTheme();
 
+	m_buildAreaOnCreation.x = position.x;
+	m_buildAreaOnCreation.y = position.y;
+	m_buildAreaOnCreation.z = position.x + size.x;
+	m_buildAreaOnCreation.w = position.y + size.y;
 }
 
 void alGUIElement::Update(float32_t dt)
@@ -110,18 +116,66 @@ void alGUIElement::Update(float32_t dt)
 
 void alGUIElement::Rebuild()
 {
-	m_buildArea.x = m_position.x;
+	m_buildArea = m_buildAreaOnCreation;
+	if (m_parent)
+	{
+		/*m_buildArea.x += m_parent->m_buildArea.x;
+		m_buildArea.y += m_parent->m_buildArea.y;
+		m_buildArea.z += m_parent->m_buildArea.x;
+		m_buildArea.w += m_parent->m_buildArea.y;*/
+		float32_t parentRectSizeX_1 = 1.f / (m_parent->m_buildArea.z - m_parent->m_buildArea.x);
+		float32_t parentRectSizeY_1 = 1.f / (m_parent->m_buildArea.w - m_parent->m_buildArea.y);
+
+		float32_t parentCreationCenter_X = m_parent->m_buildAreaOnCreation.x +
+			((m_parent->m_buildAreaOnCreation.z - m_parent->m_buildAreaOnCreation.x) * 0.5f);
+		float32_t parentCreationCenter_Y = m_parent->m_buildAreaOnCreation.y +
+			((m_parent->m_buildAreaOnCreation.w - m_parent->m_buildAreaOnCreation.y) * 0.5f);
+
+		float32_t parentCurrentCenter_X = m_parent->m_buildArea.x +
+			((m_parent->m_buildArea.z - m_parent->m_buildArea.x) * 0.5f);
+		float32_t parentCurrentCenter_Y = m_parent->m_buildArea.y +
+			((m_parent->m_buildArea.w - m_parent->m_buildArea.y) * 0.5f);
+
+		float32_t parentRectSizeDiff_X = parentCurrentCenter_X - parentCreationCenter_X;
+		float32_t parentRectSizeDiff_Y = parentCurrentCenter_Y - parentCreationCenter_Y;
+		switch (m_alignment)
+		{
+		default:
+		case alGUIElementAlignment::LeftTop:
+			break;
+		case alGUIElementAlignment::RightTop:
+			m_buildArea.x = m_parent->m_buildArea.z - (m_parent->m_buildAreaOnCreation.z - m_buildAreaOnCreation.x);
+			m_buildArea.z = m_parent->m_buildArea.z - (m_parent->m_buildAreaOnCreation.z - m_buildAreaOnCreation.z);
+			break;
+		case alGUIElementAlignment::LeftBottom:
+			break;
+		case alGUIElementAlignment::RightBottom:
+			break;
+		case alGUIElementAlignment::Center:
+			break;
+		case alGUIElementAlignment::Top:
+			break;
+		case alGUIElementAlignment::Left:
+			break;
+		case alGUIElementAlignment::Right:
+			break;
+		case alGUIElementAlignment::Bottom:
+			break;
+		}
+	}
+
+	/*m_buildArea.x = m_position.x;
 	m_buildArea.y = m_position.y;
 	m_buildArea.z = m_buildArea.x + m_size.x;
-	m_buildArea.w = m_buildArea.y + m_size.y;
+	m_buildArea.w = m_buildArea.y + m_size.y;*/
 
-	if (m_parent)
+	/*if (m_parent)
 	{
 		m_buildArea.x += m_parent->m_buildArea.x;
 		m_buildArea.y += m_parent->m_buildArea.y;
 		m_buildArea.z = m_buildArea.x + m_size.x;
 		m_buildArea.w = m_buildArea.y + m_size.y;
-	}
+	}*/
 
 	m_sensorArea = m_buildArea;
 	m_sensorArea += m_sensorAreaIndent;
@@ -161,4 +215,5 @@ void alGUIElement::Rebuild()
 		m_sensorArea.z = m_context->GetWindow()->m_clientSize.x;
 	if (m_sensorArea.w > m_context->GetWindow()->m_clientSize.y)
 		m_sensorArea.w = m_context->GetWindow()->m_clientSize.y;
+
 }

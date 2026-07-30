@@ -7,9 +7,9 @@
 #include "../al_internal.h"
 extern alLibGlobalData g_alLibGlobalData;
 
-alGUIButton::alGUIButton(alGUIContext* ct)
+alGUIButton::alGUIButton(alGUIContext* ct, const alVec2f& position, const alVec2f& size)
 	:
-	alGUIElement(ct)
+	alGUIElement(ct, position, size)
 {
 	m_font = alLib::GetDefaultFont();
 	m_currColBG1 = m_colorTheme->m_button_bg1_enabled;

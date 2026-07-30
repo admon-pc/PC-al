@@ -158,47 +158,35 @@ bool DemoExample_gui_all::Init()
 		AL_DESTROY(img);
 	}
 
-	m_textObject1 = alCreate<DemoExample_gui_all_testTextObject>(g_demo->m_GUI);
+	m_textObject1 = new DemoExample_gui_all_testTextObject(g_demo->m_GUI, alVec2f(0.f, 0.f), alVec2f(0.f, 0.f));
 	m_textObject1->SetText(U"This is text object");
 	m_textObject1->SetFont(g_demo->m_guiFont);
-	m_textObject2minifont = alCreate<DemoExample_gui_all_testTextObject>(g_demo->m_GUI);
+	m_textObject2minifont = new DemoExample_gui_all_testTextObject(g_demo->m_GUI, alVec2f(0.f, g_demo->m_guiFont->m_maxHeight), alVec2f());
 	m_textObject2minifont->SetText(U"This is text object with small default font");
 	m_textObject2minifont->SetFont(g_demo->m_guiFontMini);
-	m_textObject2minifont->m_position.y = g_demo->m_guiFont->m_maxHeight;
 
-	m_textObject2 = alCreate<DemoExample_gui_all_testTextObject>(g_demo->m_GUI);
+	m_textObject2 = new DemoExample_gui_all_testTextObject(g_demo->m_GUI, alVec2f(0.f, 240), alVec2f());
 	m_textObject2->SetText(U"Text object");
 	m_textObject2->SetFont(g_demo->m_guiFont);
 	m_textObject2->SetID(1);
-	m_textObject2->m_position.y = 240;
 	m_textObject2->SetUserData(this);
 
 	if (m_texture)
 	{
-		m_pictureBox = alCreate<DemoExample_gui_all_pictureBox>(g_demo->m_GUI);
-		m_pictureBox->m_position.x = 0;
-		m_pictureBox->m_position.y = 300;
-		m_pictureBox->m_size.x = 256;
-		m_pictureBox->m_size.y = 224;
+		m_pictureBox = new DemoExample_gui_all_pictureBox(g_demo->m_GUI, alVec2f(0,300), alVec2f(256,224));
 		m_pictureBox->SetTexture(m_texture);
 	}
 
-	m_button1 = alCreate<DemoExample_gui_all_TestButton>(g_demo->m_GUI);
-	m_button1->m_position.Set(0.f, 525);
-	m_button1->m_size.Set(200.f, 30.f);
+	m_button1 = new DemoExample_gui_all_TestButton(g_demo->m_GUI, alVec2f(0.f, 525), alVec2f(200.f, 30.f));
 	m_button1->SetText(U"Button");
 	m_button1->SetFont(g_demo->m_guiFont);
 
-	m_button2 = alCreate<DemoExample_gui_all_TestButton>(g_demo->m_GUI);
-	m_button2->m_position.Set(0.f, 555);
-	m_button2->m_size.Set(200.f, 30.f);
+	m_button2 = new DemoExample_gui_all_TestButton(g_demo->m_GUI, alVec2f(0.f, 555), alVec2f(200.f, 30.f));
 	m_button2->SetText(U"m_lerpColors = true");
 	m_button2->SetFont(g_demo->m_guiFont);
 	m_button2->m_lerpColors = true;
 
-	m_button3 = alCreate<DemoExample_gui_all_TestButton>(g_demo->m_GUI);
-	m_button3->m_position.Set(10.f, 590);
-	m_button3->m_size.Set(200.f, 30.f);
+	m_button3 = new DemoExample_gui_all_TestButton(g_demo->m_GUI, alVec2f(10.f, 590), alVec2f(200.f, 30.f));
 	m_button3->SetText(U"round;size:6;iterations:3");
 	m_button3->SetFont(g_demo->m_guiFont);
 	m_button3->m_lerpColors = true;
@@ -206,9 +194,7 @@ bool DemoExample_gui_all::Init()
 	m_button3->m_roundIterations = 3;
 	m_button3->m_roundSize = 6;
 
-	m_button4 = alCreate<DemoExample_gui_all_TestButton>(g_demo->m_GUI);
-	m_button4->m_position.Set(10.f, 630);
-	m_button4->m_size.Set(200.f, 40.f);
+	m_button4 = new DemoExample_gui_all_TestButton(g_demo->m_GUI, alVec2f(10.f, 630), alVec2f(200.f, 40.f));
 	m_button4->SetText(U"round;size:15;iterations:3");
 	m_button4->SetFont(g_demo->m_guiFont);
 	m_button4->m_lerpColors = true;
@@ -216,9 +202,7 @@ bool DemoExample_gui_all::Init()
 	m_button4->m_roundIterations = 3;
 	m_button4->m_roundSize = 15;
 
-	m_button5 = alCreate<DemoExample_gui_all_TestButton>(g_demo->m_GUI);
-	m_button5->m_position.Set(210.f, 630);
-	m_button5->m_size.Set(200.f, 40.f);
+	m_button5 = new DemoExample_gui_all_TestButton(g_demo->m_GUI, alVec2f(210.f, 630), alVec2f(200.f, 40.f));
 	m_button5->SetText(U"round;size:15;iterations:4");
 	m_button5->SetFont(g_demo->m_guiFont);
 	m_button5->m_lerpColors = true;
@@ -226,9 +210,7 @@ bool DemoExample_gui_all::Init()
 	m_button5->m_roundIterations = 4;
 	m_button5->m_roundSize = 15;
 
-	m_button6 = alCreate<DemoExample_gui_all_TestButton>(g_demo->m_GUI);
-	m_button6->m_position.Set(410.f, 630);
-	m_button6->m_size.Set(200.f, 40.f);
+	m_button6 = new DemoExample_gui_all_TestButton(g_demo->m_GUI, alVec2f(410.f, 630), alVec2f(200.f, 40.f));
 	m_button6->SetText(U"Close Demo");
 	m_button6->SetFont(g_demo->m_guiFont);
 	m_button6->SetID(1);
@@ -239,9 +221,7 @@ bool DemoExample_gui_all::Init()
 	m_button6->m_borderSize = 2;
 	m_button6->SetUserData(this);
 
-	m_buttonToggle = alCreate<DemoExample_gui_all_TestButton>(g_demo->m_GUI);
-	m_buttonToggle->m_position.Set(210.f, 525);
-	m_buttonToggle->m_size.Set(200.f, 30.f);
+	m_buttonToggle = new DemoExample_gui_all_TestButton(g_demo->m_GUI, alVec2f(210.f, 525), alVec2f(200.f, 30.f));
 	m_buttonToggle->SetText(U"Toggle Button");
 	m_buttonToggle->SetFont(g_demo->m_guiFont);
 	m_buttonToggle->m_toggleButton = true;
@@ -257,28 +237,20 @@ bool DemoExample_gui_all::Init()
 	uint32_t iconIndex_iconCheck1 = m_textureAtlas->AddUV(alVec2u(14, 0), alVec2u(14, 14));
 	uint32_t iconIndex_iconCheck2 = m_textureAtlas->AddUV(alVec2u(28, 0), alVec2u(14, 14));
 
-	m_buttonIcon1 = alCreate<DemoExample_gui_all_TestButtonIcon>(g_demo->m_GUI, m_textureAtlas, iconIndex_iconBase);
-	m_buttonIcon1->m_position.Set(260.f, 350);
-	m_buttonIcon1->m_size.Set(14.f, 14.f);
+	m_buttonIcon1 = new DemoExample_gui_all_TestButtonIcon(g_demo->m_GUI, m_textureAtlas, iconIndex_iconBase, alVec2f(260.f, 350), alVec2f(14.f, 14.f));
 	m_buttonIcon1->m_lerpColors = true;
 
-	m_buttonIcon2 = alCreate<DemoExample_gui_all_TestButtonIcon>(g_demo->m_GUI, m_textureAtlas, iconIndex_iconBase);
-	m_buttonIcon2->m_position.Set(260.f, 365);
-	m_buttonIcon2->m_size.Set(14.f, 14.f);
+	m_buttonIcon2 = new DemoExample_gui_all_TestButtonIcon(g_demo->m_GUI, m_textureAtlas, iconIndex_iconBase, alVec2f(260.f, 365), alVec2f(14.f, 14.f));
 	m_buttonIcon2->m_lerpColors = true;
 	m_buttonIcon2->m_toggleButton = true;
 
-	m_buttonIcon3 = alCreate<DemoExample_gui_all_TestButtonIcon>(g_demo->m_GUI, m_textureAtlas, iconIndex_iconBase);
-	m_buttonIcon3->m_position.Set(260.f, 380);
-	m_buttonIcon3->m_size.Set(14.f, 14.f);
+	m_buttonIcon3 = new DemoExample_gui_all_TestButtonIcon(g_demo->m_GUI, m_textureAtlas, iconIndex_iconBase, alVec2f(260.f, 380), alVec2f(14.f, 14.f));
 	m_buttonIcon3->m_lerpColors = true;
 	m_buttonIcon3->m_toggleButton = true;
 	m_buttonIcon3->m_iconIndexMouseHover = iconIndex_iconCheck1;
 	m_buttonIcon3->m_iconIndexPress = iconIndex_iconCheck2;
 
-	m_buttonIcon3textR = alCreate<DemoExample_gui_all_TestButtonIcon>(g_demo->m_GUI, m_textureAtlas, iconIndex_iconBase);
-	m_buttonIcon3textR->m_position.Set(260.f, 395.f);
-	m_buttonIcon3textR->m_size.Set(14.f, 14.f);
+	m_buttonIcon3textR = new DemoExample_gui_all_TestButtonIcon(g_demo->m_GUI, m_textureAtlas, iconIndex_iconBase, alVec2f(260.f, 395.f), alVec2f(14.f, 14.f));
 	m_buttonIcon3textR->m_lerpColors = true;
 	m_buttonIcon3textR->m_toggleButton = true;
 	m_buttonIcon3textR->m_iconIndexMouseHover = iconIndex_iconCheck1;
@@ -287,9 +259,7 @@ bool DemoExample_gui_all::Init()
 	m_buttonIcon3textR->SetText(U"Checkbox");
 	m_buttonIcon3textR->SetFont(g_demo->m_guiFontMini);
 
-	m_buttonIconRadio1_1 = alCreate<DemoExample_gui_all_TestButtonIcon>(g_demo->m_GUI, m_textureAtlas, iconIndex_iconBase);
-	m_buttonIconRadio1_1->m_position.Set(260.f, 410.f);
-	m_buttonIconRadio1_1->m_size.Set(14.f, 14.f);
+	m_buttonIconRadio1_1 = new DemoExample_gui_all_TestButtonIcon(g_demo->m_GUI, m_textureAtlas, iconIndex_iconBase, alVec2f(260.f, 410.f), alVec2f(14.f, 14.f));
 	m_buttonIconRadio1_1->m_lerpColors = true;
 	m_buttonIconRadio1_1->m_toggleButton = true;
 	m_buttonIconRadio1_1->m_iconIndexMouseHover = iconIndex_iconCheck1;
@@ -300,9 +270,7 @@ bool DemoExample_gui_all::Init()
 	m_buttonIconRadio1_1->SetFont(g_demo->m_guiFontMini);
 	m_buttonIconRadio1_1->RadioCheck();
 
-	m_buttonIconRadio2_1 = alCreate<DemoExample_gui_all_TestButtonIcon>(g_demo->m_GUI, m_textureAtlas, iconIndex_iconBase);
-	m_buttonIconRadio2_1->m_position.Set(260.f, 425.f);
-	m_buttonIconRadio2_1->m_size.Set(14.f, 14.f);
+	m_buttonIconRadio2_1 = new DemoExample_gui_all_TestButtonIcon(g_demo->m_GUI, m_textureAtlas, iconIndex_iconBase, alVec2f(260.f, 425.f), alVec2f(14.f, 14.f));
 	m_buttonIconRadio2_1->m_lerpColors = true;
 	m_buttonIconRadio2_1->m_toggleButton = true;
 	m_buttonIconRadio2_1->m_iconIndexMouseHover = iconIndex_iconCheck1;
@@ -312,9 +280,7 @@ bool DemoExample_gui_all::Init()
 	m_buttonIconRadio2_1->SetText(U"Group 1");
 	m_buttonIconRadio2_1->SetFont(g_demo->m_guiFontMini);
 
-	m_buttonIconRadio3_1 = alCreate<DemoExample_gui_all_TestButtonIcon>(g_demo->m_GUI, m_textureAtlas, iconIndex_iconBase);
-	m_buttonIconRadio3_1->m_position.Set(260.f, 440.f);
-	m_buttonIconRadio3_1->m_size.Set(14.f, 14.f);
+	m_buttonIconRadio3_1 = new DemoExample_gui_all_TestButtonIcon(g_demo->m_GUI, m_textureAtlas, iconIndex_iconBase, alVec2f(260.f, 440.f), alVec2f(14.f, 14.f));
 	m_buttonIconRadio3_1->m_lerpColors = true;
 	m_buttonIconRadio3_1->m_toggleButton = true;
 	m_buttonIconRadio3_1->m_iconIndexMouseHover = iconIndex_iconCheck1;
@@ -324,9 +290,7 @@ bool DemoExample_gui_all::Init()
 	m_buttonIconRadio3_1->SetText(U"Group 1");
 	m_buttonIconRadio3_1->SetFont(g_demo->m_guiFontMini);
 
-	m_buttonIconRadio1_2 = alCreate<DemoExample_gui_all_TestButtonIcon>(g_demo->m_GUI, m_textureAtlas, iconIndex_iconBase);
-	m_buttonIconRadio1_2->m_position.Set(360.f, 410.f);
-	m_buttonIconRadio1_2->m_size.Set(14.f, 14.f);
+	m_buttonIconRadio1_2 = new DemoExample_gui_all_TestButtonIcon(g_demo->m_GUI, m_textureAtlas, iconIndex_iconBase, alVec2f(360.f, 410.f), alVec2f(14.f, 14.f));
 	m_buttonIconRadio1_2->m_lerpColors = true;
 	m_buttonIconRadio1_2->m_toggleButton = true;
 	m_buttonIconRadio1_2->m_iconIndexMouseHover = iconIndex_iconCheck1;
@@ -339,9 +303,7 @@ bool DemoExample_gui_all::Init()
 	m_buttonIconRadio1_2->SetFont(g_demo->m_guiFontMini);
 	m_buttonIconRadio1_2->RadioCheck();
 
-	m_buttonIconRadio2_2 = alCreate<DemoExample_gui_all_TestButtonIcon>(g_demo->m_GUI, m_textureAtlas, iconIndex_iconBase);
-	m_buttonIconRadio2_2->m_position.Set(360.f, 425.f);
-	m_buttonIconRadio2_2->m_size.Set(14.f, 14.f);
+	m_buttonIconRadio2_2 = new DemoExample_gui_all_TestButtonIcon(g_demo->m_GUI, m_textureAtlas, iconIndex_iconBase, alVec2f(360.f, 425.f), alVec2f(14.f, 14.f));
 	m_buttonIconRadio2_2->m_lerpColors = true;
 	m_buttonIconRadio2_2->m_toggleButton = true;
 	m_buttonIconRadio2_2->m_iconIndexMouseHover = iconIndex_iconCheck1;
@@ -352,9 +314,7 @@ bool DemoExample_gui_all::Init()
 	m_buttonIconRadio2_2->m_radioGroup = 1;
 	m_buttonIconRadio2_2->SetFont(g_demo->m_guiFontMini);
 
-	m_buttonIconRadio3_2 = alCreate<DemoExample_gui_all_TestButtonIcon>(g_demo->m_GUI, m_textureAtlas, iconIndex_iconBase);
-	m_buttonIconRadio3_2->m_position.Set(360.f, 440.f);
-	m_buttonIconRadio3_2->m_size.Set(14.f, 14.f);
+	m_buttonIconRadio3_2 = new DemoExample_gui_all_TestButtonIcon(g_demo->m_GUI, m_textureAtlas, iconIndex_iconBase, alVec2f(360.f, 440.f), alVec2f(14.f, 14.f));
 	m_buttonIconRadio3_2->m_lerpColors = true;
 	m_buttonIconRadio3_2->m_toggleButton = true;
 	m_buttonIconRadio3_2->m_iconIndexMouseHover = iconIndex_iconCheck1;
@@ -365,7 +325,9 @@ bool DemoExample_gui_all::Init()
 	m_buttonIconRadio3_2->m_radioGroup = 1;
 	m_buttonIconRadio3_2->SetFont(g_demo->m_guiFontMini);
 
-	m_GUIPanel = g_demo->m_GUI->GetNewPanel();
+	m_GUIPanel = g_demo->m_GUI->GetNewPanel(alVec2f(0.f, 0.f),
+		alVec2f(g_demo->m_mainWindow->m_clientSize.x,
+			g_demo->m_mainWindow->m_clientSize.y));
 	m_GUIPanel->AddElement(m_buttonIconRadio1_1);
 	m_GUIPanel->AddElement(m_buttonIconRadio2_1);
 	m_GUIPanel->AddElement(m_buttonIconRadio3_1);
@@ -388,10 +350,6 @@ bool DemoExample_gui_all::Init()
 	m_GUIPanel->AddElement(m_textObject2);
 	m_GUIPanel->AddElement(m_pictureBox);
 	m_GUIPanel->m_drawBG = false;
-	m_GUIPanel->m_position.Set(0.f, 0.f);
-	
-	m_GUIPanel->m_size.Set(g_demo->m_mainWindow->m_clientSize.x,
-		g_demo->m_mainWindow->m_clientSize.y);
 	m_GUIPanel->Rebuild();
 
 	

@@ -7,9 +7,9 @@
 #include "../al_internal.h"
 extern alLibGlobalData g_alLibGlobalData;
 
-alGUIListBox::alGUIListBox(alGUIContext* ct)
+alGUIListBox::alGUIListBox(alGUIContext* ct, const alVec2f& position, const alVec2f& size)
 	:
-	alGUIElement(ct)
+	alGUIElement(ct,position,size)
 {
 	SetFont(alLib::GetDefaultFont());
 	m_itemHeight = 10.f;

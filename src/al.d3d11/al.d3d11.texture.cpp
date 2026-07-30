@@ -245,7 +245,7 @@ void alD3D11Texture::OnCreate()
 		D3D11_TEXTURE2D_DESC	DSD;
 		ZeroMemory(&DSD, sizeof(DSD));
 		DSD.Width = m_textureInfo.m_width;
-		DSD.Height = m_textureInfo.m_width;
+		DSD.Height = m_textureInfo.m_height;
 		DSD.MipLevels = 1;
 		DSD.ArraySize = 1;
 		DSD.Format = DXGI_FORMAT_D32_FLOAT;

@@ -7,9 +7,9 @@
 #include "../al_internal.h"
 extern alLibGlobalData g_alLibGlobalData;
 
-alGUIButtonIcon::alGUIButtonIcon(alGUIContext* ct, alGUITextureAtlas* ta, uint32_t iconIndex)
+alGUIButtonIcon::alGUIButtonIcon(alGUIContext* ct, alGUITextureAtlas* ta, uint32_t iconIndex, const alVec2f& position, const alVec2f& size)
 	:
-	alGUIElement(ct),
+	alGUIElement(ct,position,size),
 	m_textureAtlas(ta)
 {
 	m_iconIndexBase = iconIndex;

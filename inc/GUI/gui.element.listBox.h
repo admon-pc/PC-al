@@ -34,7 +34,7 @@ protected:
 	float m_scrollTimer = 0.f;
 
 public:
-	alGUIListBox(alGUIContext* ct);
+	alGUIListBox(alGUIContext* ct, const alVec2f& position, const alVec2f& size);
 	virtual ~alGUIListBox();
 
 	virtual void Draw(float32_t dt) override;

@@ -76,12 +76,9 @@ bool DemoExample_genMesh::Init()
 		AL_DESTROY(mesh);
 	}
 
-	m_GUIPanel = g_demo->m_GUI->GetNewPanel();
+	m_GUIPanel = g_demo->m_GUI->GetNewPanel(alVec2f(), alVec2f(g_demo->m_mainWindow->m_clientSize.x,
+		g_demo->m_mainWindow->m_clientSize.y));
 	m_GUIPanel->m_drawBG = false;
-	m_GUIPanel->m_position.Set(0.f, 0.f);
-	
-	m_GUIPanel->m_size.Set(g_demo->m_mainWindow->m_clientSize.x,
-		g_demo->m_mainWindow->m_clientSize.y);
 	m_GUIPanel->Rebuild();
 
 	return true;

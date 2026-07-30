@@ -7,9 +7,9 @@
 #include "../al_internal.h"
 extern alLibGlobalData g_alLibGlobalData;
 
-alGUIText::alGUIText(alGUIContext* ct)
+alGUIText::alGUIText(alGUIContext* ct, const alVec2f& position, const alVec2f& size)
 	:
-	alGUIElement(ct)
+	alGUIElement(ct,position,size)
 {
 	m_font = alLib::GetDefaultFont();
 }
@@ -44,6 +44,9 @@ void alGUIText::Rebuild()
 	{
 		m_size.x = m_font->GetTextLength(m_text.Data(), textSz);
 		m_size.y = m_font->m_maxHeight;
+
+		m_buildAreaOnCreation.z = m_buildAreaOnCreation.x + m_size.x;
+		m_buildAreaOnCreation.w = m_buildAreaOnCreation.y + m_size.y;
 	}
 
 	alGUIElement::Rebuild();

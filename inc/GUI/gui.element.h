@@ -22,7 +22,7 @@ protected:
 	alGS* m_gs = 0;
 	alInput* m_input = 0;
 public:
-	alGUIElement(alGUIContext* ctx);
+	alGUIElement(alGUIContext* ctx, const alVec2f& position, const alVec2f& size);
 	virtual ~alGUIElement() {}
 
 	alGUIColorTheme* m_colorTheme = 0;
@@ -94,38 +94,37 @@ public:
 		}*/
 
 	//	m_offsetTransformed = m_offset;
-
 		//if (m_parent)
 		//{
 
 		////	m_offsetTransformed += m_parent->m_offsetTransformed;
 
-		//	m_buildAreaTransformed.x += m_parent->m_buildAreaTransformed.x;
-		//	m_buildAreaTransformed.y += m_parent->m_buildAreaTransformed.y;
-		//	m_buildAreaTransformed.z += m_parent->m_buildAreaTransformed.x;
-		//	m_buildAreaTransformed.w += m_parent->m_buildAreaTransformed.y;
-		//	m_sensorAreaTransformed.x += m_parent->m_sensorAreaTransformed.x;
-		//	m_sensorAreaTransformed.y += m_parent->m_sensorAreaTransformed.y;
-		//	m_sensorAreaTransformed.z += m_parent->m_sensorAreaTransformed.x;
-		//	m_sensorAreaTransformed.w += m_parent->m_sensorAreaTransformed.y;
-		//	m_clipAreaTransformed.x += m_parent->m_clipAreaTransformed.x;
-		//	m_clipAreaTransformed.y += m_parent->m_clipAreaTransformed.y;
-		//	m_clipAreaTransformed.z += m_parent->m_clipAreaTransformed.x;
-		//	m_clipAreaTransformed.w += m_parent->m_clipAreaTransformed.y;
+		//	m_buildArea.x += m_parent->m_buildArea.x;
+		//	m_buildArea.y += m_parent->m_buildArea.y;
+		//	m_buildArea.z += m_parent->m_buildArea.x;
+		//	m_buildArea.w += m_parent->m_buildArea.y;
+		//	m_sensorArea.x += m_parent->m_sensorArea.x;
+		//	m_sensorArea.y += m_parent->m_sensorArea.y;
+		//	m_sensorArea.z += m_parent->m_sensorArea.x;
+		//	m_sensorArea.w += m_parent->m_sensorArea.y;
+		//	m_clipArea.x += m_parent->m_clipArea.x;
+		//	m_clipArea.y += m_parent->m_clipArea.y;
+		//	m_clipArea.z += m_parent->m_clipArea.x;
+		//	m_clipArea.w += m_parent->m_clipArea.y;
 
 
-		//	float32_t parentRectSizeX_1 = 1.f / (m_parent->m_buildAreaTransformed.z - m_parent->m_buildAreaTransformed.x);
-		//	float32_t parentRectSizeY_1 = 1.f / (m_parent->m_buildAreaTransformed.w - m_parent->m_buildAreaTransformed.y);
+		//	float32_t parentRectSizeX_1 = 1.f / (m_parent->m_buildArea.z - m_parent->m_buildArea.x);
+		//	float32_t parentRectSizeY_1 = 1.f / (m_parent->m_buildArea.w - m_parent->m_buildArea.y);
 
-		//	float32_t parentCreationCenter_X = m_parent->m_buildArea.x +
+		//	float32_t parentCreationCenter_X = m_parent->m_buildAreaOnCreation.x +
+		//		((m_parent->m_buildAreaOnCreation.z - m_parent->m_buildAreaOnCreation.x) * 0.5f);
+		//	float32_t parentCreationCenter_Y = m_parent->m_buildAreaOnCreation.y +
+		//		((m_parent->m_buildAreaOnCreation.w - m_parent->m_buildAreaOnCreation.y) * 0.5f);
+
+		//	float32_t parentCurrentCenter_X = m_parent->m_buildArea.x +
 		//		((m_parent->m_buildArea.z - m_parent->m_buildArea.x) * 0.5f);
-		//	float32_t parentCreationCenter_Y = m_parent->m_buildArea.y +
+		//	float32_t parentCurrentCenter_Y = m_parent->m_buildArea.y +
 		//		((m_parent->m_buildArea.w - m_parent->m_buildArea.y) * 0.5f);
-
-		//	float32_t parentCurrentCenter_X = m_parent->m_buildAreaTransformed.x +
-		//		((m_parent->m_buildAreaTransformed.z - m_parent->m_buildAreaTransformed.x) * 0.5f);
-		//	float32_t parentCurrentCenter_Y = m_parent->m_buildAreaTransformed.y +
-		//		((m_parent->m_buildAreaTransformed.w - m_parent->m_buildAreaTransformed.y) * 0.5f);
 
 		//	float32_t parentRectSizeDiff_X = parentCurrentCenter_X - parentCreationCenter_X;
 		//	float32_t parentRectSizeDiff_Y = parentCurrentCenter_Y - parentCreationCenter_Y;
@@ -137,123 +136,123 @@ public:
 		//	case alGUIElementAlignment::LeftTop:
 		//		break;
 		//	case alGUIElementAlignment::RightTop:
-		//		m_buildAreaTransformed.x = m_parent->m_buildAreaTransformed.z - (m_parent->m_buildArea.z - m_buildArea.x);
-		//		m_buildAreaTransformed.z = m_parent->m_buildAreaTransformed.z - (m_parent->m_buildArea.z - m_buildArea.z);
+		//		m_buildArea.x = m_parent->m_buildArea.z - (m_parent->m_buildAreaOnCreation.z - m_buildAreaOnCreation.x);
+		//		m_buildArea.z = m_parent->m_buildArea.z - (m_parent->m_buildAreaOnCreation.z - m_buildAreaOnCreation.z);
 
-		//		m_sensorAreaTransformed.x = m_buildAreaTransformed.x;
-		//		m_sensorAreaTransformed.z = m_buildAreaTransformed.z;
+		//		m_sensorArea.x = m_buildArea.x;
+		//		m_sensorArea.z = m_buildArea.z;
 
-		//		m_clipAreaTransformed.x = m_buildAreaTransformed.x;
-		//		m_clipAreaTransformed.z = m_buildAreaTransformed.z;
+		//		m_clipArea.x = m_buildArea.x;
+		//		m_clipArea.z = m_buildArea.z;
 		//		break;
 		//	case alGUIElementAlignment::LeftBottom:
-		//		m_buildAreaTransformed.y = m_parent->m_buildAreaTransformed.w - (m_parent->m_buildArea.w - m_buildArea.y);
-		//		m_buildAreaTransformed.w = m_parent->m_buildAreaTransformed.w - (m_parent->m_buildArea.w - m_buildArea.w);
+		//		m_buildArea.y = m_parent->m_buildArea.w - (m_parent->m_buildAreaOnCreation.w - m_buildAreaOnCreation.y);
+		//		m_buildArea.w = m_parent->m_buildArea.w - (m_parent->m_buildAreaOnCreation.w - m_buildAreaOnCreation.w);
 
-		//		m_sensorAreaTransformed.y = m_buildAreaTransformed.y;
-		//		m_sensorAreaTransformed.w = m_buildAreaTransformed.w;
+		//		m_sensorArea.y = m_buildArea.y;
+		//		m_sensorArea.w = m_buildArea.w;
 
-		//		m_clipAreaTransformed.y = m_buildAreaTransformed.y;
-		//		m_clipAreaTransformed.w = m_buildAreaTransformed.w;
+		//		m_clipArea.y = m_buildArea.y;
+		//		m_clipArea.w = m_buildArea.w;
 		//		break;
 		//	case alGUIElementAlignment::RightBottom:
-		//		m_buildAreaTransformed.x = m_parent->m_buildAreaTransformed.z - (m_parent->m_buildArea.z - m_buildArea.x);
-		//		m_buildAreaTransformed.y = m_parent->m_buildAreaTransformed.w - (m_parent->m_buildArea.w - m_buildArea.y);
-		//		m_buildAreaTransformed.z = m_parent->m_buildAreaTransformed.z - (m_parent->m_buildArea.z - m_buildArea.z);
-		//		m_buildAreaTransformed.w = m_parent->m_buildAreaTransformed.w - (m_parent->m_buildArea.w - m_buildArea.w);
+		//		m_buildArea.x = m_parent->m_buildArea.z - (m_parent->m_buildAreaOnCreation.z - m_buildAreaOnCreation.x);
+		//		m_buildArea.y = m_parent->m_buildArea.w - (m_parent->m_buildAreaOnCreation.w - m_buildAreaOnCreation.y);
+		//		m_buildArea.z = m_parent->m_buildArea.z - (m_parent->m_buildAreaOnCreation.z - m_buildAreaOnCreation.z);
+		//		m_buildArea.w = m_parent->m_buildArea.w - (m_parent->m_buildAreaOnCreation.w - m_buildAreaOnCreation.w);
 
-		//		m_sensorAreaTransformed.x = m_buildAreaTransformed.x;
-		//		m_sensorAreaTransformed.y = m_buildAreaTransformed.y;
-		//		m_sensorAreaTransformed.z = m_buildAreaTransformed.z;
-		//		m_sensorAreaTransformed.w = m_buildAreaTransformed.w;
+		//		m_sensorArea.x = m_buildArea.x;
+		//		m_sensorArea.y = m_buildArea.y;
+		//		m_sensorArea.z = m_buildArea.z;
+		//		m_sensorArea.w = m_buildArea.w;
 
-		//		m_clipAreaTransformed.x = m_buildAreaTransformed.x;
-		//		m_clipAreaTransformed.y = m_buildAreaTransformed.y;
-		//		m_clipAreaTransformed.z = m_buildAreaTransformed.z;
-		//		m_clipAreaTransformed.w = m_buildAreaTransformed.w;
+		//		m_clipArea.x = m_buildArea.x;
+		//		m_clipArea.y = m_buildArea.y;
+		//		m_clipArea.z = m_buildArea.z;
+		//		m_clipArea.w = m_buildArea.w;
 		//		break;
 		//	case alGUIElementAlignment::Top:
-		//		m_buildAreaTransformed.x = m_buildArea.x + parentRectSizeDiff_X;
-		//		m_buildAreaTransformed.z = m_buildArea.z + parentRectSizeDiff_X;
+		//		m_buildArea.x = m_buildAreaOnCreation.x + parentRectSizeDiff_X;
+		//		m_buildArea.z = m_buildAreaOnCreation.z + parentRectSizeDiff_X;
 
-		//		m_sensorAreaTransformed.x = m_buildAreaTransformed.x;
-		//		m_sensorAreaTransformed.z = m_buildAreaTransformed.z;
+		//		m_sensorArea.x = m_buildArea.x;
+		//		m_sensorArea.z = m_buildArea.z;
 
-		//		m_clipAreaTransformed.x = m_buildAreaTransformed.x;
-		//		m_clipAreaTransformed.z = m_buildAreaTransformed.z;
+		//		m_clipArea.x = m_buildArea.x;
+		//		m_clipArea.z = m_buildArea.z;
 		//		break;
 		//	case alGUIElementAlignment::Left:
-		//		m_buildAreaTransformed.y = m_buildArea.y + parentRectSizeDiff_Y;
-		//		m_buildAreaTransformed.w = m_buildArea.w + parentRectSizeDiff_Y;
+		//		m_buildArea.y = m_buildAreaOnCreation.y + parentRectSizeDiff_Y;
+		//		m_buildArea.w = m_buildAreaOnCreation.w + parentRectSizeDiff_Y;
 
-		//		m_sensorAreaTransformed.y = m_buildAreaTransformed.y;
-		//		m_sensorAreaTransformed.w = m_buildAreaTransformed.w;
+		//		m_sensorArea.y = m_buildArea.y;
+		//		m_sensorArea.w = m_buildArea.w;
 
-		//		m_clipAreaTransformed.y = m_buildAreaTransformed.y;
-		//		m_clipAreaTransformed.w = m_buildAreaTransformed.w;
+		//		m_clipArea.y = m_buildArea.y;
+		//		m_clipArea.w = m_buildArea.w;
 		//		break;
 		//	case alGUIElementAlignment::Right:
-		//		m_buildAreaTransformed.y = m_buildArea.y + parentRectSizeDiff_Y;
-		//		m_buildAreaTransformed.w = m_buildArea.w + parentRectSizeDiff_Y;
+		//		m_buildArea.y = m_buildAreaOnCreation.y + parentRectSizeDiff_Y;
+		//		m_buildArea.w = m_buildAreaOnCreation.w + parentRectSizeDiff_Y;
 
-		//		m_sensorAreaTransformed.y = m_buildAreaTransformed.y;
-		//		m_sensorAreaTransformed.w = m_buildAreaTransformed.w;
+		//		m_sensorArea.y = m_buildArea.y;
+		//		m_sensorArea.w = m_buildArea.w;
 
-		//		m_clipAreaTransformed.y = m_buildAreaTransformed.y;
-		//		m_clipAreaTransformed.w = m_buildAreaTransformed.w;
+		//		m_clipArea.y = m_buildArea.y;
+		//		m_clipArea.w = m_buildArea.w;
 
 		//		// + rightTop
-		//		m_buildAreaTransformed.x = m_parent->m_buildAreaTransformed.z - (m_parent->m_buildArea.z - m_buildArea.x);
-		//		m_buildAreaTransformed.z = m_parent->m_buildAreaTransformed.z - (m_parent->m_buildArea.z - m_buildArea.z);
+		//		m_buildArea.x = m_parent->m_buildArea.z - (m_parent->m_buildAreaOnCreation.z - m_buildAreaOnCreation.x);
+		//		m_buildArea.z = m_parent->m_buildArea.z - (m_parent->m_buildAreaOnCreation.z - m_buildAreaOnCreation.z);
 
-		//		m_sensorAreaTransformed.x = m_buildAreaTransformed.x;
-		//		m_sensorAreaTransformed.z = m_buildAreaTransformed.z;
+		//		m_sensorArea.x = m_buildArea.x;
+		//		m_sensorArea.z = m_buildArea.z;
 
-		//		m_clipAreaTransformed.x = m_buildAreaTransformed.x;
-		//		m_clipAreaTransformed.z = m_buildAreaTransformed.z;
+		//		m_clipArea.x = m_buildArea.x;
+		//		m_clipArea.z = m_buildArea.z;
 		//		break;
 		//	case alGUIElementAlignment::Bottom:
-		//		m_buildAreaTransformed.x = m_buildArea.x + parentRectSizeDiff_X;
-		//		m_buildAreaTransformed.z = m_buildArea.z + parentRectSizeDiff_X;
+		//		m_buildArea.x = m_buildAreaOnCreation.x + parentRectSizeDiff_X;
+		//		m_buildArea.z = m_buildAreaOnCreation.z + parentRectSizeDiff_X;
 
-		//		m_sensorAreaTransformed.x = m_buildAreaTransformed.x;
-		//		m_sensorAreaTransformed.z = m_buildAreaTransformed.z;
+		//		m_sensorArea.x = m_buildArea.x;
+		//		m_sensorArea.z = m_buildArea.z;
 
-		//		m_clipAreaTransformed.x = m_buildAreaTransformed.x;
-		//		m_clipAreaTransformed.z = m_buildAreaTransformed.z;
+		//		m_clipArea.x = m_buildArea.x;
+		//		m_clipArea.z = m_buildArea.z;
 
 		//		// + leftBottom
-		//		m_buildAreaTransformed.y = m_parent->m_buildAreaTransformed.w - (m_parent->m_buildArea.w - m_buildArea.y);
-		//		m_buildAreaTransformed.w = m_parent->m_buildAreaTransformed.w - (m_parent->m_buildArea.w - m_buildArea.w);
+		//		m_buildArea.y = m_parent->m_buildArea.w - (m_parent->m_buildAreaOnCreation.w - m_buildAreaOnCreation.y);
+		//		m_buildArea.w = m_parent->m_buildArea.w - (m_parent->m_buildAreaOnCreation.w - m_buildAreaOnCreation.w);
 
-		//		m_sensorAreaTransformed.y = m_buildAreaTransformed.y;
-		//		m_sensorAreaTransformed.w = m_buildAreaTransformed.w;
+		//		m_sensorArea.y = m_buildArea.y;
+		//		m_sensorArea.w = m_buildArea.w;
 
-		//		m_clipAreaTransformed.y = m_buildAreaTransformed.y;
-		//		m_clipAreaTransformed.w = m_buildAreaTransformed.w;
+		//		m_clipArea.y = m_buildArea.y;
+		//		m_clipArea.w = m_buildArea.w;
 
 		//		break;
 		//	case alGUIElementAlignment::Center:
 		//	default:
 		//		// Right
-		//		m_buildAreaTransformed.y = m_buildArea.y + parentRectSizeDiff_Y;
-		//		m_buildAreaTransformed.w = m_buildArea.w + parentRectSizeDiff_Y;
+		//		m_buildArea.y = m_buildAreaOnCreation.y + parentRectSizeDiff_Y;
+		//		m_buildArea.w = m_buildAreaOnCreation.w + parentRectSizeDiff_Y;
 
-		//		m_sensorAreaTransformed.y = m_buildAreaTransformed.y;
-		//		m_sensorAreaTransformed.w = m_buildAreaTransformed.w;
+		//		m_sensorArea.y = m_buildArea.y;
+		//		m_sensorArea.w = m_buildArea.w;
 
-		//		m_clipAreaTransformed.y = m_buildAreaTransformed.y;
-		//		m_clipAreaTransformed.w = m_buildAreaTransformed.w;
+		//		m_clipArea.y = m_buildArea.y;
+		//		m_clipArea.w = m_buildArea.w;
 
 		//		// bottom
-		//		m_buildAreaTransformed.x = m_buildArea.x + parentRectSizeDiff_X;
-		//		m_buildAreaTransformed.z = m_buildArea.z + parentRectSizeDiff_X;
+		//		m_buildArea.x = m_buildAreaOnCreation.x + parentRectSizeDiff_X;
+		//		m_buildArea.z = m_buildAreaOnCreation.z + parentRectSizeDiff_X;
 
-		//		m_sensorAreaTransformed.x = m_buildAreaTransformed.x;
-		//		m_sensorAreaTransformed.z = m_buildAreaTransformed.z;
+		//		m_sensorArea.x = m_buildArea.x;
+		//		m_sensorArea.z = m_buildArea.z;
 
-		//		m_clipAreaTransformed.x = m_buildAreaTransformed.x;
-		//		m_clipAreaTransformed.z = m_buildAreaTransformed.z;
+		//		m_clipArea.x = m_buildArea.x;
+		//		m_clipArea.z = m_buildArea.z;
 		//		break;
 		//	}
 		//}
@@ -269,6 +268,23 @@ public:
 	alVec4f m_buildArea;  // using for create triangles
 	alVec4f m_sensorArea; //   for detecting cursor in area or not
 	alVec4f m_clipArea;   //   for scissor
+	
+	// It will be set by panel
+	// It will be used in aligment calculation
+	alVec4f m_buildAreaOnCreation;
+	void SetPositionAndSize(float32_t pX, float32_t pY, float32_t sX, float32_t sY)
+	{
+		m_position.x = pX;
+		m_position.y = pY;
+		m_size.x = sX;
+		m_size.y = sY;
+
+		// NOT HERE
+		/*m_buildAreaOnCreation.x = pX;
+		m_buildAreaOnCreation.y = pY;
+		m_buildAreaOnCreation.z = pX + sX;
+		m_buildAreaOnCreation.w = pY + sY;*/
+	}
 
 	// for some reason you can change sensor area
 	alVec4f m_sensorAreaIndent;
@@ -287,9 +303,9 @@ public:
 
 	// Must calculate using parents _Transformed vectors.
 	//  build elements and detect cursor in area only using this.
-	//alVec4f m_buildAreaTransformed;
-	//alVec4f m_sensorAreaTransformed;
-	//alVec4f m_clipAreaTransformed;
+	//alVec4f m_buildArea;
+	//alVec4f m_sensorArea;
+	//alVec4f m_clipArea;
 
 	//alVec2f m_offset;
 	//alVec2f m_offsetTransformed;

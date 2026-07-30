@@ -37,7 +37,7 @@ protected:
 
 
 public:
-	alGUIComboBox(alGUIContext* ct);
+	alGUIComboBox(alGUIContext* ct, const alVec2f& position, const alVec2f& size);
 	virtual ~alGUIComboBox();
 
 	virtual void Draw(float32_t dt) override;

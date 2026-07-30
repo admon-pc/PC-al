@@ -10,7 +10,7 @@ extern alLibGlobalData g_alLibGlobalData;
 
 alGUIPopup::alGUIPopup(alGUIContext*c)
 	:
-	alGUIElement(c)
+	alGUIElement(c, alVec2f(), alVec2f())
 {
 	m_font = alLib::GetDefaultFont();
 	m_colorTheme = alLib::GetDefaultColorTheme();

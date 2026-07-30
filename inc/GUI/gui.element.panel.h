@@ -8,7 +8,7 @@ class alGUIPanel : public alGUIElement
 	alArray<alGUIElement*> m_elements;
 	alArray<alGUIElement*> m_elementsOwn; // for destroying
 public:
-	alGUIPanel(alGUIContext* ct);
+	alGUIPanel(alGUIContext* ct, const alVec2f& position, const alVec2f& size);
 	virtual ~alGUIPanel();
 
 	void Update(float32_t dt) override;

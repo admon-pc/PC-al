@@ -18,6 +18,7 @@ alGUIContext::~alGUIContext()
 	DeleteAllPanels();
 }
 
+
 void alGUIContext::Update(float32_t dt)
 {
 	m_cursorType = alCursorType::Arrow;
@@ -30,6 +31,7 @@ void alGUIContext::Update(float32_t dt)
 	}
 	else
 	{
+
 		if (m_activeElement)
 		{
 			m_activeElement->Update(dt);
@@ -72,10 +74,11 @@ void alGUIContext::Draw(float32_t dt)
 }
 
 
-alGUIPanel* alGUIContext::GetNewPanel()
+alGUIPanel* alGUIContext::GetNewPanel(const alVec2f& position, const alVec2f& size)
 {
-	auto c = alCreate<alGUIPanel>(this);
+	auto c = alCreate<alGUIPanel>(this, position, size);
 	m_panels.push_back(c);
+	c->Rebuild();
 	return c;
 }
 

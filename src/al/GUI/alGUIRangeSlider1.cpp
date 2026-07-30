@@ -63,11 +63,11 @@ void alGUIRangeSlider1::_onTextInputCancel()
 	m_isClicked = false;
 }
 
-alGUIRangeSlider1::alGUIRangeSlider1(alGUIContext* ct)
+alGUIRangeSlider1::alGUIRangeSlider1(alGUIContext* ct, const alVec2f& position, const alVec2f& size)
 	:
-	alGUIElement(ct)
+	alGUIElement(ct,position,size)
 {
-	m_textInput = alCreate<TextInput>(ct);
+	m_textInput = alCreate<TextInput>(ct,alVec2f(),alVec2f());
 	m_textInput->m_oneLine = true;
 	m_textInput->m_useBottombar = false;
 	m_textInput->m_useHorizontalScrollbar = false;

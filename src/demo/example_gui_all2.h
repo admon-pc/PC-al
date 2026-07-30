@@ -4,9 +4,9 @@ class DemoExample_gui_all2_checkbox : public alGUIButtonIcon
 {
 public:
 	DemoExample_gui_all2_checkbox(alGUIContext* ct,
-		alGUITextureAtlas* ta, uint32_t ii)
+		alGUITextureAtlas* ta, uint32_t ii, const alVec2f& position, const alVec2f& size)
 		:
-		alGUIButtonIcon(ct, ta, ii)
+		alGUIButtonIcon(ct, ta, ii,position,size)
 	{}
 	virtual ~DemoExample_gui_all2_checkbox() {}
 
@@ -17,8 +17,8 @@ public:
 class DemoExample_gui_all2_button : public alGUIButton
 {
 public:
-	DemoExample_gui_all2_button(alGUIContext* ct)
-		:alGUIButton(ct)	{}
+	DemoExample_gui_all2_button(alGUIContext* ct, const alVec2f& position, const alVec2f& size)
+		:alGUIButton(ct,position,size)	{}
 	virtual ~DemoExample_gui_all2_button() {}
 	virtual void OnButtonRelease() override;
 };
@@ -26,8 +26,8 @@ public:
 class DemoExample_gui_all2_TextInput : public alGUITextInput
 {
 public:
-	DemoExample_gui_all2_TextInput(alGUIContext* ct):
-		alGUITextInput(ct)
+	DemoExample_gui_all2_TextInput(alGUIContext* ct, const alVec2f& position, const alVec2f& size):
+		alGUITextInput(ct,position,size)
 	{}
 	virtual ~DemoExample_gui_all2_TextInput() {}
 
@@ -40,16 +40,16 @@ public:
 class DemoExample_gui_all2_combo : public alGUIComboBox
 {
 public:
-	DemoExample_gui_all2_combo(alGUIContext* ct)
-		:alGUIComboBox(ct) {}
+	DemoExample_gui_all2_combo(alGUIContext* ct, const alVec2f& position, const alVec2f& size)
+		:alGUIComboBox(ct,position,size) {}
 	virtual ~DemoExample_gui_all2_combo() {}
 	virtual void OnComboSelectItem(size_t) override;
 };
 class DemoExample_gui_all2_list : public alGUIListBox
 {
 public:
-	DemoExample_gui_all2_list(alGUIContext* ct)
-		:alGUIListBox(ct) {}
+	DemoExample_gui_all2_list(alGUIContext* ct, const alVec2f& position, const alVec2f& size)
+		:alGUIListBox(ct,position,size) {}
 	virtual ~DemoExample_gui_all2_list() {}
 	virtual void OnListSelectItem(size_t) override;
 };
@@ -57,15 +57,15 @@ public:
 class DemoExample_gui_all2_slider1 : public alGUIRangeSlider1
 {
 public:
-	DemoExample_gui_all2_slider1(alGUIContext* ct)
-		:alGUIRangeSlider1(ct) {}
+	DemoExample_gui_all2_slider1(alGUIContext* ct, const alVec2f& position, const alVec2f& size)
+		:alGUIRangeSlider1(ct,position,size) {}
 	virtual ~DemoExample_gui_all2_slider1() {}
 };
 class DemoExample_gui_all2_slider2 : public alGUIRangeSlider1
 {
 public:
-	DemoExample_gui_all2_slider2(alGUIContext* ct)
-		:alGUIRangeSlider1(ct) {}
+	DemoExample_gui_all2_slider2(alGUIContext* ct, const alVec2f& position, const alVec2f& size)
+		:alGUIRangeSlider1(ct,position,size) {}
 	virtual ~DemoExample_gui_all2_slider2() {}
 };
 

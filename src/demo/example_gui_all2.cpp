@@ -174,10 +174,8 @@ bool DemoExample_gui_all2::Init()
 	m_textInput_editorPopup->AddSeparator();
 	m_textInput_editorPopup->AddItem(U"Select All", DEMOGUIALL2_ID_SELECTALL, 0);
 
-	m_textInput_editor = alCreate<DemoExample_gui_all2_TextInput>(g_demo->m_GUI);
+	m_textInput_editor = alCreate<DemoExample_gui_all2_TextInput>(g_demo->m_GUI, alVec2f(3.f, 5.f), alVec2f(300, 200));
 	m_textInput_editor->SetUserData(this);
-	m_textInput_editor->m_position.Set(3.f, 5.f);
-	m_textInput_editor->m_size.Set(300,200);
 
 	alUnicodeString ustr;
 	//ustr.ReadFromFile("D:\\texteditor.txt");
@@ -188,10 +186,8 @@ bool DemoExample_gui_all2::Init()
 //	m_textInput_editor->Activate();
 	g_demo->m_guiFont->m_unknownGlyph = U' ';
 
-	m_textInput_editor2 = alCreate<DemoExample_gui_all2_TextInput>(g_demo->m_GUI);
+	m_textInput_editor2 = alCreate<DemoExample_gui_all2_TextInput>(g_demo->m_GUI, alVec2f(305.f, 5.f), alVec2f(300, 200));
 	m_textInput_editor2->SetUserData(this);
-	m_textInput_editor2->m_position.Set(305.f, 5.f);
-	m_textInput_editor2->m_size.Set(300, 200);
 	m_textInput_editor2->SetFont(g_demo->m_guiFont,0);
 	m_textInput_editor2->m_textDefault.Assign(U"Default text");
 	m_textInput_editor2->m_useBottombar = false;
@@ -199,10 +195,8 @@ bool DemoExample_gui_all2::Init()
 	m_textInput_editor2->m_useLinebar = false;
 	m_textInput_editor2->m_useVerticalScrollbar = false;
 
-	m_textInput_editor_oneLine = alCreate<DemoExample_gui_all2_TextInput>(g_demo->m_GUI);
+	m_textInput_editor_oneLine = alCreate<DemoExample_gui_all2_TextInput>(g_demo->m_GUI, alVec2f(610.f, 5.f), alVec2f(140, 18));
 	m_textInput_editor_oneLine->SetUserData(this);
-	m_textInput_editor_oneLine->m_position.Set(610.f, 5.f);
-	m_textInput_editor_oneLine->m_size.Set(140, 18);
 	m_textInput_editor_oneLine->SetFont(g_demo->m_guiFont, 0);
 	m_textInput_editor_oneLine->m_textDefault.Assign(U"Enter Name");
 	m_textInput_editor_oneLine->m_oneLine = true;
@@ -211,9 +205,7 @@ bool DemoExample_gui_all2::Init()
 	m_textInput_editor_oneLine->m_useLinebar = false;
 	m_textInput_editor_oneLine->m_useVerticalScrollbar = false;
 
-	m_checkbox_usehscroll = alCreate<DemoExample_gui_all2_checkbox>(g_demo->m_GUI, m_textureAtlas, iconIndex_iconBase);
-	m_checkbox_usehscroll->m_position.Set(0.f, 205.f);
-	m_checkbox_usehscroll->m_size.Set(14.f, 14.f);
+	m_checkbox_usehscroll = alCreate<DemoExample_gui_all2_checkbox>(g_demo->m_GUI, m_textureAtlas, iconIndex_iconBase, alVec2f(0.f, 205.f), alVec2f(14.f, 14.f));
 	m_checkbox_usehscroll->m_lerpColors = true;
 	m_checkbox_usehscroll->m_toggleButton = true;
 	m_checkbox_usehscroll->m_iconIndexMouseHover = iconIndex_iconCheck1;
@@ -225,9 +217,7 @@ bool DemoExample_gui_all2::Init()
 	m_checkbox_usehscroll->SetID(DEMOGUIALL2_CHECKBOXID_USEHSCROLL);
 	m_checkbox_usehscroll->SetUserData(this);
 
-	m_checkbox_usevscroll = alCreate<DemoExample_gui_all2_checkbox>(g_demo->m_GUI, m_textureAtlas, iconIndex_iconBase);
-	m_checkbox_usevscroll->m_position.Set(0.f, 215.f);
-	m_checkbox_usevscroll->m_size.Set(14.f, 14.f);
+	m_checkbox_usevscroll = alCreate<DemoExample_gui_all2_checkbox>(g_demo->m_GUI, m_textureAtlas, iconIndex_iconBase, alVec2f(0.f, 215.f), alVec2f(14.f, 14.f));
 	m_checkbox_usevscroll->m_lerpColors = true;
 	m_checkbox_usevscroll->m_toggleButton = true;
 	m_checkbox_usevscroll->m_iconIndexMouseHover = iconIndex_iconCheck1;
@@ -239,9 +229,7 @@ bool DemoExample_gui_all2::Init()
 	m_checkbox_usevscroll->SetID(DEMOGUIALL2_CHECKBOXID_USEVSCROLL);
 	m_checkbox_usevscroll->SetUserData(this);
 
-	m_button_deactivateEditor = alCreate<DemoExample_gui_all2_button>(g_demo->m_GUI);
-	m_button_deactivateEditor->m_position.Set(10.f, 230);
-	m_button_deactivateEditor->m_size.Set(100.f, 30.f);
+	m_button_deactivateEditor = alCreate<DemoExample_gui_all2_button>(g_demo->m_GUI, alVec2f(10.f, 230), alVec2f(100.f, 30.f));
 	m_button_deactivateEditor->SetText(U"Deactivate");
 	m_button_deactivateEditor->SetFont(g_demo->m_guiFont);
 	m_button_deactivateEditor->m_lerpColors = true;
@@ -272,29 +260,23 @@ bool DemoExample_gui_all2::Init()
 		}
 	}
 
-	m_combobox1 = alCreate<DemoExample_gui_all2_combo>(g_demo->m_GUI);
+	m_combobox1 = alCreate<DemoExample_gui_all2_combo>(g_demo->m_GUI, alVec2f(5, 300), alVec2f(100, 30));
 	m_combobox1->SetUserData(this);
-	m_combobox1->m_position.Set(5, 300);
-	m_combobox1->m_size.Set(100, 30);
 	m_combobox1->SetFont(g_demo->m_guiFont);
 	m_combobox1->m_text.Assign(U"...");
 	m_combobox1->SetItems(m_dirFiles.m_data, m_dirFiles.size(),
 		sizeof(directory_files), 20);
 
-	m_listbox1 = alCreate<DemoExample_gui_all2_list>(g_demo->m_GUI);
+	m_listbox1 = alCreate<DemoExample_gui_all2_list>(g_demo->m_GUI, alVec2f(105, 300), alVec2f(100, 300));
 	m_listbox1->SetUserData(this);
-	m_listbox1->m_position.Set(105, 300);
-	m_listbox1->m_size.Set(100, 300);
 	m_listbox1->SetFont(g_demo->m_guiFont);
 	m_listbox1->SetItems(
 		m_dirFiles.m_data, 
 		m_dirFiles.size(),
 		sizeof(directory_files), 20, 0);
 
-	m_slider1 = alCreate<DemoExample_gui_all2_slider1>(g_demo->m_GUI);
+	m_slider1 = alCreate<DemoExample_gui_all2_slider1>(g_demo->m_GUI, alVec2f(210, 300), alVec2f(100, 20));
 	m_slider1->SetUserData(this);
-	m_slider1->m_position.Set(210, 300);
-	m_slider1->m_size.Set(100, 20);
 	m_slider1->SetFont(g_demo->m_guiFont);
 	m_slider1->m_type = alGUIRangeSlider1::Type::type_IntLimits;
 	m_slider1->m_minMax_i[0] = 0;
@@ -302,10 +284,8 @@ bool DemoExample_gui_all2::Init()
 	m_slider1->SetPtri(&m_slider1Var);
 	m_slider1Var = 50;
 
-	m_slider2 = alCreate<DemoExample_gui_all2_slider2>(g_demo->m_GUI);
+	m_slider2 = alCreate<DemoExample_gui_all2_slider2>(g_demo->m_GUI, alVec2f(210, 330), alVec2f(100, 20));
 	m_slider2->SetUserData(this);
-	m_slider2->m_position.Set(210, 330);
-	m_slider2->m_size.Set(100, 20);
 	m_slider2->SetFont(g_demo->m_guiFont);
 	m_slider2->m_type = alGUIRangeSlider1::Type::type_FloatLimits;
 	m_slider2->m_minMax_f[0] = -100;
@@ -313,9 +293,10 @@ bool DemoExample_gui_all2::Init()
 	m_slider2->SetPtrf(&m_slider2Var);
 	m_slider2Var = 0;
 
-	m_GUIPanel = g_demo->m_GUI->GetNewPanel();
+	m_GUIPanel = g_demo->m_GUI->GetNewPanel(alVec2f(0.f, 0.f), 
+		alVec2f(g_demo->m_mainWindow->m_clientSize.x,
+		g_demo->m_mainWindow->m_clientSize.y));
 	m_GUIPanel->m_drawBG = false;
-	m_GUIPanel->m_position.Set(0.f, 0.f);
 	m_GUIPanel->AddElement(m_textInput_editor);
 	m_GUIPanel->AddElement(m_textInput_editor2);
 	m_GUIPanel->AddElement(m_checkbox_usehscroll);
@@ -327,8 +308,6 @@ bool DemoExample_gui_all2::Init()
 	m_GUIPanel->AddElement(m_slider1);
 	m_GUIPanel->AddElement(m_slider2);
 
-	m_GUIPanel->m_size.Set(g_demo->m_mainWindow->m_clientSize.x,
-		g_demo->m_mainWindow->m_clientSize.y);
 	m_GUIPanel->Rebuild();
 
 	return true;

@@ -15,7 +15,7 @@ class alGUIButtonIcon : public alGUIElement
 	alVec2f m_textPosition;
 
 public:
-	alGUIButtonIcon(alGUIContext* ct, alGUITextureAtlas*, uint32_t iconIndex);
+	alGUIButtonIcon(alGUIContext* ct, alGUITextureAtlas*, uint32_t iconIndex, const alVec2f& position, const alVec2f& size);
 	virtual ~alGUIButtonIcon();
 
 	uint32_t m_iconIndexBase = 0;

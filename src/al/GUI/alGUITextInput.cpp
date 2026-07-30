@@ -7,9 +7,9 @@
 #include "../al_internal.h"
 extern alLibGlobalData g_alLibGlobalData;
 
-alGUITextInput::alGUITextInput(alGUIContext* ct)
+alGUITextInput::alGUITextInput(alGUIContext* ct, const alVec2f& position, const alVec2f& size)
 	:
-	alGUIElement(ct)
+	alGUIElement(ct,position,size)
 {
 	m_font = alLib::GetDefaultFont();
 	m_colorDefaultText = 0xFFAAAAAA;

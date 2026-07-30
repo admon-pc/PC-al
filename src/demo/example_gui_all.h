@@ -5,8 +5,11 @@
 class DemoExample_gui_all_testTextObject : public alGUIText
 {
 public:
-	DemoExample_gui_all_testTextObject(alGUIContext* ct) :alGUIText(ct) {}
+	DemoExample_gui_all_testTextObject(alGUIContext* ct, const alVec2f& position, const alVec2f& size) 
+		:
+		alGUIText(ct,position,size) {}
 	virtual ~DemoExample_gui_all_testTextObject() {}
+	AL_DECLARE_DEFAULT_ALLOCATOR(DemoExample_gui_all_testTextObject);
 
 	virtual void OnMouseEnter()override;
 	virtual void OnMouseLeave()override;
@@ -19,8 +22,11 @@ public:
 class DemoExample_gui_all_pictureBox : public alGUIPictureBox
 {
 public:
-	DemoExample_gui_all_pictureBox(alGUIContext* ct) :alGUIPictureBox(ct) {}
+	DemoExample_gui_all_pictureBox(alGUIContext* ct, const alVec2f& position, const alVec2f& size) 
+		:
+		alGUIPictureBox(ct,position,size) {}
 	virtual ~DemoExample_gui_all_pictureBox() {}
+	AL_DECLARE_DEFAULT_ALLOCATOR(DemoExample_gui_all_pictureBox);
 
 	bool m_zoom = false;
 	alUnicodeString m_clickedPosition;
@@ -36,8 +42,11 @@ public:
 class DemoExample_gui_all_TestButton : public alGUIButton
 {
 public:
-	DemoExample_gui_all_TestButton(alGUIContext* ct) :alGUIButton(ct) {}
+	DemoExample_gui_all_TestButton(alGUIContext* ct, const alVec2f& position, const alVec2f& size)
+		:
+		alGUIButton(ct,position,size) {}
 	virtual ~DemoExample_gui_all_TestButton() {}
+	AL_DECLARE_DEFAULT_ALLOCATOR(DemoExample_gui_all_TestButton);
 	virtual void OnButtonRelease() override;
 };
 
@@ -45,11 +54,16 @@ class DemoExample_gui_all_TestButtonIcon : public alGUIButtonIcon
 {
 public:
 	DemoExample_gui_all_TestButtonIcon(alGUIContext* ct,
-		alGUITextureAtlas* ta, uint32_t ii)
+		alGUITextureAtlas* ta, uint32_t ii, 
+		const alVec2f& position, const alVec2f& size)
 		:
-		alGUIButtonIcon(ct,ta,ii) 
+		alGUIButtonIcon(ct,ta,ii,position, size)
 	{}
-	virtual ~DemoExample_gui_all_TestButtonIcon() {}
+	virtual ~DemoExample_gui_all_TestButtonIcon()
+	{
+		printf("asd\n");
+	}
+	AL_DECLARE_DEFAULT_ALLOCATOR(DemoExample_gui_all_TestButtonIcon);
 };
 
 class DemoExample_gui_all : public alDemoExample

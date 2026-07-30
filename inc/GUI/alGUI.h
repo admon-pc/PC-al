@@ -41,7 +41,7 @@ public:
 	void Update(float32_t dt);
 	void Draw(float32_t dt);
 	
-	alGUIPanel* GetNewPanel();
+	alGUIPanel* GetNewPanel( const alVec2f& position, const alVec2f& size);
 	void DeleteAllPanels();
 
 
