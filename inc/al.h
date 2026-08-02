@@ -200,6 +200,10 @@ public:
 	// cstd
 	static uint32_t sprintf(char32_t* str, const char32_t* format, ...);
 	static uint32_t vsnprintf(char32_t* s, size_t n, const char32_t* format, va_list arg);
+
+	static alDLLHandle DLLLoad(const char*);
+	static void* DLLGetProc(const char*, alDLLHandle);
+	static void DLLFree(alDLLHandle);
 };
 
 

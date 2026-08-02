@@ -71,4 +71,6 @@ using real_t = float64_t;
 #define BIT(x)0x1<<(x)
 #endif
 
+typedef void* alDLLHandle;
+
 #endif

@@ -167,6 +167,8 @@ public:
 	void operator+=(const char16_t* str) { Append(str); }
 	void operator+=(const char32_t* str) { Append(str); }
 
+	alStringA GetStringA();
+	alStringW GetStringW();
 
 	//m_size = size;
 	void _set_size(size_t size);

@@ -809,3 +809,16 @@ void alUnicodeString::_set_size(size_t size)
 	m_size = size;
 }
 
+alStringA alUnicodeString::GetStringA()
+{
+	alStringA out;
+	ToUTF8(out);
+	return out;
+}
+
+alStringW alUnicodeString::GetStringW()
+{
+	alStringW out;
+	ToUTF16(out);
+	return out;
+}

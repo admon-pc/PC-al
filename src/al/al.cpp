@@ -1029,3 +1029,35 @@ int32_t alLib::StringStrcmp(const char32_t* p1, const char32_t* p2)
 	return c1 - c2;
 }
 
+alDLLHandle alLib::DLLLoad(const char* fn)
+{
+	AL_ASSERT_ST(fn);
+#ifdef AL_PLATFORM_WIN32
+	return (alDLLHandle)LoadLibraryA(fn);
+#else
+#error Need implementation
+#endif
+	return 0;
+}
+
+void* alLib::DLLGetProc(const char* fn, alDLLHandle h)
+{
+	AL_ASSERT_ST(fn);
+	AL_ASSERT_ST(h);
+#ifdef AL_PLATFORM_WIN32
+	return GetProcAddress((HMODULE)h, fn);
+#else
+#error Need implementation
+#endif
+	return 0;
+}
+
+void alLib::DLLFree(alDLLHandle h)
+{
+	AL_ASSERT_ST(h);
+#ifdef AL_PLATFORM_WIN32
+	FreeLibrary((HMODULE)h);
+#else
+#error Need implementation
+#endif
+}
