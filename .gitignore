@@ -53,5 +53,24 @@ dkms.conf
 
 # debug information files
 *.dwo
-build/
+build/.vs/
 tools/fonttool/Debug
+build/al.d3d11/Debug
+build/al.d3d11/Release
+build/al/x64
+build/fastlz/Debug
+build/minizip/Release
+build/zlib/Release
+build/minizip/Debug
+build/libpng/Release
+build/fastlz/Release
+build/jpeglib/Debug
+build/demo/x64
+build/demo/Debug
+build/demo/Release
+build/jpeglib/Release
+build/libpng/Debug
+build/zlib/Debug
+build/zlib/x64
+build/al/Release
+build/al/Debug
