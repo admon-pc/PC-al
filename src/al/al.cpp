@@ -1061,3 +1061,16 @@ void alLib::DLLFree(alDLLHandle h)
 #error Need implementation
 #endif
 }
+
+bool alLib::GUIDIsEqual(const alGUID& g1, const alGUID& g2)
+{
+	uint8_t* p1 = g1.Data();
+	uint8_t* p2 = g2.Data();
+
+	for (uint32_t i = 0; i < sizeof(alGUID); ++i)
+	{
+		if (p1[i] != p2[i])
+			return false;
+	}
+	return true;
+}

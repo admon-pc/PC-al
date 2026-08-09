@@ -17,6 +17,7 @@
 #include "Common/alMemory.h"
 #include "Common/alLog.h"
 #include "Common/alUserData.h"
+#include "Common/alGUID.h"
 #include "Common/alID.h"
 #include "Common/alPtr.h"
 #include "Common/alForward.h"
@@ -204,6 +205,8 @@ public:
 	static alDLLHandle DLLLoad(const char*);
 	static void* DLLGetProc(const char*, alDLLHandle);
 	static void DLLFree(alDLLHandle);
+
+	static bool GUIDIsEqual(const alGUID&, const alGUID&);
 };
 
 
