@@ -54,7 +54,7 @@ alDemoDirectory* alDemoDirectory::GetDirByName(const char32_t* catName)
 	alDemoDirectory* dir = 0;
 	for (size_t i = 0; i < m_entries.m_size; ++i)
 	{
-		if (!alLib::StringStrcmp(catName, m_entries.m_data[i]->m_name.c_str()))
+		if (!alLib::strcmp(catName, m_entries.m_data[i]->m_name.c_str()))
 		{
 			if (!m_entries.m_data[i]->m_example)
 			{

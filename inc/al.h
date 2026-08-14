@@ -187,7 +187,6 @@ public:
 	static void StringGetWords(const char*, alArray<alStringA>*, bool add_space = false,
 		bool add_tab = false,
 		bool add_newLine = false);
-	static int32_t StringStrcmp(const char32_t* s1, const char32_t* s2);
 
 	static void CopyTextToClipboard(alUnicodeString*);
 	static void GetTextFromClipboard(alUnicodeString*);
@@ -200,7 +199,9 @@ public:
 
 	// cstd
 	static uint32_t sprintf(char32_t* str, const char32_t* format, ...);
+	static uint32_t snprintf(char32_t* str, size_t n, const char32_t* format, ...);
 	static uint32_t vsnprintf(char32_t* s, size_t n, const char32_t* format, va_list arg);
+	static int32_t strcmp(const char32_t* s1, const char32_t* s2);
 
 	static alDLLHandle DLLLoad(const char*);
 	static void* DLLGetProc(const char*, alDLLHandle);

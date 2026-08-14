@@ -238,6 +238,17 @@ uint32_t alLib::sprintf(char32_t* str, const char32_t* format, ...)
 	return result;
 }
 
+uint32_t alLib::snprintf(char32_t* str, size_t n, const char32_t* format, ...)
+{
+	va_list args;
+	va_start(args, format);
+
+	uint32_t result = alLib::vsnprintf(str, n, format, args);
+
+	va_end(args);
+	return result;
+}
+
 uint32_t alLib::vsnprintf(
 	char32_t* buf,
 	size_t bufSz,

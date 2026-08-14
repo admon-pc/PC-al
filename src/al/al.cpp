@@ -1,5 +1,6 @@
 ﻿#include "al.h"
 
+
 #include <filesystem>
 
 #include "Image/alImage.h"
@@ -442,7 +443,7 @@ alImage* alLib::LoadALImage(const char* fn)
 			auto extNum = loader->GetExtensionNum();
 			for (size_t ei = 0; ei < extNum; ++ei)
 			{
-				if (strcmp(loader->GetExtension(ei), ext.data()) == 0)
+				if (::strcmp(loader->GetExtension(ei), ext.data()) == 0)
 				{
 					alImage* img = loader->Load(fn);
 					if (img)
@@ -657,7 +658,7 @@ void alLib::SaveImage(const char* fn, alImage* image, alSaveImageType type)
 			auto extNum = loader->GetExtensionNum();
 			for (size_t ei = 0; ei < extNum; ++ei)
 			{
-				if (strcmp(loader->GetExtension(ei), "png") == 0)
+				if (::strcmp(loader->GetExtension(ei), "png") == 0)
 				{
 					loader->Save(image, fn);
 					alLog::Print("Save Image: %s\n", fn);
@@ -677,7 +678,7 @@ void alLib::LoadMesh(const char* fn, alMeshLoaderCallback* cb)
 		auto extNum = loader->GetExtensionNum();
 		for (size_t ei = 0; ei < extNum; ++ei)
 		{
-			if (strcmp(loader->GetExtension(ei), "obj") == 0)
+			if (::strcmp(loader->GetExtension(ei), "obj") == 0)
 			{
 				loader->Load(fn, cb);
 				return;
@@ -1012,7 +1013,7 @@ alGUIColorTheme* alLib::GetDefaultColorTheme()
 	return &g_alLib->m_colorTheme;
 }
 
-int32_t alLib::StringStrcmp(const char32_t* p1, const char32_t* p2)
+int32_t alLib::strcmp(const char32_t* p1, const char32_t* p2)
 {
 	const char32_t* s1 = (const char32_t*)p1;
 	const char32_t* s2 = (const char32_t*)p2;
