@@ -3,6 +3,8 @@
 
 #include "Classes/alColor.h"
 
+// Use alGUIContext::GetNewPanel to create new
+// Do not delete. It will be deleted by alGUIContext.
 class alGUIPanel : public alGUIElement
 {
 	alArray<alGUIElement*> m_elements;

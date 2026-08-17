@@ -4,6 +4,7 @@
 #include "Image/alImage.h"
 
 #include "System/alSystemWindow.h"
+#include "System/alSystemWindowWin32.h"
 #include "GS/alGS.h"
 #include "Input/alInput.h"
 #include "Classes/alColor.h"
@@ -38,25 +39,42 @@ AL_LINK_LIBRARY(al);
 //	TextureID__end,
 //};
 
-struct GlyphNode
+#define FontToolGUIID_btnOpen 1
+#define FontToolGUIID_btnGenerate 2
+#define FontToolGUIID_btnCreate 3
+
+struct GlyphInfo
 {
-	alImage* image = 0; //61 для равно
+	int m_width = 0;
+
+	uint8_t* m_data = 0;
+	/*alImage* image = 0; //61 для равно
 	
 	int textureID = 0;
 
 	int overhang = 0;
 	int underhang = 0;
 	
-	int sizeX = 0;
-	int sizeY = 0;
 
 	int leftTopX = 0;
 	int leftTopY = 0;
 	int rightBottomX = 0;
 	int rightBottomY = 0;
 
-	char32_t character = 0;
+	char32_t character = 0;*/
 };
+
+class FontTool_button : public alGUIButton
+{
+public:
+	FontTool_button(alGUIContext* ct, const alVec2f& position, const alVec2f& size)
+		:
+		alGUIButton(ct, position, size) {}
+	virtual ~FontTool_button() {}
+	AL_DECLARE_DEFAULT_ALLOCATOR(FontTool_button);
+	virtual void OnButtonRelease() override;
+};
+
 
 
 class SystemWindowCallback;
@@ -69,6 +87,17 @@ class FontTool
 
 //	void (FontTool::*OnRun)();
 
+	alGUIContext* m_guiContext = 0;
+	alGUIPanel* m_guiPanel_first = 0;
+
+	uint32_t m_visibleLineNum = 0;
+	uint32_t m_visibleCellNum = 0;
+	uint32_t m_startDrawCellIndex = 0;
+
+	uint32_t m_cellsInRow = 10;
+	uint32_t m_cellSizeX = 100;
+	uint32_t m_cellSizeY = 100;
+
 public:
 	FontTool();
 	~FontTool();
@@ -76,21 +105,43 @@ public:
 	bool Init();
 	void Run();
 
+	void OnButtonGenerate();
+	
+	void OnRebuild();
+
 	void create_tmp_font();
 
 	bool m_run = true;
+	bool m_editMode = false;
 	SystemWindowCallback* m_windowCallback = 0;
 	alSystemWindow* m_mainWindow = 0;
 
 	alGS* m_gs = 0;
 
-	GlyphNode* myglyphs[0x10FFFF];
+	GlyphInfo myglyphs[0x10FFFF];
 
 	alGSTexture* m_whiteTexture = 0;
+	alGUIFont* m_fontGUI = 0;
+
 	
 	//alGSTextureCacheNode* m_guiTextureNodes[TextureID__end];
 	//alGSTextureCache* m_guiTextures = 0;
 };
+
+
+void FontTool_button::OnButtonRelease()
+{
+	FontTool* app = (FontTool*)GetUserData();
+	if (GetID() == FontToolGUIID_btnOpen)
+	{
+		//example->m_buttonExitPressed = true;
+	}
+
+	if (GetID() == FontToolGUIID_btnGenerate)
+	{
+		app->OnButtonGenerate();
+	}
+}
 
 class SystemWindowCallback : public alSystemWindowCallback
 {
@@ -101,10 +152,7 @@ public:
 
 	virtual void OnSizeChanged(alSystemWindow*)
 	{
-		if (m_demo->m_gs)
-		{
-			m_demo->m_gs->UpdateWindowData();
-		}
+		m_demo->OnRebuild();
 	}
 	
 	virtual alVec2i OnGPUUpdateSize(alSystemWindow* w) 
@@ -211,7 +259,7 @@ FontTool::FontTool()
 
 	for (size_t i = 0; i < 0x10FFFF; i++)
 	{
-		myglyphs[i] = 0;
+		//myglyphs[i] = 0;
 	}
 
 	/*for (int i = 0; i < TextureID__end; ++i)
@@ -225,13 +273,10 @@ FontTool::~FontTool()
 {
 	for (size_t i = 0; i < 0x10FFFF; i++)
 	{
-		if (myglyphs[i])
-		{
-			AL_DESTROY(myglyphs[i]->image);
-		}
-
-		AL_DESTROY(myglyphs[i]);
+		AL_FREE(myglyphs[i].m_data);
 	}
+	AL_DESTROY(m_fontGUI);
+	AL_DESTROY(m_guiContext);
 	//AL_DESTROY(m_guiTextures);
 	AL_DESTROY(m_gs);
 	AL_DESTROY(m_windowCallback);
@@ -250,7 +295,8 @@ bool FontTool::Init()
 	m_gs = alLib::CreateGS(alVideoDriverType::Direct3D11);
 	if (!m_gs->Init(m_mainWindow))
 		return false;
-
+	m_fontGUI = alLib::CreateGUIFont();
+	m_fontGUI->Load("../data/font.zip", m_gs);
 	m_whiteTexture = m_gs->GetWhiteTexture();
 	/*m_guiTextures = alCreate<alGSTextureCache>(m_gs);
 	m_guiTextureNodes[TextureID_FROMSCRATCH_GREEN] = m_guiTextures->GetTexture("../data/tools/fonttool/fscrg.png");
@@ -265,6 +311,35 @@ bool FontTool::Init()
 	m_guiTextureNodes[TextureID_OPEN_RED] = m_guiTextures->GetTexture("../data/tools/fonttool/openr.png");
 	m_guiTextureNodes[TextureID_PLUS_GREEN] = m_guiTextures->GetTexture("../data/tools/fonttool/plsg.png");
 	m_guiTextureNodes[TextureID_PLUS_RED] = m_guiTextures->GetTexture("../data/tools/fonttool/plsr.png");*/
+	m_guiContext = alLib::CreateGUIContext(m_mainWindow, m_gs);
+	m_guiPanel_first = m_guiContext->GetNewPanel(alVec2f(100,0), alVec2f(500, 500));
+
+	float32_t position = 0.f;
+	FontTool_button* btn = new FontTool_button(m_guiContext, alVec2f(0, position), alVec2f(150.f, 32.f));
+	btn->SetUserData(this);
+	btn->SetID(FontToolGUIID_btnOpen);
+	btn->SetFont(m_fontGUI);
+	btn->SetText(U"Open");
+	m_guiPanel_first->AddElement(btn, true);
+	position += 40;
+
+	btn = new FontTool_button(m_guiContext, alVec2f(0, position), alVec2f(150.f, 32.f));
+	btn->SetUserData(this);
+	btn->SetID(FontToolGUIID_btnGenerate);
+	btn->SetText(U"Generate");
+	btn->SetFont(m_fontGUI);
+	m_guiPanel_first->AddElement(btn, true);
+	position += 40;
+
+	btn = new FontTool_button(m_guiContext, alVec2f(0, position), alVec2f(150.f, 32.f));
+	btn->SetUserData(this);
+	btn->SetID(FontToolGUIID_btnCreate);
+	btn->SetText(U"Create");
+	btn->SetFont(m_fontGUI);
+	m_guiPanel_first->AddElement(btn, true);
+	position += 40;
+
+	m_guiPanel_first->Rebuild();
 
 	return true;
 }
@@ -277,9 +352,45 @@ void FontTool::Run()
 	while (m_run)
 	{
 		alLib::Update();
+		m_guiContext->Update(*dt);
 
 		//((*this).*(OnRun))();
+		m_gs->SetViewport(0, 0, m_mainWindow->m_clientSize.x, m_mainWindow->m_clientSize.y);
+		m_gs->BeginDraw();
+		m_gs->ClearAll();
+		m_gs->EndDraw();
+		m_gs->BeginDrawGUI();
 
+		m_guiContext->Draw(*dt);
+
+		if (m_editMode)
+		{
+			m_gs->SetScissorRect(alVec4f(0.f, 0.f, m_mainWindow->m_clientSize.x, m_mainWindow->m_clientSize.y));
+			//m_gs->DrawRectangle(alVec4f(0.f, 0.f, 1000.f, 1000.f), ColorRed);
+			uint32_t drawIndex = m_startDrawCellIndex;
+			alVec2f drawPosition;
+			uint32_t colCounter = 0;
+			srand(0);
+			for (uint32_t i = 0; i < m_visibleCellNum; ++i)
+			{
+				m_gs->DrawRectangle(alVec4f(drawPosition.x, drawPosition.y,
+					drawPosition.x + m_cellSizeX,
+					drawPosition.y + m_cellSizeY), (0xFF000000 | rand()));
+
+				drawPosition.x += m_cellSizeX;
+
+				++colCounter;
+				if (colCounter == m_cellsInRow)
+				{
+					colCounter = 0;
+					drawPosition.x = 0;
+					drawPosition.y += m_cellSizeY;
+				}
+			}
+		}
+
+		m_gs->EndDrawGUI();
+		m_gs->SwapBuffers();
 	}
 }
 
@@ -560,7 +671,7 @@ void FontTool::create_tmp_font()
 				//sprintf_s(cbuf, 100, "file0x%X.png", (uint32_t)ch);
 				//alLib::SaveImage(cbuf, &img, alSaveImageType::png);
 				img->FlipVertical();
-				myglyphs[currentchar] = alCreate<GlyphNode>();
+				/*myglyphs[currentchar] = alCreate<GlyphNode>();
 				myglyphs[currentchar]->image = img;
 				myglyphs[currentchar]->character = currentchar;
 				myglyphs[currentchar]->overhang = overhang;
@@ -570,7 +681,7 @@ void FontTool::create_tmp_font()
 				myglyphs[currentchar]->leftTopX = 0;
 				myglyphs[currentchar]->leftTopY = 0;
 				myglyphs[currentchar]->rightBottomX = 0;
-				myglyphs[currentchar]->rightBottomY = 0;
+				myglyphs[currentchar]->rightBottomY = 0;*/
 
 				if (size.cx > maxSizeX)
 					maxSizeX = size.cx;
@@ -599,61 +710,61 @@ void FontTool::create_tmp_font()
 
 	for (int i = 0; i < 0x10FFFF; ++i)
 	{
-		if (myglyphs[i])
-		{
-			myglyphs[i]->textureID = imageIndex;
+		//if (myglyphs[i])
+		//{
+		//	myglyphs[i]->textureID = imageIndex;
 
-			int rbX = drawPositionX + myglyphs[i]->sizeX;
-			int rbY = drawPositionY + myglyphs[i]->sizeY;
+		//	int rbX = drawPositionX + myglyphs[i]->sizeX;
+		//	int rbY = drawPositionY + myglyphs[i]->sizeY;
 
-			if (rbX > 512)
-			{
-				drawPositionX = 0;
-				rbX = drawPositionX + myglyphs[i]->sizeX;
+		//	if (rbX > 512)
+		//	{
+		//		drawPositionX = 0;
+		//		rbX = drawPositionX + myglyphs[i]->sizeX;
 
-				drawPositionY = rbY;
-				rbY = drawPositionY + myglyphs[i]->sizeY;
+		//		drawPositionY = rbY;
+		//		rbY = drawPositionY + myglyphs[i]->sizeY;
 
-				if (rbY > 512)
-				{
-					char buf[100];
-					sprintf_s(buf, 100, "font%i.png", imageIndex);
-					alLib::SaveImage(buf, &img, alSaveImageType::png);
-					
-					zipfiles.push_back(buf);
+		//		if (rbY > 512)
+		//		{
+		//			char buf[100];
+		//			sprintf_s(buf, 100, "font%i.png", imageIndex);
+		//			alLib::SaveImage(buf, &img, alSaveImageType::png);
+		//			
+		//			zipfiles.push_back(buf);
 
-					imageIndex++;
+		//			imageIndex++;
 
-					drawPositionY = 0;
-					rbY = drawPositionY + myglyphs[i]->sizeY;
+		//			drawPositionY = 0;
+		//			rbY = drawPositionY + myglyphs[i]->sizeY;
 
-					img.Fill(alColor(0.f,0.f,0.f,0.f));
-				}
-			}
+		//			img.Fill(alColor(0.f,0.f,0.f,0.f));
+		//		}
+		//	}
 
-			img.Fill(myglyphs[i]->image, alVec2u(drawPositionX, drawPositionY), 0, 0);
+		//	img.Fill(myglyphs[i]->image, alVec2u(drawPositionX, drawPositionY), 0, 0);
 
-			// write code, not char
-			ustr.Append((uint32_t)myglyphs[i]->character);
+		//	// write code, not char
+		//	ustr.Append((uint32_t)myglyphs[i]->character);
 
-			ustr.Append(" ");
-			ustr.Append(drawPositionX);
-			ustr.Append(" ");
-			ustr.Append(drawPositionY);
-			ustr.Append(" ");
-			ustr.Append(drawPositionX + myglyphs[i]->sizeX);
-			ustr.Append(" ");
-			ustr.Append(drawPositionY + myglyphs[i]->sizeY);
-			ustr.Append(" ");
-			ustr.Append(myglyphs[i]->underhang);
-			ustr.Append(" ");
-			ustr.Append(myglyphs[i]->overhang);
-			ustr.Append(" ");
-			ustr.Append(myglyphs[i]->textureID);
-			ustr.Append("\n");
+		//	ustr.Append(" ");
+		//	ustr.Append(drawPositionX);
+		//	ustr.Append(" ");
+		//	ustr.Append(drawPositionY);
+		//	ustr.Append(" ");
+		//	ustr.Append(drawPositionX + myglyphs[i]->sizeX);
+		//	ustr.Append(" ");
+		//	ustr.Append(drawPositionY + myglyphs[i]->sizeY);
+		//	ustr.Append(" ");
+		//	ustr.Append(myglyphs[i]->underhang);
+		//	ustr.Append(" ");
+		//	ustr.Append(myglyphs[i]->overhang);
+		//	ustr.Append(" ");
+		//	ustr.Append(myglyphs[i]->textureID);
+		//	ustr.Append("\n");
 
-			drawPositionX = rbX;
-		}
+		//	drawPositionX = rbX;
+		//}
 	}
 
 	if (imageIndex == 0)
@@ -701,7 +812,43 @@ void FontTool::create_tmp_font()
 		delete[] files;
 	}
 }
-	
+
+void FontTool::OnButtonGenerate()
+{
+	LOGFONT lf = { 0 };
+	lf.lfHeight = 12; // Default height
+	lf.lfWeight = FW_NORMAL;
+	// Initialize LOGFONT string buffer
+	lf.lfFaceName[0] = '\0';
+
+	alSystemWindowOSDataWin32* w32 = (alSystemWindowOSDataWin32*)m_mainWindow->GetOSData();
+
+	CHOOSEFONT cf = { 0 };
+	cf.lStructSize = sizeof(CHOOSEFONT);
+	cf.hwndOwner = w32->m_hwnd;
+	cf.lpLogFont = &lf;
+	cf.Flags = CF_EFFECTS | CF_INITTOLOGFONTSTRUCT | CF_SCREENFONTS;
+	cf.rgbColors = RGB(0, 0, 0); // Default text color
+
+	ChooseFontW(&cf);
+
+	m_editMode = true;
+}
+
+void FontTool::OnRebuild()
+{
+	if (m_gs)
+	{
+		m_gs->UpdateWindowData();
+	}
+
+
+	auto windowSzY = m_mainWindow->m_clientSize.y;
+	if (!windowSzY)
+		windowSzY = 1;
+	m_visibleLineNum = (uint32_t)ceilf(float(windowSzY) / float(m_cellSizeY));
+	m_visibleCellNum = m_visibleLineNum * m_cellsInRow;
+}
 
 int main()
 {

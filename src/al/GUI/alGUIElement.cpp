@@ -125,10 +125,10 @@ void alGUIElement::Rebuild()
 	m_buildArea.w = m_buildArea.y + m_size.y;
 	if (m_parent)
 	{
-		/*m_buildArea.x += m_parent->m_buildArea.x;
+		m_buildArea.x += m_parent->m_buildArea.x;
 		m_buildArea.y += m_parent->m_buildArea.y;
 		m_buildArea.z += m_parent->m_buildArea.x;
-		m_buildArea.w += m_parent->m_buildArea.y;*/
+		m_buildArea.w += m_parent->m_buildArea.y;
 		/*float32_t parentRectSizeX_1 = 1.f / (m_parent->m_buildArea.z - m_parent->m_buildArea.x);
 		float32_t parentRectSizeY_1 = 1.f / (m_parent->m_buildArea.w - m_parent->m_buildArea.y);
 

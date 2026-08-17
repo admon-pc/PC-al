@@ -516,13 +516,10 @@ void alUnicodeString::ToUTF16(alStringW& str)
 			str.push_back(uc.m_16[1]);
 	}
 }
-uint32_t alUnicodeString::ReadFromFile(const char* fn)
+uint32_t alUnicodeString::_readFromFile(FILE* f)
 {
 	uint32_t ret = 1;
-
-	AL_ASSERT_ST(fn);
-	FILE* f = 0;
-	fopen_s(&f, fn, "rb");
+	AL_ASSERT_ST(f);
 	if (f)
 	{
 		fseek(f, 0, SEEK_END);
@@ -674,10 +671,51 @@ uint32_t alUnicodeString::ReadFromFile(const char* fn)
 	return ret;
 }
 
+uint32_t alUnicodeString::ReadFromFile(const wchar_t* fn)
+{
+	FILE* f = alLib::fopen(fn, L"rb");
+	return _readFromFile(f);
+}
+
+uint32_t alUnicodeString::ReadFromFile(const char* fn)
+{
+	FILE* f = alLib::fopen(fn, "rb");
+	return _readFromFile(f);
+}
+
 void alUnicodeString::SaveToFileUTF8(const char* fn, bool addBOM)
 {
-	FILE* f = 0;
-	fopen_s(&f, fn, "wb");
+	_saveToFileUTF8(alLib::fopen(fn, "wb"), addBOM);
+}
+
+void alUnicodeString::SaveToFileUTF16(const char* fn, bool addBOM)
+{
+	_saveToFileUTF16(alLib::fopen(fn, "wb"), addBOM);
+}
+
+void alUnicodeString::SaveToFileUTF32(const char* fn, bool addBOM)
+{
+	_saveToFileUTF32(alLib::fopen(fn, "wb"), addBOM);
+}
+
+void alUnicodeString::SaveToFileUTF8(const wchar_t* fn, bool addBOM)
+{
+	_saveToFileUTF8(alLib::fopen(fn, L"wb"), addBOM);
+}
+
+void alUnicodeString::SaveToFileUTF16(const wchar_t* fn, bool addBOM)
+{
+	_saveToFileUTF16(alLib::fopen(fn, L"wb"), addBOM);
+}
+
+void alUnicodeString::SaveToFileUTF32(const wchar_t* fn, bool addBOM)
+{
+	_saveToFileUTF32(alLib::fopen(fn, L"wb"), addBOM);
+}
+
+
+void alUnicodeString::_saveToFileUTF8(FILE* f, bool addBOM)
+{
 	if (f && m_data && m_size)
 	{
 		if (addBOM)
@@ -701,10 +739,8 @@ void alUnicodeString::SaveToFileUTF8(const char* fn, bool addBOM)
 		fclose(f);
 }
 
-void alUnicodeString::SaveToFileUTF16(const char* fn, bool addBOM)
+void alUnicodeString::_saveToFileUTF16(FILE* f, bool addBOM)
 {
-	FILE* f = 0;
-	fopen_s(&f, fn, "wb");
 	if (f && m_data && m_size)
 	{
 		if (addBOM)
@@ -730,10 +766,8 @@ void alUnicodeString::SaveToFileUTF16(const char* fn, bool addBOM)
 		fclose(f);
 }
 
-void alUnicodeString::SaveToFileUTF32(const char* fn, bool addBOM)
+void alUnicodeString::_saveToFileUTF32(FILE* f, bool addBOM)
 {
-	FILE* f = 0;
-	fopen_s(&f, fn, "wb");
 	if (f && m_data && m_size)
 	{
 		if (addBOM)

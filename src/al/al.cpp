@@ -1075,3 +1075,30 @@ bool alLib::GUIDIsEqual(const alGUID& g1, const alGUID& g2)
 	}
 	return true;
 }
+
+FILE* alLib::fopen(const char* str, const char* mode)
+{
+	AL_ASSERT_ST(str);
+	AL_ASSERT_ST(mode);
+	if (str && mode)
+	{
+		FILE* f = 0;
+		fopen_s(&f, str, mode);
+		return f;
+	}
+	return 0;
+}
+
+FILE* alLib::fopen(const wchar_t* str, const wchar_t* mode)
+{
+	AL_ASSERT_ST(str);
+	AL_ASSERT_ST(mode);
+	if (str && mode)
+	{
+		FILE* f = 0;
+		_wfopen_s(&f, str, mode);
+		return f;
+	}
+	return 0;
+}
+

@@ -91,7 +91,10 @@ class alUnicodeString
 		}
 		return len;
 	}
-
+	uint32_t _readFromFile(FILE*);
+	void _saveToFileUTF8(FILE*, bool addBOM = true);
+	void _saveToFileUTF16(FILE*, bool addBOM = true);
+	void _saveToFileUTF32(FILE*, bool addBOM = true);
 public:
 	alUnicodeString();
 	alUnicodeString(const char*);
@@ -154,10 +157,14 @@ public:
 	// 4 - utf32
 	// 5 - utf32 big endian
 	uint32_t ReadFromFile(const char*);
+	uint32_t ReadFromFile(const wchar_t*);
 
 	void SaveToFileUTF8(const char*, bool addBOM = true);
 	void SaveToFileUTF16(const char*, bool addBOM = true);
 	void SaveToFileUTF32(const char*, bool addBOM = true);
+	void SaveToFileUTF8(const wchar_t*, bool addBOM = true);
+	void SaveToFileUTF16(const wchar_t*, bool addBOM = true);
+	void SaveToFileUTF32(const wchar_t*, bool addBOM = true);
 
 	alUnicodeString& operator=(const alUnicodeString&);
 	alUnicodeString& operator=(alUnicodeString&&) noexcept;

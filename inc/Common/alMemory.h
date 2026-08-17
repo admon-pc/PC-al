@@ -28,6 +28,7 @@ void alDestroy(Type* p)
 }
 
 #define AL_DESTROY(x)if(x){alDestroy(x);x=0;}
+#define AL_FREE(x)if(x){alMemory::Free(x);x=0;}
 
 class alAllocatorDefault
 {
