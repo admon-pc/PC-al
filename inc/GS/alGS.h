@@ -81,7 +81,15 @@ public:
 		ti->m_textureType = alGSTextureType::RTT;
 		return this->CreateTexture(ti);
 	}
-	
+	virtual alGSTexture* CreateTexture(alImage* image)
+	{
+		alGSTextureInfo ti(image);
+		ti.UseMipMaps(false);
+		ti.m_filter = alGSTextureFilter::PPP;
+		ti.m_imagePtr = image;
+		return this->CreateTexture(&ti);
+	}
+
 	virtual alGSTexture* CreateTexturePoint(alImage* image, bool usemipmaps = false)
 	{
 		alGSTextureInfo ti(image);

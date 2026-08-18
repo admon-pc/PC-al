@@ -328,7 +328,10 @@ void alGUIComboBox::Rebuild()
 		m_popupAreaClip.y = m_upBtnRect.w;
 		m_popupAreaClip.w = m_downBtnRect.y;
 	}
-
+	else
+	{
+		m_startIndex = 0;
+	}
 	
 }
 

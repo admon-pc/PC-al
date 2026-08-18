@@ -23,14 +23,14 @@ alGUIPanel::~alGUIPanel()
 
 void alGUIPanel::Draw(float32_t dt)
 {
-	OnDraw();
-	if (m_drawBG)
-	{
-		m_gs->DrawRectangle(m_buildArea, m_colorTheme->m_panel_bg1, m_colorTheme->m_panel_bg2);
-	}
-
 	if (m_visible)
 	{
+		OnDraw();
+		if (m_drawBG)
+		{
+			m_gs->DrawRectangle(m_buildArea, m_colorTheme->m_panel_bg1, m_colorTheme->m_panel_bg2);
+		}
+	
 		for (size_t i = 0; i < m_elements.m_size; ++i)
 		{
 			m_elements.m_data[i]->Draw(dt);
