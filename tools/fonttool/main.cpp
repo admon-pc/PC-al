@@ -43,6 +43,84 @@ AL_LINK_LIBRARY(al);
 #define FontToolGUIID_btnGenerate 2
 #define FontToolGUIID_btnCreate 3
 
+class FontTool_combo_unicodeRange : public alGUIComboBox
+{
+public:
+	FontTool_combo_unicodeRange(alGUIContext* ct, const alVec2f& position, const alVec2f& size)
+		:alGUIComboBox(ct, position, size) {}
+	virtual ~FontTool_combo_unicodeRange() {}
+	AL_DECLARE_DEFAULT_ALLOCATOR(FontTool_combo_unicodeRange);
+	virtual void OnComboSelectItem(size_t) override;
+};
+
+struct UnicodeRangeInfo
+{
+	char32_t m_title[100];
+};
+UnicodeRangeInfo g_UnicodeRangeInfo[] =
+{
+	{U"Basic Latin 0x0-0x7F"},
+	{U"Latin-1 Supplement 0x80-0xFF"},
+	{U"Latin Extended-A 0x100-0x17F"},
+	{U"Latin Extended-B 0x180-0x24F"},
+	{U"IPA Extensions 0x250-0x2AF"},
+	{U"Spacing Modifier Letters 0x2B0-0x2FF"},
+	{U"Combining Diacritical Marks 0x300-0x36F"},
+	{U"Greek and Coptic 0x370-0x3FF"},
+	{U"Cyrillic 0x400-0x4FF"},
+	{U"Cyrillic Supplement 0x500-0x52F"},
+	{U"Armenian 0x530-0x58F"},
+	{U"Hebrew 0x590-0x5FF"},
+	{U"Arabic 0x600-0x6FF"},
+	{U"Syriac 0x700-0x74F"},
+	{U"Arabic Supplement 0x750-0x77F"},
+	{U"Thaana 0x780-0x7BF"},
+	{U"NKo 0x7C0-0x7FF"},
+	{U"Samaritan 0x800-0x83F"},
+	{U"Mandaic 0x840-0x85F"},
+	{U"Syriac Supplement 0x860-0x86F"},
+	{U"Arabic Extended-B 0x870-0x89F"},
+	{U"Arabic Extended-A 0x8A0-0x8FF"},
+	{U"Devanagari 0x900-0x97F"},
+	{U"Bengali 0x980-0x9FF"},
+	{U"Gurmukhi 0xA00-0xA7F"},
+	{U"Gujarati 0xA80-0xAFF"},
+	{U"Oriya 0xB00-0xB7F"},
+	{U"Tamil 0xB80-0xBFF"},
+	{U"Telugu 0xC00-0xC7F"},
+	{U"Kannada 0xC80-0xCFF"},
+	{U"Malayalam 0xD00-0xD7F"},
+	{U"Sinhala 0xD80-0xDFF"},
+	{U"Thai 0xE00-0xE7F"},
+	{U"Lao 0xE80-0xEFF"},
+	{U"Tibetan 0xF00-0xFFF"},
+	{U"Myanmar 0x1000-0x109F"},
+	{U"Georgian 0x10A0-0x10FF"},
+	{U"Hangul Jamo 0x1100-0x11FF"},
+	{U"Ethiopic 0x1200-0x137F"},
+	{U"Ethiopic Supplement 0x1380-0x139F"},
+	{U"Cherokee 0x13A0-0x13FF"},
+	{U"Unified Canadian Aboriginal Syllabics 0x1400-0x167F"},
+	{U"Ogham 0x1680-0x169F"},
+	{U"Runic 0x16A0-0x16FF"},
+	{U"Tagalog 0x1700-0x171F"},
+	{U"Hanunoo 0x1720-0x173F"},
+	{U"Buhid 0x1740-0x175F"},
+	{U"Tagbanwa 0x1760-0x177F"},
+	{U"Khmer 0x1780-0x17FF"},
+	{U"Mongolian 0x1800-0x18AF"},
+	{U"Unified Canadian Aboriginal Syllabics Extended 0x18B0-0x18FF"},
+	//...
+	{U"General Punctuation 0x2000-0x206F"},
+	//...
+	{U"Currency Symbols 0x20A0-0x20CF"},
+	//...
+	{U"Number Forms 0x2150-0x218F"},
+	{U"Arrows 0x2190-0x21FF"},
+	//...
+	{U"Emoticons (Emoji) 0x1F600-0x1F64F"},
+};
+
 struct GlyphInfo
 {
 	int m_width = 0;
@@ -90,13 +168,15 @@ class FontTool
 	alGUIContext* m_guiContext = 0;
 	alGUIPanel* m_guiPanel_first = 0;
 
+	FontTool_combo_unicodeRange* m_comboRanges = 0;
+
 	uint32_t m_visibleLineNum = 0;
 	uint32_t m_visibleCellNum = 0;
 	uint32_t m_startDrawCellIndex = 0;
 
-	uint32_t m_cellsInRow = 10;
-	uint32_t m_cellSizeX = 100;
-	uint32_t m_cellSizeY = 100;
+	uint32_t m_cellsInRow = 8;
+	uint32_t m_cellSizeX = 64;
+	uint32_t m_cellSizeY = 64;
 
 public:
 	FontTool();
@@ -106,6 +186,8 @@ public:
 	void Run();
 
 	void OnButtonGenerate();
+	void OnButtonOpen();
+	void OnButtonCreate();
 	
 	void OnRebuild();
 
@@ -122,24 +204,36 @@ public:
 
 	alGSTexture* m_whiteTexture = 0;
 	alGUIFont* m_fontGUI = 0;
+	alGUIFont* m_fontDefault = 0;
 
 	
 	//alGSTextureCacheNode* m_guiTextureNodes[TextureID__end];
 	//alGSTextureCache* m_guiTextures = 0;
 };
 
-
+void FontTool_combo_unicodeRange::OnComboSelectItem(size_t index)
+{
+	/*DemoExample_gui_all2* ex = (DemoExample_gui_all2*)GetUserData();
+	uint8_t* ptr = (uint8_t*)m_items;
+	m_text = (char32_t*)(&ptr[index * m_stride] + m_textOffset);*/
+}
 void FontTool_button::OnButtonRelease()
 {
 	FontTool* app = (FontTool*)GetUserData();
 	if (GetID() == FontToolGUIID_btnOpen)
 	{
 		//example->m_buttonExitPressed = true;
+		app->OnButtonOpen();
 	}
 
 	if (GetID() == FontToolGUIID_btnGenerate)
 	{
 		app->OnButtonGenerate();
+	}
+
+	if (GetID() == FontToolGUIID_btnCreate)
+	{
+		app->OnButtonCreate();
 	}
 }
 
@@ -178,83 +272,9 @@ public:
 	}
 };
 
-class CPopup
-{
-public:
-	CPopup();
-	CPopup(const CPopup&);
-	~CPopup();
-
-	CPopup* CreateSubMenu(const wchar_t* text);
-	void AddItem(const wchar_t*, uint32_t id, const wchar_t* shortcut);
-	void AddSeparator();
-	void Show(uint32_t x, uint32_t y);
-
-
-	HMENU m_hPopupMenu = 0;
-
-	alArray<CPopup*> m_subMenus;
-};
-
-
-CPopup::CPopup()
-{
-	m_hPopupMenu = CreatePopupMenu();
-}
-
-CPopup::CPopup(const CPopup&)
-{
-	m_hPopupMenu = CreatePopupMenu();
-}
-
-CPopup::~CPopup()
-{
-	for (size_t i = 0, sz = m_subMenus.size(); i < sz; ++i)
-	{
-		delete m_subMenus[i];
-	}
-	DestroyMenu(m_hPopupMenu);
-}
-
-CPopup* CPopup::CreateSubMenu(const wchar_t* text)
-{
-	m_subMenus.push_back(new CPopup);
-	//	AppendMenu(m_hPopupMenu, MF_POPUP | MF_BYPOSITION | MF_STRING, (UINT_PTR)newSubMenu->m_hPopupMenu, text);
-	return 0;
-}
-
-void CPopup::AddItem(const wchar_t* _text, uint32_t id, const wchar_t* shortcut)
-{
-	alStringW text = _text;
-	if (shortcut)
-	{
-		text += L"\t";
-		text += shortcut;
-	}
-	AppendMenu(m_hPopupMenu, MF_BYPOSITION | MF_STRING, id, text.data());
-}
-
-void CPopup::AddSeparator()
-{
-	AppendMenu(m_hPopupMenu, MF_SEPARATOR, 0, 0);
-}
-
-void CPopup::Show(uint32_t x, uint32_t y)
-{
-	/*HWND hWnd = (HWND)g_app->m_hwnd;
-	SetForegroundWindow(hWnd);
-	POINT pt;
-	pt.x = x;
-	pt.y = y;
-	ClientToScreen(hWnd, &pt);
-	TrackPopupMenu(m_hPopupMenu, TPM_TOPALIGN | TPM_LEFTALIGN, pt.x, pt.y, 0, hWnd, NULL);*/
-}
-
-
 
 FontTool::FontTool()
 {
-	CPopup* pp = new CPopup;
 //	OnRun = &FontTool::_state_NewOrOpen;
 
 	for (size_t i = 0; i < 0x10FFFF; i++)
@@ -295,6 +315,9 @@ bool FontTool::Init()
 	m_gs = alLib::CreateGS(alVideoDriverType::Direct3D11);
 	if (!m_gs->Init(m_mainWindow))
 		return false;
+	alLib::InitializeDefaultFont(m_gs);
+	m_fontDefault = alLib::GetDefaultFont();
+
 	m_fontGUI = alLib::CreateGUIFont();
 	m_fontGUI->Load("../data/font.zip", m_gs);
 	m_whiteTexture = m_gs->GetWhiteTexture();
@@ -339,6 +362,14 @@ bool FontTool::Init()
 	m_guiPanel_first->AddElement(btn, true);
 	position += 40;
 
+	m_comboRanges = new FontTool_combo_unicodeRange(m_guiContext, alVec2f(5, 300), alVec2f(200, 30));
+	m_comboRanges->SetUserData(this);
+	m_comboRanges->SetFont(m_fontGUI);
+	m_comboRanges->m_text.Assign(U"...");
+	m_comboRanges->SetItems(g_UnicodeRangeInfo, 35,
+		sizeof(UnicodeRangeInfo), 0);
+	m_guiPanel_first->AddElement(m_comboRanges, true);
+
 	m_guiPanel_first->Rebuild();
 
 	return true;
@@ -349,6 +380,10 @@ void FontTool::Run()
 	float32_t* dt = alLib::GetDeltaTime();
 
 	alInput* input = alLib::GetInput();
+
+	//alUnicodeString ustr;
+	char32_t char32Buf[100];
+
 	while (m_run)
 	{
 		alLib::Update();
@@ -376,6 +411,10 @@ void FontTool::Run()
 				m_gs->DrawRectangle(alVec4f(drawPosition.x, drawPosition.y,
 					drawPosition.x + m_cellSizeX,
 					drawPosition.y + m_cellSizeY), (0xFF000000 | rand()));
+				
+				auto str_size = alLib::snprintf(char32Buf,100, U"U+%x", drawIndex);
+				m_gs->DrawText(char32Buf, str_size, m_fontGUI,
+					drawPosition + alVec2f(), ColorWhite);
 
 				drawPosition.x += m_cellSizeX;
 
@@ -386,6 +425,8 @@ void FontTool::Run()
 					drawPosition.x = 0;
 					drawPosition.y += m_cellSizeY;
 				}
+
+				++drawIndex;
 			}
 		}
 
@@ -812,6 +853,17 @@ void FontTool::create_tmp_font()
 		delete[] files;
 	}
 }
+
+void FontTool::OnButtonOpen()
+{
+	m_editMode = true;
+}
+
+void FontTool::OnButtonCreate()
+{
+	m_editMode = true;
+}
+
 
 void FontTool::OnButtonGenerate()
 {

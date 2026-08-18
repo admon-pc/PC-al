@@ -104,7 +104,7 @@ void alGUIComboBox::Draw(float32_t dt)
 				alVec4f itemRect;
 				itemRect.x = m_popupArea.x;
 				itemRect.y = posY;
-				itemRect.z = m_popupAreaWidth;
+				itemRect.z = itemRect.x + m_popupAreaWidth;
 				itemRect.w = itemRect.y + m_itemHeight-1;
 
 				auto textColor = m_colorTheme->m_popup_itemText;
