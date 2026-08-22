@@ -52,17 +52,26 @@ enum class alGSTextureFilter : uint32_t
 	CMP_ANISOTROPIC,
 };
 
+enum class alGSTextureCPUAccess : uint32_t
+{
+	NoAccess,
+	Read,
+	Write
+};
+
 class alGSTextureInfo
 {
 public:
 	alGSTextureInfo() {}
 	alGSTextureInfo(alImage* i)
 	{
-		
+		m_imagePtr = i;
 	}
 	
 	~alGSTextureInfo() {}
 
+
+	alGSTextureCPUAccess m_cpuAccess = alGSTextureCPUAccess::NoAccess;
 	alGSTextureType m_textureType = alGSTextureType::Texture2D;
 	alGSTextureFilter m_filter = alGSTextureFilter::PPP;
 	alGSTextureAddressMode m_addressMode = alGSTextureAddressMode::Wrap;
@@ -128,7 +137,8 @@ public:
 		return uv;
 	}
 
-
+	virtual void* Lock(uint32_t * rowPitch) = 0;
+	virtual void UnLock() = 0;
 };
 
 #endif

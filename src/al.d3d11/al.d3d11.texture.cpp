@@ -130,13 +130,25 @@ void alD3D11Texture::OnCreate()
 		case alImageFormat::R8G8B8A8:
 		{
 			desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-			desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+			desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 			desc.MiscFlags = 0;
 			desc.MipLevels = 1;
 
 			desc.ArraySize = 1;
+
 			desc.Usage = D3D11_USAGE_DEFAULT;
 			desc.CPUAccessFlags = 0;
+
+			if (m_textureInfo.m_cpuAccess == alGSTextureCPUAccess::Read)
+			{
+				desc.Usage = D3D11_USAGE_DYNAMIC;
+				desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+			}
+			else if (m_textureInfo.m_cpuAccess == alGSTextureCPUAccess::Write)
+			{
+				desc.Usage = D3D11_USAGE_DYNAMIC;
+				desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+			}
 
 			if (isGenMips)
 			{
@@ -341,16 +353,35 @@ void alD3D11Texture::OnCreate()
 //	m_loaded = true;
 }
 
-//void alD3D11Texture::Unload()
-//{
-//	SAFE_RELEASE(m_RTV);
-//	SAFE_RELEASE(m_depthStencilBuffer);
-//	SAFE_RELEASE(m_depthStencilView);
-//
-//	SAFE_RELEASE(m_samplerState);
-//	SAFE_RELEASE(m_textureResView);
-//	SAFE_RELEASE(m_texture);
-//
-//	m_loaded = false;
-//}
-//
+void* alD3D11Texture::Lock(uint32_t* rowPitch)
+{
+	if (m_textureInfo.m_cpuAccess == alGSTextureCPUAccess::NoAccess)
+		return 0;
+
+	D3D11_MAP type = D3D11_MAP_WRITE_DISCARD;
+	if (m_textureInfo.m_cpuAccess == alGSTextureCPUAccess::Read)
+	{
+		type = D3D11_MAP_READ;
+	}
+
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+	HRESULT hr = g_d3d11->GetD3D11DeviceContext()->Map(m_texture, 0, type, 0, &mappedResource);
+	
+	if (SUCCEEDED(hr))
+	{
+		*rowPitch = mappedResource.RowPitch;
+		return mappedResource.pData;
+	}
+
+	return 0;
+}
+
+void alD3D11Texture::UnLock()
+{
+	if (m_textureInfo.m_cpuAccess == alGSTextureCPUAccess::NoAccess)
+		return;
+
+	g_d3d11->GetD3D11DeviceContext()->Unmap(m_texture, 0);
+}
+
+

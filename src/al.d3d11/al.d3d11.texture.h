@@ -6,6 +6,8 @@ class alD3D11Texture : public alGSTexture
 public:
 	alD3D11Texture();
 	virtual ~alD3D11Texture();
+	virtual void* Lock(uint32_t* rowPitch) override;
+	virtual void UnLock() override;
 
 	//virtual void Reload() override;
 	//virtual void Unload() override;

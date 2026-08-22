@@ -183,6 +183,9 @@ class FontTool
 	alVec4f m_cellPanelRect;
 	void _moveUpView(uint32_t);
 	void _moveDownView(uint32_t);
+
+	uint32_t m_selected = 0;
+
 public:
 	FontTool();
 	~FontTool();
@@ -197,6 +200,8 @@ public:
 	void OnButtonCreate();
 	
 	void OnRebuild();
+	void OnDraw();
+	void OnUpdate();
 
 	void create_tmp_font();
 
@@ -207,11 +212,16 @@ public:
 	alGSTexture* m_textureNoData = 0;
 	alGS* m_gs = 0;
 
-	GlyphInfo myglyphs[0x10FFFF];
+	GlyphInfo m_glyphs[0x10FFFF];
+	float m_fontHeightMax = 0.f;
+	float m_fontWidthMax = 0.f;
 
 	alGSTexture* m_whiteTexture = 0;
 	alGUIFont* m_fontGUI = 0;
 	alGUIFont* m_fontDefault = 0;
+
+	void InitCellTexture();
+	alGSTexture* m_cellTexture = 0;
 
 	void GoTo(size_t);
 	//alGSTextureCacheNode* m_guiTextureNodes[TextureID__end];
@@ -288,7 +298,7 @@ FontTool::FontTool()
 
 	for (size_t i = 0; i < 0x10FFFF; i++)
 	{
-		//myglyphs[i] = 0;
+		m_glyphs[i].m_data = 0;
 	}
 
 	/*for (int i = 0; i < TextureID__end; ++i)
@@ -302,12 +312,13 @@ FontTool::~FontTool()
 {
 	for (size_t i = 0; i < 0x10FFFF; i++)
 	{
-		AL_FREE(myglyphs[i].m_data);
+		AL_FREE(m_glyphs[i].m_data);
 	}
 	AL_DESTROY(m_textureNoData);
 	AL_DESTROY(m_fontGUI);
 	AL_DESTROY(m_guiContext);
 	//AL_DESTROY(m_guiTextures);
+	AL_DESTROY(m_cellTexture);
 	AL_DESTROY(m_gs);
 	AL_DESTROY(m_windowCallback);
 	AL_DESTROY(m_mainWindow);
@@ -325,7 +336,7 @@ bool FontTool::Init()
 	m_gs = alLib::CreateGS(alVideoDriverType::Direct3D11);
 	if (!m_gs->Init(m_mainWindow))
 		return false;
-
+	m_gs->SetClearColor(ColorDarkGrey);
 	{
 		alImage img;
 		alColor dataColor[2] = { ColorTransparent, ColorWhite };
@@ -434,78 +445,226 @@ bool FontTool::Init()
 	return true;
 }
 
+void FontTool::InitCellTexture()
+{
+	alImage img;
+	img.Create(m_fontHeightMax, m_fontHeightMax);
+	alGSTextureInfo ti(&img);
+	ti.m_cpuAccess = alGSTextureCPUAccess::Write;	
+	m_cellTexture = m_gs->CreateTexture(&ti);
+}
+
+long mapRange(long value, long in_min, long in_max, long out_min, long out_max) {
+	if (in_max == in_min) {
+		return out_min; // Avoid division by zero
+	}
+
+	// Calculate using long to preserve precision before final division
+	return (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
+void FontTool::OnDraw()
+{
+	alInput* input = alLib::GetInput();
+	char32_t char32Buf[100];
+	float32_t* dt = alLib::GetDeltaTime();
+
+	m_gs->SetViewport(0, 0, m_mainWindow->m_clientSize.x, m_mainWindow->m_clientSize.y);
+	m_gs->BeginDraw();
+	m_gs->ClearAll();
+	m_gs->EndDraw();
+	m_gs->BeginDrawGUI();
+
+	m_guiContext->Draw(*dt);
+
+	if (m_editMode)
+	{
+		m_gs->SetScissorRect(alVec4f(0.f, 0.f, m_mainWindow->m_clientSize.x, m_mainWindow->m_clientSize.y));
+		//m_gs->DrawRectangle(alVec4f(0.f, 0.f, 1000.f, 1000.f), ColorRed);
+		uint32_t drawIndex = m_startDrawCellIndex;
+		alVec2f drawPosition;
+		uint32_t colCounter = 0;
+		for (uint32_t i = 0; i < m_visibleCellNum; ++i)
+		{
+			alColor color = ColorWhite;
+
+			if (drawIndex == m_selected)
+				color = ColorRed;
+
+			auto G = m_glyphs[drawIndex];
+
+			alVec4f cellRect;
+			cellRect.x = drawPosition.x;
+			cellRect.y = drawPosition.y;
+			cellRect.z = drawPosition.x + m_cellSizeX;
+			cellRect.w = drawPosition.y + m_cellSizeY;
+
+			alGSTexture* t = m_whiteTexture;
+			if (!G.m_data)
+			{
+				t = m_textureNoData;
+			}
+			else
+			{
+				uint32_t rowPitch = 0;
+				uint8_t* textureBuffer = (uint8_t*)m_cellTexture->Lock(&rowPitch);
+
+				if (textureBuffer)
+				{
+					uint8_t* srcBuffer = G.m_data;
+					auto ti = m_cellTexture->GetGSTextureInfo();
+				//	uint32_t imgPitch = ti->m_width * 4;
+
+					for (uint32_t ty = 0; ty < ti->m_height; ++ty)
+					{
+						alImage::rgba* _rgba = (alImage::rgba*)textureBuffer;
+						for (uint32_t tx = 0; tx < ti->m_width; ++tx)
+						{
+							long src_index = mapRange(tx, 0, ti->m_width, 0, G.m_width);
+
+							_rgba->r = srcBuffer[src_index];
+							_rgba->g = srcBuffer[src_index];
+							_rgba->b = srcBuffer[src_index];
+							_rgba->a = 255;
+
+
+							++_rgba;
+						}
+
+						textureBuffer += rowPitch;
+						srcBuffer += G.m_width;
+					}
+
+					m_cellTexture->UnLock();
+					t = m_cellTexture;
+				}
+			}
+
+			m_gs->DrawRectangle(cellRect, color, t);
+
+			auto str_size = alLib::snprintf(char32Buf, 100, U"U+%.4X", drawIndex);
+			m_gs->DrawText(char32Buf, str_size, m_fontGUI,
+				drawPosition + alVec2f(), ColorLime);
+
+			if (alMath::PointInRect(
+				input->m_cursorCoordsForGUI.x,
+				input->m_cursorCoordsForGUI.y,
+				cellRect))
+			{
+				if (input->m_isLMBDown)
+				{
+					m_selected = drawIndex;
+				}
+			}
+
+			drawPosition.x += m_cellSizeX;
+
+			++colCounter;
+			if (colCounter == m_cellsInRow)
+			{
+				colCounter = 0;
+				drawPosition.x = 0;
+				drawPosition.y += m_cellSizeY;
+			}
+
+			++drawIndex;
+			if (drawIndex == 0x10FFFF)
+				break;
+		}
+	}
+
+	m_gs->EndDrawGUI();
+	m_gs->SwapBuffers();
+}
+
+void FontTool::OnUpdate()
+{
+	alInput* input = alLib::GetInput();
+
+	if (alMath::PointInRect(
+		input->m_cursorCoordsForGUI.x,
+		input->m_cursorCoordsForGUI.y,
+		m_cellPanelRect))
+	{
+		if (input->m_wheelDelta &&
+			input->m_kbm != alKeyboardModifier::Ctrl)
+		{
+			if (input->m_wheelDelta > 0.f)
+				_moveUpView(1);
+			if (input->m_wheelDelta < 0.f)
+				_moveDownView(1);
+		}
+	}
+
+	// copy from OnDraw
+	uint32_t drawIndex = m_startDrawCellIndex;
+	alVec2f drawPosition;
+	uint32_t colCounter = 0;
+	for (uint32_t i = 0; i < m_visibleCellNum; ++i)
+	{
+		alColor color = ColorWhite;
+
+		if (drawIndex == m_selected)
+			color = ColorRed;
+
+		auto G = m_glyphs[drawIndex];
+
+		alVec4f cellRect;
+		cellRect.x = drawPosition.x;
+		cellRect.y = drawPosition.y;
+		cellRect.z = drawPosition.x + m_cellSizeX;
+		cellRect.w = drawPosition.y + m_cellSizeY;
+
+		if (alMath::PointInRect(
+			input->m_cursorCoordsForGUI.x,
+			input->m_cursorCoordsForGUI.y,
+			cellRect))
+		{
+			if (input->m_isLMBDown)
+			{
+				m_selected = drawIndex;
+			}
+		}
+
+		drawPosition.x += m_cellSizeX;
+
+		++colCounter;
+		if (colCounter == m_cellsInRow)
+		{
+			colCounter = 0;
+			drawPosition.x = 0;
+			drawPosition.y += m_cellSizeY;
+		}
+
+		++drawIndex;
+		if (drawIndex == 0x10FFFF)
+			break;
+	}
+}
+
 void FontTool::Run()
 {
 	float32_t* dt = alLib::GetDeltaTime();
-
 	alInput* input = alLib::GetInput();
-
-	//alUnicodeString ustr;
 	char32_t char32Buf[100];
+
+	float timer = 0.f;
+	float timer_limit = 1.f / 60.f;
 
 	while (m_run)
 	{
 		alLib::Update();
 		m_guiContext->Update(*dt);
 
-		if (alMath::PointInRect(
-			input->m_cursorCoordsForGUI.x,
-			input->m_cursorCoordsForGUI.y,
-			m_cellPanelRect))
-		{
-			if (input->m_wheelDelta &&
-				input->m_kbm != alKeyboardModifier::Ctrl)
-			{
-				if (input->m_wheelDelta > 0.f)
-					_moveUpView(1);
-				if (input->m_wheelDelta < 0.f)
-					_moveDownView(1);
-			}
-		}
-
-		//((*this).*(OnRun))();
-		m_gs->SetViewport(0, 0, m_mainWindow->m_clientSize.x, m_mainWindow->m_clientSize.y);
-		m_gs->BeginDraw();
-		m_gs->ClearAll();
-		m_gs->EndDraw();
-		m_gs->BeginDrawGUI();
-
-		m_guiContext->Draw(*dt);
-
 		if (m_editMode)
+			OnUpdate();
+
+		timer += *dt;
+		if (timer > timer_limit)
 		{
-			m_gs->SetScissorRect(alVec4f(0.f, 0.f, m_mainWindow->m_clientSize.x, m_mainWindow->m_clientSize.y));
-			//m_gs->DrawRectangle(alVec4f(0.f, 0.f, 1000.f, 1000.f), ColorRed);
-			uint32_t drawIndex = m_startDrawCellIndex;
-			alVec2f drawPosition;
-			uint32_t colCounter = 0;
-			srand(0);
-			for (uint32_t i = 0; i < m_visibleCellNum; ++i)
-			{
-				m_gs->DrawRectangle(alVec4f(drawPosition.x, drawPosition.y,
-					drawPosition.x + m_cellSizeX,
-					drawPosition.y + m_cellSizeY), (0xFF000000 | rand()), m_textureNoData);
-				
-				auto str_size = alLib::snprintf(char32Buf,100, U"U+%.4X", drawIndex);
-				m_gs->DrawText(char32Buf, str_size, m_fontGUI,
-					drawPosition + alVec2f(), ColorWhite);
-
-				drawPosition.x += m_cellSizeX;
-
-				++colCounter;
-				if (colCounter == m_cellsInRow)
-				{
-					colCounter = 0;
-					drawPosition.x = 0;
-					drawPosition.y += m_cellSizeY;
-				}
-
-				++drawIndex;
-			}
+			timer = 0.f;
+			OnDraw();
 		}
-
-		m_gs->EndDrawGUI();
-		m_gs->SwapBuffers();
 	}
 }
 
@@ -961,8 +1120,179 @@ void FontTool::OnButtonGenerate()
 	cf.Flags = CF_EFFECTS | CF_INITTOLOGFONTSTRUCT | CF_SCREENFONTS;
 	cf.rgbColors = RGB(0, 0, 0); // Default text color
 
-	ChooseFontW(&cf);
-	StartEdit();
+	if (ChooseFontW(&cf) == TRUE && (lf.lfFaceName[0]))
+	{
+		HFONT font = CreateFontIndirect(&lf);
+		if (font)
+		{
+			HDC dc = CreateDC(L"DISPLAY", L"DISPLAY", 0, 0);
+			SelectObject(dc, font);
+			SetTextAlign(dc, TA_LEFT | TA_TOP | TA_NOUPDATECP);
+			int size = GetFontUnicodeRanges(dc, 0);
+			uint8_t* buf = new uint8_t[size];
+			LPGLYPHSET glyphs = (LPGLYPHSET)buf;
+			GetFontUnicodeRanges(dc, glyphs);
+			
+			int maxSizeX = 0;
+			int maxSizeY = 0;
+
+			for (DWORD range = 0; range < glyphs->cRanges; ++range)
+			{
+				WCRANGE* current = &glyphs->ranges[range];
+				for (int ch = current->wcLow; ch < current->wcLow + current->cGlyphs; ++ch)
+				{
+					if (ch >= 0x10FFFF)
+						continue;
+
+					wchar_t currentchar = ch;
+					if (IsDBCSLeadByte((BYTE)ch))
+						continue;
+					SIZE size;
+					ABC abc;
+					GetTextExtentPoint32W(dc, &currentchar, 1, &size);
+					int underhang = 0;
+					int overhang = 0;
+
+					if (GetCharABCWidthsW(dc, currentchar, currentchar, &abc)) // for unicode fonts, get overhang, underhang, width
+					{
+						size.cx = abc.abcB;		// full font width (ignoring padding/underhang )
+						underhang = abc.abcA;	// underhang/padding left - can also be negative (in which case it's overhang left)
+						overhang = abc.abcC;	// overhang/padding right - can also be negative (in which case it's underhand right)
+		//				printf("[%i][%i][%i] : [%i]\n", abc.abcA, abc.abcB, abc.abcC, abc.abcB - abc.abcA + abc.abcC);
+						if (abc.abcB - abc.abcA + abc.abcC < 1)
+							continue; // nothing of width 0
+					}
+					if (size.cy < 1)
+						continue;
+					if (size.cx < 1)
+						continue;
+
+					HBITMAP bmp = CreateCompatibleBitmap(dc, size.cx, size.cy);
+					HDC bmpdc = CreateCompatibleDC(dc);
+					LOGBRUSH lbrush;
+					lbrush.lbColor = RGB(0, 0, 0);
+					lbrush.lbHatch = 0;
+					lbrush.lbStyle = BS_SOLID;
+					HBRUSH brush = CreateBrushIndirect(&lbrush);
+					HPEN pen = CreatePen(PS_NULL, 0, 0);
+					HGDIOBJ oldbmp = SelectObject(bmpdc, bmp);
+					HGDIOBJ oldbmppen = SelectObject(bmpdc, pen);
+					HGDIOBJ oldbmpbrush = SelectObject(bmpdc, brush);
+					HGDIOBJ oldbmpfont = SelectObject(bmpdc, font);
+					SetTextColor(bmpdc, RGB(255, 255, 255));
+					Rectangle(bmpdc, 0, 0, size.cx, size.cy);
+					SetBkMode(bmpdc, TRANSPARENT);
+
+					TextOutW(bmpdc,
+						-underhang,
+						0,
+						&currentchar,
+						1);
+
+
+					BITMAP b;
+					GetObject(bmp, sizeof(BITMAP), (LPSTR)&b);
+					WORD cClrBits = (WORD)(b.bmPlanes * b.bmBitsPixel);
+
+
+					PBITMAPINFO pbmi = (PBITMAPINFO)LocalAlloc(LPTR,
+						sizeof(BITMAPINFOHEADER));
+					pbmi->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+					pbmi->bmiHeader.biWidth = b.bmWidth;
+					pbmi->bmiHeader.biHeight = b.bmHeight;
+					pbmi->bmiHeader.biPlanes = b.bmPlanes;
+					pbmi->bmiHeader.biBitCount = b.bmBitsPixel;
+					pbmi->bmiHeader.biCompression = BI_RGB;
+					pbmi->bmiHeader.biSizeImage = ((pbmi->bmiHeader.biWidth * cClrBits + 31) & ~31) / 8
+						* pbmi->bmiHeader.biHeight;
+					pbmi->bmiHeader.biClrImportant = 0;
+					LPBYTE lpBits; // memory pointer
+					PBITMAPINFOHEADER pbih = (PBITMAPINFOHEADER)pbmi;
+					lpBits = (LPBYTE)GlobalAlloc(GMEM_FIXED, pbih->biSizeImage);
+					GetDIBits(dc, bmp, 0, (WORD)pbih->biHeight, lpBits, pbmi, DIB_RGB_COLORS);
+					if (cClrBits <= 8) // we're not supporting these
+					{
+					}
+					else if (cClrBits <= 16)
+					{
+					}
+					else if (cClrBits <= 24)
+					{
+					}
+					else
+					{
+						//alImage* img = alCreate<alImage>();
+						//img->Create(size.cx, size.cy);
+						GlyphInfo* g = &m_glyphs[ch];
+						if (!g->m_data)
+						{
+							g->m_data = (uint8_t*)alMemory::Calloc(size.cx * size.cy);
+							g->m_width = size.cx;
+
+							int rowsize = size.cx * 4; // width * rgba
+
+							uint8_t* dst = g->m_data;
+							uint8_t* src = lpBits + (rowsize * size.cy) - rowsize; // I will copy rows from bottom to top
+							alImage::rgba* src_rgba = (alImage::rgba*)(src);
+
+
+							//alImage iimg;
+							//iimg.Create(size.cx, size.cy);
+							//iimg.Fill(ColorBlack);
+							//alImage::rgba* iimg_rgba = (alImage::rgba*)iimg.m_data;
+
+							for (int i = 0; i < pbih->biHeight; ++i)
+							{
+								//memcpy(dst, src, rowsize);
+								for (int o = 0; o < size.cx; ++o)
+								{
+							/*		iimg_rgba->r = src_rgba[o].r;
+									iimg_rgba->g = src_rgba[o].r;
+									iimg_rgba->b = src_rgba[o].r;
+									++iimg_rgba;*/
+
+									*dst = src_rgba[o].r;
+									dst += 1;
+								}
+
+								src -= rowsize;
+								src_rgba = (alImage::rgba*)src;
+							}
+
+							//static int fni = 0;
+							//char fn[100];
+							//sprintf_s(fn,100, "%i.png", fni);
+							//alLib::SaveImage(fn, &iimg, alSaveImageType::png);
+							//++fni;
+
+							if (size.cx > maxSizeX)
+								maxSizeX = size.cx;
+							if (size.cy > maxSizeY)
+								maxSizeY = size.cy;
+						}
+					}
+
+					LocalFree(pbmi);
+					GlobalFree(lpBits);
+					DeleteDC(bmpdc);
+					DeleteObject(brush);
+					DeleteObject(pen);
+					DeleteObject(bmp);
+				}
+			}
+			
+			m_fontWidthMax = maxSizeX;
+			m_fontHeightMax = maxSizeY;
+		//	printf("m_fontWidthMax %f\n", m_fontWidthMax);
+			InitCellTexture();
+
+			if (buf)
+				delete[]buf;
+			DeleteObject(font);
+		}
+
+		StartEdit();
+	}
 }
 
 void FontTool::OnRebuild()

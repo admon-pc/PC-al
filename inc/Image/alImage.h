@@ -47,6 +47,15 @@ public:
 		uint8_t r, g, b, a;
 	};
 
+	struct rgb_f
+	{
+		float32_t r, g, b;
+	};
+	struct rgba_f
+	{
+		float32_t r, g, b, a;
+	};
+
 	void _convertToR8G8B8A8_from_X8R8G8B8();
 	void _convertToR8G8B8A8_from_R8G8B8();
 	void convertToR8G8B8A8();
