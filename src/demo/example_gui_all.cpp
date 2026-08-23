@@ -5,6 +5,8 @@
 
 extern alDemo* g_demo;
 
+
+
 void DemoExample_gui_all_testTextObject::OnMouseEnter()
 {
 	auto id = GetID();
@@ -385,6 +387,7 @@ void DemoExample_gui_all::Shutdown()
 	AL_DESTROY(m_button1);
 	AL_DESTROY(m_texture);
 	AL_DESTROY(m_textureAtlas);
+	AL_DESTROY(m_textureAtlasTexture);
 	AL_DESTROY(m_textObject1);
 	AL_DESTROY(m_textObject2);
 	AL_DESTROY(m_textObject2minifont);

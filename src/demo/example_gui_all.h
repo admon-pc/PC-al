@@ -61,7 +61,6 @@ public:
 	{}
 	virtual ~DemoExample_gui_all_TestButtonIcon()
 	{
-		printf("asd\n");
 	}
 	AL_DECLARE_DEFAULT_ALLOCATOR(DemoExample_gui_all_TestButtonIcon);
 };

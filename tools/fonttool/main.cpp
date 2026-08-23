@@ -42,6 +42,24 @@ AL_LINK_LIBRARY(al);
 #define FontToolGUIID_btnOpen 1
 #define FontToolGUIID_btnGenerate 2
 #define FontToolGUIID_btnCreate 3
+#define FontToolGUIID_checkHideUnused 4
+
+class FontTool_buttonIcon : public alGUIButtonIcon
+{
+public:
+	FontTool_buttonIcon(alGUIContext* ct,
+		alGUITextureAtlas* ta, uint32_t ii,
+		const alVec2f& position, const alVec2f& size)
+		:
+		alGUIButtonIcon(ct, ta, ii, position, size)
+	{}
+	virtual ~FontTool_buttonIcon()
+	{
+	}
+	AL_DECLARE_DEFAULT_ALLOCATOR(FontTool_buttonIcon);
+	virtual void OnButtonToggleOn() override;
+	virtual void OnButtonToggleOff() override;
+};
 
 class FontTool_combo_unicodeRange : public alGUIComboBox
 {
@@ -126,7 +144,9 @@ struct GlyphInfo
 {
 	int m_width = 0;
 
+	// rgba
 	uint8_t* m_data = 0;
+
 	/*alImage* image = 0; //61 для равно
 	
 	int textureID = 0;
@@ -169,8 +189,11 @@ class FontTool
 	alGUIContext* m_guiContext = 0;
 	alGUIPanel* m_guiPanel_first = 0;
 	alGUIPanel* m_guiPanel_edit = 0;
+	alGUITextureAtlas* m_textureAtlas = 0;
+	alGSTexture* m_textureAtlasTexture = 0;
 
 	FontTool_combo_unicodeRange* m_comboRanges = 0;
+	FontTool_buttonIcon* m_checkHideUnused = 0;
 
 	uint32_t m_visibleLineNum = 0;
 	uint32_t m_visibleCellNum = 0;
@@ -185,6 +208,7 @@ class FontTool
 	void _moveDownView(uint32_t);
 
 	uint32_t m_selected = 0;
+	void OnSelect();
 
 public:
 	FontTool();
@@ -205,11 +229,13 @@ public:
 
 	void create_tmp_font();
 
+	bool m_hideUnUsed = false;
 	bool m_run = true;
 	bool m_editMode = false;
 	SystemWindowCallback* m_windowCallback = 0;
 	alSystemWindow* m_mainWindow = 0;
 	alGSTexture* m_textureNoData = 0;
+	alGSTexture* m_textureSelect = 0;
 	alGS* m_gs = 0;
 
 	GlyphInfo m_glyphs[0x10FFFF];
@@ -255,7 +281,23 @@ void FontTool_button::OnButtonRelease()
 		app->OnButtonCreate();
 	}
 }
+void FontTool_buttonIcon::OnButtonToggleOn()
+{
+	FontTool* app = (FontTool*)GetUserData();
+	if (GetID() == FontToolGUIID_checkHideUnused)
+	{
+		app->m_hideUnUsed = true;
+	}
+}
 
+void FontTool_buttonIcon::OnButtonToggleOff()
+{
+	FontTool* app = (FontTool*)GetUserData();
+	if (GetID() == FontToolGUIID_checkHideUnused)
+	{
+		app->m_hideUnUsed = false;
+	}
+}
 class SystemWindowCallback : public alSystemWindowCallback
 {
 	FontTool* m_demo = 0;
@@ -292,6 +334,7 @@ public:
 };
 
 
+
 FontTool::FontTool()
 {
 //	OnRun = &FontTool::_state_NewOrOpen;
@@ -315,6 +358,9 @@ FontTool::~FontTool()
 		AL_FREE(m_glyphs[i].m_data);
 	}
 	AL_DESTROY(m_textureNoData);
+	AL_DESTROY(m_textureSelect);
+	AL_DESTROY(m_textureAtlas);
+	AL_DESTROY(m_textureAtlasTexture);
 	AL_DESTROY(m_fontGUI);
 	AL_DESTROY(m_guiContext);
 	//AL_DESTROY(m_guiTextures);
@@ -379,6 +425,61 @@ bool FontTool::Init()
 		img.Fill(data, dataColor, alVec2u(32,32), alVec2u(), 0, 0);
 		m_textureNoData = m_gs->CreateTexture(&img);
 	}
+	{
+		alImage img;
+		alColor dataColor[2] = { ColorTransparent, ColorWhite };
+		uint8_t data[] =
+		{
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		};
+		img.Create(32, 32);
+		img.Fill(data, dataColor, alVec2u(32, 32), alVec2u(), 0, 0);
+		m_textureSelect = m_gs->CreateTexture(&img);
+	}
+
+	{
+		auto img = alLib::LoadALImage("../data/textures/gui.png");
+		if (img)
+		{
+			m_textureAtlasTexture = m_gs->CreateTexturePoint(img);
+			AL_DESTROY(img);
+		}
+	}
+	m_textureAtlas = alCreate<alGUITextureAtlas>(m_textureAtlasTexture);
+	uint32_t iconIndex_iconBase = m_textureAtlas->AddUV(alVec2u(0, 0), alVec2u(14, 14));
+	uint32_t iconIndex_iconCheck1 = m_textureAtlas->AddUV(alVec2u(14, 0), alVec2u(14, 14));
+	uint32_t iconIndex_iconCheck2 = m_textureAtlas->AddUV(alVec2u(28, 0), alVec2u(14, 14));
 
 	alLib::InitializeDefaultFont(m_gs);
 	m_fontDefault = alLib::GetDefaultFont();
@@ -436,6 +537,19 @@ bool FontTool::Init()
 	m_comboRanges->SetItems(g_UnicodeRangeInfo, 56,
 		sizeof(UnicodeRangeInfo), 0);
 	m_guiPanel_edit->AddElement(m_comboRanges, true);
+	m_checkHideUnused = new FontTool_buttonIcon(m_guiContext, m_textureAtlas, iconIndex_iconBase, alVec2f(200.f, 3), alVec2f(14.f, 14.f));
+	m_checkHideUnused->SetUserData(this);
+	m_checkHideUnused->m_lerpColors = true;
+	m_checkHideUnused->m_toggleButton = true;
+	m_checkHideUnused->m_iconIndexMouseHover = iconIndex_iconCheck1;
+	m_checkHideUnused->m_iconIndexPress = iconIndex_iconCheck2;
+	m_checkHideUnused->SetFont(m_fontGUI);
+	m_checkHideUnused->m_useText = true;
+	m_checkHideUnused->SetID(FontToolGUIID_checkHideUnused);
+	m_checkHideUnused->SetText(U"Hide unused");
+	m_checkHideUnused->m_textIndent.y = -1;
+	m_guiPanel_edit->AddElement(m_checkHideUnused, true);
+
 	m_guiPanel_edit->m_size.x = 400;
 	m_guiPanel_edit->Rebuild();
 	m_guiPanel_edit->SetVisible(false);
@@ -486,18 +600,24 @@ void FontTool::OnDraw()
 		uint32_t colCounter = 0;
 		for (uint32_t i = 0; i < m_visibleCellNum; ++i)
 		{
+			if (drawIndex >= 0x10FFFF)
+				break;
+
 			alColor color = ColorWhite;
 
 			if (drawIndex == m_selected)
 				color = ColorRed;
 
 			auto G = m_glyphs[drawIndex];
+			
 
 			alVec4f cellRect;
 			cellRect.x = drawPosition.x;
 			cellRect.y = drawPosition.y;
 			cellRect.z = drawPosition.x + m_cellSizeX;
 			cellRect.w = drawPosition.y + m_cellSizeY;
+			
+			alVec4f glyphRect = cellRect;
 
 			alGSTexture* t = m_whiteTexture;
 			if (!G.m_data)
@@ -517,59 +637,87 @@ void FontTool::OnDraw()
 
 					for (uint32_t ty = 0; ty < ti->m_height; ++ty)
 					{
-						alImage::rgba* _rgba = (alImage::rgba*)textureBuffer;
+						alImage::rgba* dst_rgba = (alImage::rgba*)textureBuffer;
+						alImage::rgba* src_rgba = (alImage::rgba*)srcBuffer;
 						for (uint32_t tx = 0; tx < ti->m_width; ++tx)
 						{
 							long src_index = mapRange(tx, 0, ti->m_width, 0, G.m_width);
 
-							_rgba->r = srcBuffer[src_index];
-							_rgba->g = srcBuffer[src_index];
-							_rgba->b = srcBuffer[src_index];
-							_rgba->a = 255;
+							dst_rgba->r = src_rgba[src_index].r;
+							dst_rgba->g = src_rgba[src_index].g;
+							dst_rgba->b = src_rgba[src_index].b;
+							dst_rgba->a = 255;
 
 
-							++_rgba;
+							++dst_rgba;
 						}
 
 						textureBuffer += rowPitch;
-						srcBuffer += G.m_width;
+						srcBuffer += G.m_width * 4;
 					}
 
 					m_cellTexture->UnLock();
 					t = m_cellTexture;
+
+					float32_t cellW = cellRect.z - cellRect.x;
+					if (G.m_width < cellW)
+					{
+						auto V = G.m_width / cellW;
+						glyphRect.z = cellRect.x + (cellW * V);
+					}
+
+					float32_t cellH = cellRect.w - cellRect.y;
+					if (m_fontHeightMax < cellH)
+					{
+						auto V = m_fontHeightMax / cellH;
+						glyphRect.w = cellRect.y + (cellH * V);
+					}
 				}
 			}
+			
+			bool draw = true;
 
-			m_gs->DrawRectangle(cellRect, color, t);
+			if (m_hideUnUsed && !G.m_data)
+				draw = false;
 
-			auto str_size = alLib::snprintf(char32Buf, 100, U"U+%.4X", drawIndex);
-			m_gs->DrawText(char32Buf, str_size, m_fontGUI,
-				drawPosition + alVec2f(), ColorLime);
-
-			if (alMath::PointInRect(
-				input->m_cursorCoordsForGUI.x,
-				input->m_cursorCoordsForGUI.y,
-				cellRect))
+			if (draw)
 			{
-				if (input->m_isLMBDown)
+				m_gs->DrawRectangle(glyphRect, color, t);
+
+				auto str_size = alLib::snprintf(char32Buf, 100, U"U+%.4X", drawIndex);
+				m_gs->DrawText(char32Buf, str_size, m_fontGUI,
+					drawPosition + alVec2f(0.f, m_cellSizeY - m_fontGUI->m_maxHeight), ColorLime);
+				m_gs->DrawRectangle(cellRect, color, m_textureSelect);
+
+				drawPosition.x += m_cellSizeX;
+
+				++colCounter;
+				if (colCounter == m_cellsInRow)
 				{
-					m_selected = drawIndex;
+					colCounter = 0;
+					drawPosition.x = 0;
+					drawPosition.y += m_cellSizeY;
 				}
 			}
-
-			drawPosition.x += m_cellSizeX;
-
-			++colCounter;
-			if (colCounter == m_cellsInRow)
+			else
 			{
-				colCounter = 0;
-				drawPosition.x = 0;
-				drawPosition.y += m_cellSizeY;
+				--i;
 			}
 
 			++drawIndex;
-			if (drawIndex == 0x10FFFF)
+			if (drawIndex >= 0x10FFFF)
 				break;
+		}
+
+		auto G_selected = m_glyphs[m_selected];
+		if (G_selected.m_data)
+		{
+			alVec4f editRect;
+			editRect.x = m_cellPanelWidth;
+			editRect.y = 30;
+			editRect.z = m_mainWindow->m_clientSize.x;
+			editRect.w = editRect.y + 300;
+			m_gs->DrawRectangle(editRect, ColorBlack);
 		}
 	}
 
@@ -602,42 +750,57 @@ void FontTool::OnUpdate()
 	uint32_t colCounter = 0;
 	for (uint32_t i = 0; i < m_visibleCellNum; ++i)
 	{
+		if (drawIndex >= 0x10FFFF)
+			break;
+
 		alColor color = ColorWhite;
 
 		if (drawIndex == m_selected)
 			color = ColorRed;
 
 		auto G = m_glyphs[drawIndex];
+		bool draw = true;
 
-		alVec4f cellRect;
-		cellRect.x = drawPosition.x;
-		cellRect.y = drawPosition.y;
-		cellRect.z = drawPosition.x + m_cellSizeX;
-		cellRect.w = drawPosition.y + m_cellSizeY;
+		if (m_hideUnUsed && !G.m_data)
+			draw = false;
 
-		if (alMath::PointInRect(
-			input->m_cursorCoordsForGUI.x,
-			input->m_cursorCoordsForGUI.y,
-			cellRect))
+		if (draw)
 		{
-			if (input->m_isLMBDown)
+			alVec4f cellRect;
+			cellRect.x = drawPosition.x;
+			cellRect.y = drawPosition.y;
+			cellRect.z = drawPosition.x + m_cellSizeX;
+			cellRect.w = drawPosition.y + m_cellSizeY;
+
+			if (alMath::PointInRect(
+				input->m_cursorCoordsForGUI.x,
+				input->m_cursorCoordsForGUI.y,
+				cellRect))
 			{
-				m_selected = drawIndex;
+				if (input->m_isLMBDown)
+				{
+					m_selected = drawIndex;
+					OnSelect();
+				}
+			}
+
+			drawPosition.x += m_cellSizeX;
+
+			++colCounter;
+			if (colCounter == m_cellsInRow)
+			{
+				colCounter = 0;
+				drawPosition.x = 0;
+				drawPosition.y += m_cellSizeY;
 			}
 		}
-
-		drawPosition.x += m_cellSizeX;
-
-		++colCounter;
-		if (colCounter == m_cellsInRow)
+		else
 		{
-			colCounter = 0;
-			drawPosition.x = 0;
-			drawPosition.y += m_cellSizeY;
+			--i;
 		}
 
 		++drawIndex;
-		if (drawIndex == 0x10FFFF)
+		if (drawIndex >= 0x10FFFF)
 			break;
 	}
 }
@@ -1226,7 +1389,7 @@ void FontTool::OnButtonGenerate()
 						GlyphInfo* g = &m_glyphs[ch];
 						if (!g->m_data)
 						{
-							g->m_data = (uint8_t*)alMemory::Calloc(size.cx * size.cy);
+							g->m_data = (uint8_t*)alMemory::Malloc(size.cx * size.cy * 4);
 							g->m_width = size.cx;
 
 							int rowsize = size.cx * 4; // width * rgba
@@ -1234,36 +1397,43 @@ void FontTool::OnButtonGenerate()
 							uint8_t* dst = g->m_data;
 							uint8_t* src = lpBits + (rowsize * size.cy) - rowsize; // I will copy rows from bottom to top
 							alImage::rgba* src_rgba = (alImage::rgba*)(src);
+							alImage::rgba* dst_rgba = (alImage::rgba*)(dst);
 
 
-							//alImage iimg;
-							//iimg.Create(size.cx, size.cy);
-							//iimg.Fill(ColorBlack);
-							//alImage::rgba* iimg_rgba = (alImage::rgba*)iimg.m_data;
+							/*alImage iimg;
+							iimg.Create(size.cx, size.cy);
+							iimg.Fill(ColorBlack);
+							alImage::rgba* iimg_rgba = (alImage::rgba*)iimg.m_data;*/
 
 							for (int i = 0; i < pbih->biHeight; ++i)
 							{
 								//memcpy(dst, src, rowsize);
 								for (int o = 0; o < size.cx; ++o)
 								{
-							/*		iimg_rgba->r = src_rgba[o].r;
+									/*iimg_rgba->a = src_rgba[o].r;
+									iimg_rgba->r = src_rgba[o].r;
 									iimg_rgba->g = src_rgba[o].r;
 									iimg_rgba->b = src_rgba[o].r;
 									++iimg_rgba;*/
 
-									*dst = src_rgba[o].r;
-									dst += 1;
+									dst_rgba->a = src_rgba[o].r;
+									dst_rgba->r = src_rgba[o].r;
+									dst_rgba->g = src_rgba[o].r;
+									dst_rgba->b = src_rgba[o].r;
+									
+									dst += 4;
+									dst_rgba = (alImage::rgba*)(dst);
 								}
 
 								src -= rowsize;
 								src_rgba = (alImage::rgba*)src;
 							}
 
-							//static int fni = 0;
-							//char fn[100];
-							//sprintf_s(fn,100, "%i.png", fni);
-							//alLib::SaveImage(fn, &iimg, alSaveImageType::png);
-							//++fni;
+							/*static int fni = 0;
+							char fn[100];
+							sprintf_s(fn,100, "%i.png", fni);
+							alLib::SaveImage(fn, &iimg, alSaveImageType::png);
+							++fni;*/
 
 							if (size.cx > maxSizeX)
 								maxSizeX = size.cx;
@@ -1333,27 +1503,76 @@ void FontTool::StartEdit()
 
 void FontTool::_moveUpView(uint32_t num)
 {
-	if (m_startDrawCellIndex)
+	if (m_hideUnUsed)
 	{
-		for (uint32_t i = 0; i < num; ++i)
+		while (true)
 		{
+			if (m_startDrawCellIndex <= m_cellsInRow)
+				break;
+
 			m_startDrawCellIndex -= m_cellsInRow;
 
 			if (!m_startDrawCellIndex)
 				break;
+
+			auto index = m_startDrawCellIndex;
+			for (int i = 0; i < m_cellsInRow; ++i)
+			{
+				if (m_glyphs[index].m_data)
+					return;
+				++index;
+			}
+		}
+	}
+	else
+	{
+		if (m_startDrawCellIndex)
+		{
+			for (uint32_t i = 0; i < num; ++i)
+			{
+				m_startDrawCellIndex -= m_cellsInRow;
+
+				if (!m_startDrawCellIndex)
+					break;
+			}
 		}
 	}
 }
 
 void FontTool::_moveDownView(uint32_t num)
 {
-	for (uint32_t i = 0; i < num; ++i)
+	if (m_hideUnUsed)
 	{
-		m_startDrawCellIndex += m_cellsInRow;
-		if (m_startDrawCellIndex >= 0x10FFFF)
-			break;
+		while (true)
+		{
+			m_startDrawCellIndex += m_cellsInRow;
+			if (m_startDrawCellIndex >= 0x10FFFF)
+				break;
+
+			auto index = m_startDrawCellIndex;
+			for (int i = 0; i < m_cellsInRow; ++i)
+			{
+				if (m_glyphs[index].m_data)
+					return;
+				++index;
+			}
+		}
+	}
+	else
+	{
+		for (uint32_t i = 0; i < num; ++i)
+		{
+			m_startDrawCellIndex += m_cellsInRow;
+			if (m_startDrawCellIndex >= 0x10FFFF)
+				break;
+		}
 	}
 }
+
+void FontTool::OnSelect()
+{
+}
+
 int main()
 {
 	alLib::InitializeLib();

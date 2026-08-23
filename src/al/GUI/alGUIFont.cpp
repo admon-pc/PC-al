@@ -84,7 +84,7 @@ float32_t alGUIFont::GetTextLength(const char32_t* str, size_t str_len)
 		auto g = GetGlyph(str[i]);
 		if (!g)
 			continue;
-		len += g->width - g->overhang + m_spacing;
+		len += g->width + g->underhang + m_spacing;
 
 		if (g->symbol == u' ')
 			len += m_spaceWidth;
