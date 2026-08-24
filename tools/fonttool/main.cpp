@@ -206,6 +206,9 @@ class FontTool
 	alVec4f m_cellPanelRect;
 	void _moveUpView(uint32_t);
 	void _moveDownView(uint32_t);
+	
+	float32_t m_editorCellSize = 0.f;
+	alVec4f m_editRect;
 
 	uint32_t m_selected = 0;
 	void OnSelect();
@@ -712,12 +715,38 @@ void FontTool::OnDraw()
 		auto G_selected = m_glyphs[m_selected];
 		if (G_selected.m_data)
 		{
-			alVec4f editRect;
-			editRect.x = m_cellPanelWidth;
-			editRect.y = 30;
-			editRect.z = m_mainWindow->m_clientSize.x;
-			editRect.w = editRect.y + 300;
-			m_gs->DrawRectangle(editRect, ColorBlack);
+			m_gs->DrawRectangle(m_editRect, ColorGrey);
+			
+			alVec2f position;
+			position.x = m_editRect.x;
+			position.y = m_editRect.y;
+
+			uint8_t* srcBuffer = G_selected.m_data;
+			alImage::rgba* src_rgba = (alImage::rgba*)srcBuffer;
+
+			uint32_t pixelsNum = G_selected.m_width * (int)m_fontHeightMax;
+			uint32_t widthCounter = 0;
+			for (uint32_t i = 0; i < pixelsNum; ++i)
+			{
+				alVec4f cellRect;
+				cellRect.x = position.x;
+				cellRect.y = position.y;
+				cellRect.z = cellRect.x + m_editorCellSize;
+				cellRect.w = cellRect.y + m_editorCellSize;
+
+				m_gs->DrawRectangle(cellRect, alColor(src_rgba->r, src_rgba->g, src_rgba->b, 255));
+
+				position.x += m_editorCellSize;
+				++src_rgba;
+
+				++widthCounter;
+				if (widthCounter >= G_selected.m_width)
+				{
+					widthCounter = 0;
+					position.x = m_editRect.x;
+					position.y += m_editorCellSize;
+				}
+			}
 		}
 	}
 
@@ -1492,6 +1521,11 @@ void FontTool::OnRebuild()
 		m_guiPanel_edit->m_position.y = 0;
 		m_guiPanel_edit->Rebuild();
 	}
+
+	m_editRect.x = m_cellPanelWidth;
+	m_editRect.y = 30;
+	m_editRect.z = m_mainWindow->m_clientSize.x;
+	m_editRect.w = m_editRect.y + 300;
 }
 
 void FontTool::StartEdit()
@@ -1571,6 +1605,31 @@ void FontTool::_moveDownView(uint32_t num)
 
 void FontTool::OnSelect()
 {
+	m_editorCellSize = 0.f;
+	auto G_selected = m_glyphs[m_selected];
+	if (G_selected.m_data)
+	{
+		m_editorCellSize = 20.f;
+		float32_t width = G_selected.m_width * m_editorCellSize;
+
+		auto editRectWidth = m_editRect.z - m_editRect.x;
+		if (editRectWidth <= 0.f) editRectWidth = 1.f;
+
+		if (width > editRectWidth)
+		{
+			m_editorCellSize *= editRectWidth / width;
+			m_editorCellSize = G_selected.m_width * m_editorCellSize;
+		}
+
+		float32_t height = m_fontHeightMax * m_editorCellSize;
+		auto editRectHeight = m_editRect.w - m_editRect.y;
+		if (editRectHeight <= 0.f) editRectHeight = 1.f;
+		if (height > editRectHeight)
+		{
+			m_editorCellSize *= editRectHeight / height;
+			//m_editorCellSize = m_fontHeightMax * m_editorCellSize;
+		}
+	}
 }
 
 int main()
