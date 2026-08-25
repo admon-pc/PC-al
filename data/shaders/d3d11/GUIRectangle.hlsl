@@ -81,6 +81,8 @@ PSOut PSMain(VSOut input)
 	output.color = lerp(textureColor, float4(input.color.xyz, 1.f), alpha);
 	output.color.xyz = output.color.xyz * textureColor.xyz;
 
+	output.color.w *= input.color.w;
+
     return output;
 }
 

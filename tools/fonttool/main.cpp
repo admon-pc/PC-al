@@ -147,6 +147,8 @@ struct GlyphInfo
 	// rgba
 	uint8_t* m_data = 0;
 
+	uint32_t textureID = 0;
+
 	/*alImage* image = 0; //61 для равно
 	
 	int textureID = 0;
@@ -212,6 +214,9 @@ class FontTool
 
 	uint32_t m_selected = 0;
 	void OnSelect();
+
+	alGUIFont* m_testFont = 0;
+	void UpdateTestFont();
 
 public:
 	FontTool();
@@ -366,6 +371,7 @@ FontTool::~FontTool()
 	AL_DESTROY(m_textureAtlasTexture);
 	AL_DESTROY(m_fontGUI);
 	AL_DESTROY(m_guiContext);
+	AL_DESTROY(m_testFont);
 	//AL_DESTROY(m_guiTextures);
 	AL_DESTROY(m_cellTexture);
 	AL_DESTROY(m_gs);
@@ -533,6 +539,7 @@ bool FontTool::Init()
 	m_guiPanel_first->Rebuild();
 
 	m_guiPanel_edit = m_guiContext->GetNewPanel(alVec2f(100, 0), alVec2f(500, 500));
+	m_guiPanel_edit->m_drawBG = false;
 	m_comboRanges = new FontTool_combo_unicodeRange(m_guiContext, alVec2f(0, 0), alVec2f(200, 15));
 	m_comboRanges->SetUserData(this);
 	m_comboRanges->SetFont(m_fontGUI);
@@ -592,6 +599,48 @@ void FontTool::OnDraw()
 	m_gs->EndDraw();
 	m_gs->BeginDrawGUI();
 
+	if (m_editMode)
+	{
+		m_gs->SetScissorRect(alVec4f(0.f, 0.f, m_mainWindow->m_clientSize.x, m_mainWindow->m_clientSize.y));
+		auto G_selected = m_glyphs[m_selected];
+		if (G_selected.m_data)
+		{
+			m_gs->DrawRectangle(m_editRect, ColorGrey);
+
+			alVec2f position;
+			position.x = m_editRect.x;
+			position.y = m_editRect.y;
+
+			uint8_t* srcBuffer = G_selected.m_data;
+			alImage::rgba* src_rgba = (alImage::rgba*)srcBuffer;
+
+			uint32_t pixelsNum = G_selected.m_width * (int)m_fontHeightMax;
+			uint32_t widthCounter = 0;
+			for (uint32_t i = 0; i < pixelsNum; ++i)
+			{
+				alVec4f cellRect;
+				cellRect.x = position.x;
+				cellRect.y = position.y;
+				cellRect.z = cellRect.x + m_editorCellSize;
+				cellRect.w = cellRect.y + m_editorCellSize;
+
+				m_gs->DrawRectangle(cellRect, alColor(src_rgba->r, src_rgba->g, src_rgba->b, src_rgba->a));
+
+				position.x += m_editorCellSize;
+				++src_rgba;
+
+				++widthCounter;
+				if (widthCounter >= G_selected.m_width)
+				{
+					widthCounter = 0;
+					position.x = m_editRect.x;
+					position.y += m_editorCellSize;
+				}
+			}
+		}
+
+		m_gs->DrawText(U"Test text", 9, m_testFont, alVec2f(m_editRect.x, m_editRect.w), ColorWhite);
+	}
 	m_guiContext->Draw(*dt);
 
 	if (m_editMode)
@@ -712,42 +761,7 @@ void FontTool::OnDraw()
 				break;
 		}
 
-		auto G_selected = m_glyphs[m_selected];
-		if (G_selected.m_data)
-		{
-			m_gs->DrawRectangle(m_editRect, ColorGrey);
-			
-			alVec2f position;
-			position.x = m_editRect.x;
-			position.y = m_editRect.y;
-
-			uint8_t* srcBuffer = G_selected.m_data;
-			alImage::rgba* src_rgba = (alImage::rgba*)srcBuffer;
-
-			uint32_t pixelsNum = G_selected.m_width * (int)m_fontHeightMax;
-			uint32_t widthCounter = 0;
-			for (uint32_t i = 0; i < pixelsNum; ++i)
-			{
-				alVec4f cellRect;
-				cellRect.x = position.x;
-				cellRect.y = position.y;
-				cellRect.z = cellRect.x + m_editorCellSize;
-				cellRect.w = cellRect.y + m_editorCellSize;
-
-				m_gs->DrawRectangle(cellRect, alColor(src_rgba->r, src_rgba->g, src_rgba->b, 255));
-
-				position.x += m_editorCellSize;
-				++src_rgba;
-
-				++widthCounter;
-				if (widthCounter >= G_selected.m_width)
-				{
-					widthCounter = 0;
-					position.x = m_editRect.x;
-					position.y += m_editorCellSize;
-				}
-			}
-		}
+		
 	}
 
 	m_gs->EndDrawGUI();
@@ -1445,10 +1459,14 @@ void FontTool::OnButtonGenerate()
 									iimg_rgba->b = src_rgba[o].r;
 									++iimg_rgba;*/
 
+									auto color = src_rgba[o].r;
+									if (color)
+										color = 255;
+
 									dst_rgba->a = src_rgba[o].r;
-									dst_rgba->r = src_rgba[o].r;
-									dst_rgba->g = src_rgba[o].r;
-									dst_rgba->b = src_rgba[o].r;
+									dst_rgba->r = color;
+									dst_rgba->g = color;
+									dst_rgba->b = color;
 									
 									dst += 4;
 									dst_rgba = (alImage::rgba*)(dst);
@@ -1492,6 +1510,8 @@ void FontTool::OnButtonGenerate()
 
 		StartEdit();
 	}
+
+	UpdateTestFont();
 }
 
 void FontTool::OnRebuild()
@@ -1630,6 +1650,75 @@ void FontTool::OnSelect()
 			//m_editorCellSize = m_fontHeightMax * m_editorCellSize;
 		}
 	}
+}
+
+void FontTool::UpdateTestFont()
+{
+	AL_DESTROY(m_testFont);
+	m_testFont = alLib::CreateGUIFont();
+	static int imageIndex = 0;
+
+	alImage img;
+	img.Create(512, 512);
+	int drawPositionX = 0;
+	int drawPositionY = 0;
+	uint32_t textureID = 0;
+	
+	bool hasData = false;
+	alVec4f uv;
+	for (int i = 0; i < 0x10FFFF; ++i)
+	{
+		auto G = m_glyphs[i];
+		if (G.m_data)
+		{
+			hasData = true;
+
+			G.textureID = textureID;
+
+			
+			int rbX = drawPositionX + G.m_width;
+			int rbY = drawPositionY + m_fontHeightMax;
+
+			if (rbX > 512)
+			{
+				drawPositionX = 0;
+				rbX = drawPositionX + G.m_width;
+
+				drawPositionY = rbY;
+				rbY = drawPositionY + m_fontHeightMax;
+
+				if (rbY > 512)
+				{
+					char buf[100];
+					sprintf_s(buf, 100, "font%i.png", imageIndex++);
+					alLib::SaveImage(buf, &img, alSaveImageType::png);
+					
+					m_testFont->AddTexture(m_gs->CreateTexturePoint(&img));
+					++textureID;
+
+					drawPositionY = 0;
+					rbY = drawPositionY + m_fontHeightMax;
+					
+					hasData = false;
+
+					img.Fill(alColor(0.f,0.f,0.f,0.f));
+				}
+			}
+
+			img.Fill(G.m_data, alVec2u(G.m_width, m_fontHeightMax), alVec2u(drawPositionX, drawPositionY), 0, &uv);
+			m_testFont->SetGlyph((char32_t)i, G.textureID, m_fontHeightMax, G.m_width, &uv);
+
+			drawPositionX = rbX;
+		}
+	}
+	if (hasData)
+	{
+		char buf[100];
+		sprintf_s(buf, 100, "font%i.png", imageIndex++);
+		alLib::SaveImage(buf, &img, alSaveImageType::png);
+		m_testFont->AddTexture(m_gs->CreateTexturePoint(&img));
+	}
+	
 }
 
 int main()

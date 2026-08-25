@@ -66,6 +66,8 @@ public:
 	// outPosition and outUV is optional
 	// it will write position and texture coordinate.
 	void Fill(alImage*, const alVec2u& where, alVec2i* outPosition, alVec4f* outUV);
+	// data - must be the same format
+	void Fill(uint8_t* data, const alVec2u& size, const alVec2u& where, alVec2i* outPosition, alVec4f* outUV);
 
 	void Fill(const uint8_t* indices, alColor* palette, const alVec2u& size, const alVec2u& where, alVec2i* outPosition, alVec4f* outUV);
 	

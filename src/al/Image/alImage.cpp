@@ -164,9 +164,24 @@ void alImage::Fill(
 	AL_ASSERT_ST(img);
 	AL_ASSERT_ST(this->m_data);
 	AL_ASSERT_ST(this->m_format == img->m_format);
+	if (m_format == alImageFormat::R8G8B8A8
+		&& img->m_format == alImageFormat::R8G8B8A8)
+		Fill(img->m_data, 
+			alVec2u(img->m_width, img->m_height),
+			where,
+			outPosition,
+			outUV);
+}
 
-	uint32_t srcW = img->m_width;
-	uint32_t srcH = img->m_height;
+void alImage::Fill(
+	uint8_t* data, 
+	const alVec2u& size, 
+	const alVec2u& where, 
+	alVec2i* outPosition, 
+	alVec4f* outUV)
+{
+	uint32_t srcW = size.x;
+	uint32_t srcH = size.y;
 
 	if (outPosition)
 	{
@@ -185,14 +200,13 @@ void alImage::Fill(
 		outUV->w = uvrb.y;
 	}
 
-	if (m_format == alImageFormat::R8G8B8A8
-		&& img->m_format == alImageFormat::R8G8B8A8)
+	if (m_format == alImageFormat::R8G8B8A8)
 	{
-		rgba* rgbadataSrc = (rgba*)img->m_data;
+		rgba* rgbadataSrc = (rgba*)data;
 		rgba* rgbadataDst = (rgba*)m_data;
 
-	
-		
+
+
 		for (uint32_t yi = 0; yi < srcH; ++yi)
 		{
 			uint32_t whereY = where.y + yi;
@@ -222,7 +236,7 @@ void alImage::Fill(
 			if (whereY >= this->m_height)
 			{
 				continue;
-			//	break;
+				//	break;
 			}
 		}
 	}
