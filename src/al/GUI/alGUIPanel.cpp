@@ -64,8 +64,9 @@ void alGUIPanel::Update(float32_t dt)
 				--i;
 			}
 		}
+
+		alGUIElement::Update(dt);
 	}
-	alGUIElement::Update(dt);
 }
 
 void alGUIPanel::AddElement(alGUIElement* e, bool own)

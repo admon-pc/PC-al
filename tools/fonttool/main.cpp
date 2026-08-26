@@ -43,6 +43,7 @@ AL_LINK_LIBRARY(al);
 #define FontToolGUIID_btnGenerate 2
 #define FontToolGUIID_btnCreate 3
 #define FontToolGUIID_checkHideUnused 4
+#define FontToolGUIID_btnSave 5
 
 class FontTool_TextInput : public alGUITextInput
 {
@@ -161,13 +162,15 @@ struct GlyphInfo
 	uint8_t* m_data = 0;
 
 	uint32_t textureID = 0;
+	
+	int overhang = 0;
+	int underhang = 0;
 
 	/*alImage* image = 0; //61 для равно
 	
 	int textureID = 0;
 
-	int overhang = 0;
-	int underhang = 0;
+	
 	
 
 	int leftTopX = 0;
@@ -187,6 +190,15 @@ public:
 	virtual ~FontTool_button() {}
 	AL_DECLARE_DEFAULT_ALLOCATOR(FontTool_button);
 	virtual void OnButtonRelease() override;
+
+	virtual void OnMouseEnter() override
+	{
+		printf("Enter\n");
+	}
+	virtual void OnMouseLeave() override
+	{
+		printf("Leave\n");
+	}
 };
 
 
@@ -244,7 +256,8 @@ public:
 	void OnButtonGenerate();
 	void OnButtonOpen();
 	void OnButtonCreate();
-	
+	void OnButtonSave();
+
 	void OnRebuild();
 	void OnDraw();
 	void OnUpdate();
@@ -301,6 +314,11 @@ void FontTool_button::OnButtonRelease()
 	if (GetID() == FontToolGUIID_btnCreate)
 	{
 		app->OnButtonCreate();
+	}
+
+	if (GetID() == FontToolGUIID_btnSave)
+	{
+		app->OnButtonSave();
 	}
 }
 void FontTool_buttonIcon::OnButtonToggleOn()
@@ -538,7 +556,7 @@ bool FontTool::Init()
 	m_guiTextureNodes[TextureID_PLUS_GREEN] = m_guiTextures->GetTexture("../data/tools/fonttool/plsg.png");
 	m_guiTextureNodes[TextureID_PLUS_RED] = m_guiTextures->GetTexture("../data/tools/fonttool/plsr.png");*/
 	m_guiContext = alLib::CreateGUIContext(m_mainWindow, m_gs);
-	m_guiPanel_first = m_guiContext->GetNewPanel(alVec2f(100,0), alVec2f(500, 500));
+	m_guiPanel_first = m_guiContext->GetNewPanel(alVec2f(100, 0), alVec2f(500, 500));
 
 	float32_t position = 0.f;
 	FontTool_button* btn = new FontTool_button(m_guiContext, alVec2f(0, position), alVec2f(150.f, 32.f));
@@ -564,9 +582,8 @@ bool FontTool::Init()
 	btn->SetFont(m_fontGUI);
 	m_guiPanel_first->AddElement(btn, true);
 	position += 40;
-	m_guiPanel_first->Rebuild();
 
-	m_guiPanel_edit = m_guiContext->GetNewPanel(alVec2f(100, 0), alVec2f(500, 500));
+	m_guiPanel_edit = m_guiContext->GetNewPanel(alVec2f(100, 0), alVec2f(800, 600));
 	m_guiPanel_edit->m_drawBG = false;
 	m_comboRanges = new FontTool_combo_unicodeRange(m_guiContext, alVec2f(0, 0), alVec2f(200, 15));
 	m_comboRanges->SetUserData(this);
@@ -588,10 +605,17 @@ bool FontTool::Init()
 	m_checkHideUnused->m_textIndent.y = -1;
 	m_guiPanel_edit->AddElement(m_checkHideUnused, true);
 
+	btn = new FontTool_button(m_guiContext, alVec2f(0, 390), alVec2f(50.f, 15.f));
+	btn->SetUserData(this);
+	btn->SetID(FontToolGUIID_btnSave);
+	btn->SetText(U"Save");
+	btn->SetFont(m_fontGUI);
+	m_guiPanel_edit->AddElement(btn, true);
+
 	m_textInput_editor_oneLine = alCreate<FontTool_TextInput>(m_guiContext, alVec2f(610.f, 5.f), alVec2f(140, 18));
 	m_textInput_editor_oneLine->SetUserData(this);
 	m_textInput_editor_oneLine->SetFont(m_fontGUI, 0);
-	m_textInput_editor_oneLine->m_text.Assign(U"Demonstration text");
+	m_textInput_editor_oneLine->SetText(U"Demonstration text");
 	m_textInput_editor_oneLine->m_oneLine = true;
 	m_textInput_editor_oneLine->m_useBottombar = false;
 	m_textInput_editor_oneLine->m_useHorizontalScrollbar = false;
@@ -603,6 +627,7 @@ bool FontTool::Init()
 	m_guiPanel_edit->Rebuild();
 	m_guiPanel_edit->SetVisible(false);
 	
+	m_guiPanel_first->Rebuild();
 	OnRebuild();
 
 	return true;
@@ -682,7 +707,7 @@ void FontTool::OnDraw()
 		m_gs->DrawText(
 			m_textInput_editor_oneLine->m_text.c_str(),
 			m_textInput_editor_oneLine->m_text.size(),
-			m_testFont, 
+			m_testFont,
 			alVec2f(m_editRect.x, m_textInput_editor_oneLine->m_buildArea.y - m_testFont->m_maxHeight),
 			ColorWhite);
 	}
@@ -906,6 +931,12 @@ void FontTool::Run()
 	{
 		alLib::Update();
 		m_guiContext->Update(*dt);
+		
+		auto btn = m_guiPanel_edit->GetElementByID(FontToolGUIID_btnSave);
+		if (btn)
+		{
+		//	printf("a\n");
+		}
 
 		auto m_currentCursor = m_guiContext->m_cursorType;
 		alLib::SetCursor(m_currentCursor, alLib::GetCursor(m_currentCursor));
@@ -1482,6 +1513,8 @@ void FontTool::OnButtonGenerate()
 						{
 							g->m_data = (uint8_t*)alMemory::Malloc(size.cx * size.cy * 4);
 							g->m_width = size.cx;
+							g->underhang = abc.abcA;
+							g->overhang = abc.abcC;
 
 							int rowsize = size.cx * 4; // width * rgba
 
@@ -1766,6 +1799,8 @@ void FontTool::UpdateTestFont()
 
 			img.Fill(G.m_data, alVec2u(G.m_width, m_fontHeightMax), alVec2u(drawPositionX, drawPositionY), 0, &uv);
 			m_testFont->SetGlyph((char32_t)i, G.textureID, m_fontHeightMax, G.m_width, &uv);
+			m_testFont->GetGlyph((char32_t)i)->underhang = G.underhang;
+			m_testFont->GetGlyph((char32_t)i)->overhang = G.overhang;
 
 			drawPositionX = rbX;
 		}
@@ -1777,7 +1812,11 @@ void FontTool::UpdateTestFont()
 		alLib::SaveImage(buf, &img, alSaveImageType::png);
 		m_testFont->AddTexture(m_gs->CreateTexturePoint(&img));
 	}
-	
+}
+
+void FontTool::OnButtonSave()
+{
+	m_guiPanel_edit->SetVisible(false);
 }
 
 int main()

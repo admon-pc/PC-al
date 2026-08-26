@@ -23,7 +23,10 @@ void alGUIContext::Update(float32_t dt)
 {
 	m_cursorType = alCursorType::Arrow;
 	m_isElementUnderCursor = false;
+
+	// I need to save m_elementUnderCursor to know when mouse leave sensor area.
 	//m_elementUnderCursor = 0;
+	
 	//m_panelUnderCursor = 0;
 	if (m_activePopup)
 	{

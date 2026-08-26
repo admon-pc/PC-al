@@ -373,6 +373,8 @@ public:
 	void Select(size_t begin, size_t end);
 	void Select(size_t num);
 
+	// It open only for reading.
+	// USE SetText() for writing.
 	alUnicodeString m_text;
 
 	bool m_drawBG = true;

@@ -77,8 +77,11 @@ PSOut PSMain(VSOut input)
 	//output.color = float4(input.color.xyz, 1.f) * textureColor;
     //output.color.w = input.color.w * textureColor.w;
 
-	float alpha = textureColor.w;
-	output.color = lerp(textureColor, float4(input.color.xyz, 1.f), alpha);
+	// Using alpha like this is for better result. You need to blend pixels, not just give .a in output.
+	// In the end, I multiply result alpha on alpha from vertex color, so, I can use alpha from vertex color.
+	//    Because it was not enough to use just lerp
+	float textureAlpha = textureColor.w;
+	output.color = lerp(textureColor, float4(input.color.xyz, 1.f), textureAlpha);
 	output.color.xyz = output.color.xyz * textureColor.xyz;
 
 	output.color.w *= input.color.w;

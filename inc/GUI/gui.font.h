@@ -47,7 +47,7 @@ public:
 	float32_t m_maxHeight = 0;
 	float32_t m_maxWidth = 0;
 
-	float32_t m_spaceWidth = 4;
+	float32_t m_spaceWidth = 2;
 	float32_t m_tabWidth = 10;
 	float32_t m_spacing = 0;
 };

@@ -66,6 +66,7 @@ void alGUIElement::Update(float32_t dt)
 
 	if (m_isCursorInSensorArea)
 	{
+		//printf("s\n");
 		if (!m_context->m_isElementUnderCursor)
 		{
 			m_context->m_isElementUnderCursor = true;

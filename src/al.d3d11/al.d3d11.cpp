@@ -905,7 +905,7 @@ void alGSD3D11::DrawText(const char32_t* text,
 			m_shaderGUIRectangle->m_cb->MapData(&m_shaderGUIRectangle->m_cbVertex_impl, sizeof(m_shaderGUIRectangle->m_cbVertex_impl));
 			m_d3d11DevCon->Draw(1, 0);
 
-			_position.x += glyph->width /*- glyph->overhang*/ + font->m_spacing;
+			_position.x += glyph->width + glyph->overhang + font->m_spacing;
 			if (character == L' ')
 				_position.x += font->m_spaceWidth;
 			if (character == L'\t')
