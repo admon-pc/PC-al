@@ -44,6 +44,19 @@ AL_LINK_LIBRARY(al);
 #define FontToolGUIID_btnCreate 3
 #define FontToolGUIID_checkHideUnused 4
 
+class FontTool_TextInput : public alGUITextInput
+{
+public:
+	FontTool_TextInput(alGUIContext* ct, const alVec2f& position, const alVec2f& size) :
+		alGUITextInput(ct, position, size)
+	{}
+	virtual ~FontTool_TextInput() {}
+
+	virtual void OnRMBRelease() override;
+	virtual void OnAccept() override;
+	virtual void OnCancel() override;
+};
+
 class FontTool_buttonIcon : public alGUIButtonIcon
 {
 public:
@@ -196,6 +209,7 @@ class FontTool
 
 	FontTool_combo_unicodeRange* m_comboRanges = 0;
 	FontTool_buttonIcon* m_checkHideUnused = 0;
+	FontTool_TextInput* m_textInput_editor_oneLine = 0;
 
 	uint32_t m_visibleLineNum = 0;
 	uint32_t m_visibleCellNum = 0;
@@ -306,6 +320,20 @@ void FontTool_buttonIcon::OnButtonToggleOff()
 		app->m_hideUnUsed = false;
 	}
 }
+
+void FontTool_TextInput::OnRMBRelease()
+{
+}
+
+void FontTool_TextInput::OnAccept()
+{
+}
+
+void FontTool_TextInput::OnCancel()
+{
+}
+
+
 class SystemWindowCallback : public alSystemWindowCallback
 {
 	FontTool* m_demo = 0;
@@ -560,6 +588,17 @@ bool FontTool::Init()
 	m_checkHideUnused->m_textIndent.y = -1;
 	m_guiPanel_edit->AddElement(m_checkHideUnused, true);
 
+	m_textInput_editor_oneLine = alCreate<FontTool_TextInput>(m_guiContext, alVec2f(610.f, 5.f), alVec2f(140, 18));
+	m_textInput_editor_oneLine->SetUserData(this);
+	m_textInput_editor_oneLine->SetFont(m_fontGUI, 0);
+	m_textInput_editor_oneLine->m_text.Assign(U"Demonstration text");
+	m_textInput_editor_oneLine->m_oneLine = true;
+	m_textInput_editor_oneLine->m_useBottombar = false;
+	m_textInput_editor_oneLine->m_useHorizontalScrollbar = false;
+	m_textInput_editor_oneLine->m_useLinebar = false;
+	m_textInput_editor_oneLine->m_useVerticalScrollbar = false;
+	m_guiPanel_edit->AddElement(m_textInput_editor_oneLine, true);
+
 	m_guiPanel_edit->m_size.x = 400;
 	m_guiPanel_edit->Rebuild();
 	m_guiPanel_edit->SetVisible(false);
@@ -624,6 +663,7 @@ void FontTool::OnDraw()
 				cellRect.z = cellRect.x + m_editorCellSize;
 				cellRect.w = cellRect.y + m_editorCellSize;
 
+				m_gs->DrawRectangle(cellRect, ColorBlack);
 				m_gs->DrawRectangle(cellRect, alColor(src_rgba->r, src_rgba->g, src_rgba->b, src_rgba->a));
 
 				position.x += m_editorCellSize;
@@ -639,7 +679,12 @@ void FontTool::OnDraw()
 			}
 		}
 
-		m_gs->DrawText(U"Test text", 9, m_testFont, alVec2f(m_editRect.x, m_editRect.w), ColorWhite);
+		m_gs->DrawText(
+			m_textInput_editor_oneLine->m_text.c_str(),
+			m_textInput_editor_oneLine->m_text.size(),
+			m_testFont, 
+			alVec2f(m_editRect.x, m_textInput_editor_oneLine->m_buildArea.y - m_testFont->m_maxHeight),
+			ColorWhite);
 	}
 	m_guiContext->Draw(*dt);
 
@@ -861,6 +906,9 @@ void FontTool::Run()
 	{
 		alLib::Update();
 		m_guiContext->Update(*dt);
+
+		auto m_currentCursor = m_guiContext->m_cursorType;
+		alLib::SetCursor(m_currentCursor, alLib::GetCursor(m_currentCursor));
 
 		if (m_editMode)
 			OnUpdate();
@@ -1535,6 +1583,15 @@ void FontTool::OnRebuild()
 
 	if (m_guiPanel_edit)
 	{
+		m_textInput_editor_oneLine->m_position.Set(
+			0,
+			m_mainWindow->m_clientSize.y - m_fontGUI->m_maxHeight);
+		m_textInput_editor_oneLine->m_size.Set(
+			m_mainWindow->m_clientSize.x - m_cellPanelWidth,
+			m_fontGUI->m_maxHeight);
+		//m_textInput_editor_oneLine->Rebuild();
+		
+
 		m_guiPanel_edit->m_size.x = m_mainWindow->m_clientSize.x - m_cellPanelWidth;
 		m_guiPanel_edit->m_size.y = m_mainWindow->m_clientSize.y;
 		m_guiPanel_edit->m_position.x = m_mainWindow->m_clientSize.x - m_guiPanel_edit->m_size.x;
@@ -1546,6 +1603,8 @@ void FontTool::OnRebuild()
 	m_editRect.y = 30;
 	m_editRect.z = m_mainWindow->m_clientSize.x;
 	m_editRect.w = m_editRect.y + 300;
+
+	
 }
 
 void FontTool::StartEdit()

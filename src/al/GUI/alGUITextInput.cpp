@@ -176,6 +176,7 @@ void alGUITextInput::Draw(float32_t dt)
 			}
 
 			char32_t currChar = textPtr[charIndex];
+
 			char32_t currCharData = textDataPtr[charIndex];
 
 			alVec4f charRect;
@@ -275,12 +276,12 @@ void alGUITextInput::Draw(float32_t dt)
 				break;
 			}
 
-
-			m_gs->DrawText(&currChar,
-				1,
-				m_font,
-				alVec2f(charRect.x, charRect.y),
-				textColor);
+			if(currChar)
+				m_gs->DrawText(&currChar,
+					1,
+					m_font,
+					alVec2f(charRect.x, charRect.y),
+					textColor);
 
 			if (alMath::PointInRect(input->m_cursorCoordsForGUI.x,
 				input->m_cursorCoordsForGUI.y, charRectForPick))
