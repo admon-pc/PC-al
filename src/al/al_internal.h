@@ -7,7 +7,8 @@
 
 #ifdef AL_PLATFORM_WIN32
 #include "System/alCursorWin32.h"
-
+struct IFileSaveDialog;
+struct IFileOpenDialog;
 //NOMINMAX for std::min std::max
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
@@ -72,6 +73,9 @@ public:
 
 	alGUIFont* m_fontMini = 0;
 	alGUIColorTheme m_colorTheme;
+
+	IFileSaveDialog* m_fileSaveDialog = 0;
+	IFileOpenDialog* m_fileOpenDialog = 0;
 };
 
 

@@ -14,6 +14,8 @@
 #include "Archive/alArchive.h"
 #include "Containers/alArray.h"
 
+#include <filesystem>
+
 #ifdef LoadImage
 #undef LoadImage
 #endif
@@ -44,6 +46,20 @@ AL_LINK_LIBRARY(al);
 #define FontToolGUIID_btnCreate 3
 #define FontToolGUIID_checkHideUnused 4
 #define FontToolGUIID_btnSave 5
+#define FontToolGUIID_btnSave_Cancel 6
+#define FontToolGUIID_btnSave_Save 7
+#define FontToolGUIID_comboRanges 8
+#define FontToolGUIID_comboSave_ImageSizes 9
+#define FontToolGUIID_textSave_NumImages 10
+
+class FontTool_Text : public alGUIText
+{
+public:
+	FontTool_Text(alGUIContext* ct, const alVec2f& position, const alVec2f& size) :
+		alGUIText(ct, position, size)
+	{}
+	virtual ~FontTool_Text() {}
+};
 
 class FontTool_TextInput : public alGUITextInput
 {
@@ -84,6 +100,8 @@ public:
 	AL_DECLARE_DEFAULT_ALLOCATOR(FontTool_combo_unicodeRange);
 	virtual void OnComboSelectItem(size_t) override;
 };
+
+
 
 struct UnicodeRangeInfo
 {
@@ -154,6 +172,19 @@ UnicodeRangeInfo g_UnicodeRangeInfo[] =
 	{U"Emoticons (Emoji) 0x1F600-0x1F64F", 0x1F600},
 };
 
+struct ImageSizesInfo
+{
+	char32_t m_title[10];
+};
+ImageSizesInfo imageSizes[] =
+{
+	{U"256"},
+	{U"512"},
+	{U"1024"},
+	{U"2048"},
+	{U"4096"},
+};
+
 struct GlyphInfo
 {
 	int m_width = 0;
@@ -190,15 +221,6 @@ public:
 	virtual ~FontTool_button() {}
 	AL_DECLARE_DEFAULT_ALLOCATOR(FontTool_button);
 	virtual void OnButtonRelease() override;
-
-	virtual void OnMouseEnter() override
-	{
-		printf("Enter\n");
-	}
-	virtual void OnMouseLeave() override
-	{
-		printf("Leave\n");
-	}
 };
 
 
@@ -216,8 +238,10 @@ class FontTool
 	alGUIContext* m_guiContext = 0;
 	alGUIPanel* m_guiPanel_first = 0;
 	alGUIPanel* m_guiPanel_edit = 0;
+	alGUIPanel* m_guiPanel_save = 0;
 	alGUITextureAtlas* m_textureAtlas = 0;
 	alGSTexture* m_textureAtlasTexture = 0;
+
 
 	FontTool_combo_unicodeRange* m_comboRanges = 0;
 	FontTool_buttonIcon* m_checkHideUnused = 0;
@@ -257,6 +281,10 @@ public:
 	void OnButtonOpen();
 	void OnButtonCreate();
 	void OnButtonSave();
+	void OnButtonSave_Save();
+	void OnButtonSave_Cancel();
+	
+	void OnComboSaveSize(uint32_t);
 
 	void OnRebuild();
 	void OnDraw();
@@ -287,38 +315,56 @@ public:
 	void GoTo(size_t);
 	//alGSTextureCacheNode* m_guiTextureNodes[TextureID__end];
 	//alGSTextureCache* m_guiTextures = 0;
+	uint32_t m_saveImageSize = 512;
 };
 
 void FontTool_combo_unicodeRange::OnComboSelectItem(size_t index)
 {
-	UnicodeRangeInfo* ptrInfo = (UnicodeRangeInfo*)m_items;
-	uint8_t* ptr = (uint8_t*)m_items;
-	m_text = (char32_t*)(&ptr[index * m_stride] + m_textOffset);
-	FontTool* app = (FontTool*)GetUserData();
-	app->GoTo(ptrInfo[index].m_index);
+	switch (GetID())
+	{
+	case FontToolGUIID_comboRanges:
+	{
+		UnicodeRangeInfo* ptrInfo = (UnicodeRangeInfo*)m_items;
+		uint8_t* ptr = (uint8_t*)m_items;
+		m_text = (char32_t*)(&ptr[index * m_stride] + m_textOffset);
+		FontTool* app = (FontTool*)GetUserData();
+		app->GoTo(ptrInfo[index].m_index);
+	}break;
+	case FontToolGUIID_comboSave_ImageSizes:
+	{
+		FontTool* app = (FontTool*)GetUserData();
+		app->OnComboSaveSize(index);
+		uint8_t* ptr = (uint8_t*)m_items;
+		m_text = (char32_t*)(&ptr[index * m_stride] + m_textOffset);
+	}break;
+	}
+
+	
 }
 void FontTool_button::OnButtonRelease()
 {
 	FontTool* app = (FontTool*)GetUserData();
-	if (GetID() == FontToolGUIID_btnOpen)
+
+	switch (GetID())
 	{
-		//example->m_buttonExitPressed = true;
+	case FontToolGUIID_btnOpen:
 		app->OnButtonOpen();
-	}
-
-	if (GetID() == FontToolGUIID_btnGenerate)
-	{
+		break;
+	case FontToolGUIID_btnGenerate:
 		app->OnButtonGenerate();
-	}
-
-	if (GetID() == FontToolGUIID_btnCreate)
-	{
+		break;
+	case FontToolGUIID_btnCreate:
 		app->OnButtonCreate();
-	}
-
-	if (GetID() == FontToolGUIID_btnSave)
-	{
+		break;
+	case FontToolGUIID_btnSave:
 		app->OnButtonSave();
+		break;
+	case FontToolGUIID_btnSave_Cancel:
+		app->OnButtonSave_Cancel();
+		break;
+	case FontToolGUIID_btnSave_Save:
+		app->OnButtonSave_Save();
+		break;
 	}
 }
 void FontTool_buttonIcon::OnButtonToggleOn()
@@ -556,7 +602,7 @@ bool FontTool::Init()
 	m_guiTextureNodes[TextureID_PLUS_GREEN] = m_guiTextures->GetTexture("../data/tools/fonttool/plsg.png");
 	m_guiTextureNodes[TextureID_PLUS_RED] = m_guiTextures->GetTexture("../data/tools/fonttool/plsr.png");*/
 	m_guiContext = alLib::CreateGUIContext(m_mainWindow, m_gs);
-	m_guiPanel_first = m_guiContext->GetNewPanel(alVec2f(100, 0), alVec2f(500, 500));
+	m_guiPanel_first = m_guiContext->GetNewPanel(alVec2f(100,0), alVec2f(500, 500));
 
 	float32_t position = 0.f;
 	FontTool_button* btn = new FontTool_button(m_guiContext, alVec2f(0, position), alVec2f(150.f, 32.f));
@@ -582,10 +628,12 @@ bool FontTool::Init()
 	btn->SetFont(m_fontGUI);
 	m_guiPanel_first->AddElement(btn, true);
 	position += 40;
+	m_guiPanel_first->Rebuild();
 
-	m_guiPanel_edit = m_guiContext->GetNewPanel(alVec2f(100, 0), alVec2f(800, 600));
+	m_guiPanel_edit = m_guiContext->GetNewPanel(alVec2f(100, 0), alVec2f(500, 500));
 	m_guiPanel_edit->m_drawBG = false;
 	m_comboRanges = new FontTool_combo_unicodeRange(m_guiContext, alVec2f(0, 0), alVec2f(200, 15));
+	m_comboRanges->SetID(FontToolGUIID_comboRanges);
 	m_comboRanges->SetUserData(this);
 	m_comboRanges->SetFont(m_fontGUI);
 	m_comboRanges->m_text.Assign(U"Go To...");
@@ -605,7 +653,7 @@ bool FontTool::Init()
 	m_checkHideUnused->m_textIndent.y = -1;
 	m_guiPanel_edit->AddElement(m_checkHideUnused, true);
 
-	btn = new FontTool_button(m_guiContext, alVec2f(0, 390), alVec2f(50.f, 15.f));
+	btn = new FontTool_button(m_guiContext, alVec2f(0, 330), alVec2f(50.f, 32.f));
 	btn->SetUserData(this);
 	btn->SetID(FontToolGUIID_btnSave);
 	btn->SetText(U"Save");
@@ -627,7 +675,36 @@ bool FontTool::Init()
 	m_guiPanel_edit->Rebuild();
 	m_guiPanel_edit->SetVisible(false);
 	
-	m_guiPanel_first->Rebuild();
+	m_guiPanel_save = m_guiContext->GetNewPanel(alVec2f(100, 0), alVec2f(500, 500));
+	m_guiPanel_save->m_drawBG = false;
+	btn = new FontTool_button(m_guiContext, alVec2f(0, 0), alVec2f(50.f, 32.f));
+	btn->SetUserData(this);
+	btn->SetID(FontToolGUIID_btnSave_Cancel);
+	btn->SetText(U"Cancel");
+	btn->SetFont(m_fontGUI);
+	m_guiPanel_save->AddElement(btn, true);
+	auto range = new FontTool_combo_unicodeRange(m_guiContext, alVec2f(0, 50), alVec2f(50, 15));
+	range->SetID(FontToolGUIID_comboSave_ImageSizes);
+	range->SetUserData(this);
+	range->SetFont(m_fontGUI);
+	range->m_text.Assign(U"512");
+	range->SetItems(&imageSizes, 5,
+		sizeof(ImageSizesInfo), 0);
+	m_guiPanel_save->AddElement(range, true);
+	auto text = new FontTool_Text(m_guiContext, alVec2f(50, 50), alVec2f(50, 15));
+	text->SetText(U"Texture Size");
+	text->SetFont(m_fontGUI);
+	text->SetID(FontToolGUIID_textSave_NumImages);
+	m_guiPanel_save->AddElement(text, true);
+	btn = new FontTool_button(m_guiContext, alVec2f(0, 150), alVec2f(50.f, 32.f));
+	btn->SetUserData(this);
+	btn->SetID(FontToolGUIID_btnSave_Save);
+	btn->SetText(U"Save");
+	btn->SetFont(m_fontGUI);
+	m_guiPanel_save->AddElement(btn, true);
+	m_guiPanel_save->Rebuild();
+	m_guiPanel_save->SetVisible(false);
+
 	OnRebuild();
 
 	return true;
@@ -663,7 +740,7 @@ void FontTool::OnDraw()
 	m_gs->EndDraw();
 	m_gs->BeginDrawGUI();
 
-	if (m_editMode)
+	if (m_guiPanel_edit->m_visible)
 	{
 		m_gs->SetScissorRect(alVec4f(0.f, 0.f, m_mainWindow->m_clientSize.x, m_mainWindow->m_clientSize.y));
 		auto G_selected = m_glyphs[m_selected];
@@ -931,12 +1008,6 @@ void FontTool::Run()
 	{
 		alLib::Update();
 		m_guiContext->Update(*dt);
-		
-		auto btn = m_guiPanel_edit->GetElementByID(FontToolGUIID_btnSave);
-		if (btn)
-		{
-		//	printf("a\n");
-		}
 
 		auto m_currentCursor = m_guiContext->m_cursorType;
 		alLib::SetCursor(m_currentCursor, alLib::GetCursor(m_currentCursor));
@@ -1630,6 +1701,10 @@ void FontTool::OnRebuild()
 		m_guiPanel_edit->m_position.x = m_mainWindow->m_clientSize.x - m_guiPanel_edit->m_size.x;
 		m_guiPanel_edit->m_position.y = 0;
 		m_guiPanel_edit->Rebuild();
+
+		m_guiPanel_save->m_size = m_guiPanel_edit->m_size;
+		m_guiPanel_save->m_position = m_guiPanel_edit->m_position;
+		m_guiPanel_save->Rebuild();
 	}
 
 	m_editRect.x = m_cellPanelWidth;
@@ -1781,9 +1856,9 @@ void FontTool::UpdateTestFont()
 
 				if (rbY > 512)
 				{
-					char buf[100];
+					/*char buf[100];
 					sprintf_s(buf, 100, "font%i.png", imageIndex++);
-					alLib::SaveImage(buf, &img, alSaveImageType::png);
+					alLib::SaveImage(buf, &img, alSaveImageType::png);*/
 					
 					m_testFont->AddTexture(m_gs->CreateTexturePoint(&img));
 					++textureID;
@@ -1807,9 +1882,9 @@ void FontTool::UpdateTestFont()
 	}
 	if (hasData)
 	{
-		char buf[100];
-		sprintf_s(buf, 100, "font%i.png", imageIndex++);
-		alLib::SaveImage(buf, &img, alSaveImageType::png);
+	//	char buf[100];
+	//	sprintf_s(buf, 100, "font%i.png", imageIndex++);
+	//	alLib::SaveImage(buf, &img, alSaveImageType::png);
 		m_testFont->AddTexture(m_gs->CreateTexturePoint(&img));
 	}
 }
@@ -1817,6 +1892,224 @@ void FontTool::UpdateTestFont()
 void FontTool::OnButtonSave()
 {
 	m_guiPanel_edit->SetVisible(false);
+	m_guiPanel_save->SetVisible(true);
+	OnComboSaveSize(-1);
+}
+
+void FontTool::OnButtonSave_Save()
+{
+	alStringW str;
+	alLib::OpenSaveFileDialog(m_mainWindow,
+		L"Save",
+		L"Save",
+		L"zip",
+		&str);
+	if (str.size())
+	{
+		std::filesystem::path p(str.c_str());
+		auto name = p.stem();
+		auto name_string = name.generic_string();
+
+		int imageIndex = 0;
+		alImage img;
+		img.Create(m_saveImageSize, m_saveImageSize);
+		int drawPositionX = 0;
+		int drawPositionY = 0;
+
+		alUnicodeString ustr;
+
+		alArray<alStringA> zipfiles;
+		bool hasData = false;
+		for (uint32_t i = 0; i < 0x10FFFF; ++i)
+		{
+			hasData = true;
+			auto G = m_glyphs[i];
+			if (G.m_data)
+			{
+				m_glyphs[i].textureID = imageIndex;
+
+				int rbX = drawPositionX + G.m_width;
+				int rbY = drawPositionY + m_fontHeightMax;
+
+				if (rbX > m_saveImageSize)
+				{
+					drawPositionX = 0;
+					rbX = drawPositionX + G.m_width;
+
+					drawPositionY = rbY;
+					rbY = drawPositionY + m_fontHeightMax;
+
+					if (rbY > m_saveImageSize)
+					{
+						char buf[100];
+						sprintf_s(buf, 100, "%s%i.png", name_string.c_str(), imageIndex);
+						alLib::SaveImage(buf, &img, alSaveImageType::png);
+						hasData = false;
+
+						zipfiles.push_back(buf);
+
+						imageIndex++;
+
+						drawPositionY = 0;
+						rbY = drawPositionY + m_fontHeightMax;
+
+						img.Fill(alColor(0.f,0.f,0.f,0.f));
+					}
+				}
+
+				img.Fill(G.m_data, alVec2u(G.m_width, m_fontHeightMax), alVec2u(drawPositionX, drawPositionY), 0, 0);
+
+				// write code, not char
+				ustr.Append((uint32_t)i);
+
+				ustr.Append(" ");
+				ustr.Append(drawPositionX);
+				ustr.Append(" ");
+				ustr.Append(drawPositionY);
+				ustr.Append(" ");
+				ustr.Append(drawPositionX + G.m_width);
+				ustr.Append(" ");
+				ustr.Append(drawPositionY + (int)m_fontHeightMax);
+				ustr.Append(" ");
+				ustr.Append(G.underhang);
+				ustr.Append(" ");
+				ustr.Append(G.overhang);
+				ustr.Append(" ");
+				ustr.Append(G.textureID);
+				ustr.Append("\n");
+
+				drawPositionX = rbX;
+			}
+		}
+
+		if (hasData)
+		{
+			char buf[100];
+			sprintf_s(buf, 100, "%s%i.png", name_string.c_str(), imageIndex);
+			alLib::SaveImage(buf, &img, alSaveImageType::png);
+			zipfiles.push_back(buf);
+		}
+
+		{
+			char buf[100];
+			sprintf_s(buf, 100, "%s.txt", name_string.c_str());
+			ustr.SaveToFileUTF32(buf);
+			zipfiles.push_back(buf);
+		}
+
+		if (zipfiles.m_size)
+		{
+			alArray<alFileBuffer*> fbs;
+			alArchiveFileZipFileData* files = new alArchiveFileZipFileData[zipfiles.m_size];
+
+			for (size_t i = 0; i < zipfiles.m_size; ++i)
+			{
+				sprintf_s(files[i].m_fileName, 0xff, zipfiles.m_data[i].c_str());
+
+				alFileBuffer* fb = new alFileBuffer;
+				fbs.push_back(fb);
+				fb->ReadFile(files[i].m_fileName);
+				files[i].m_data = fb->Data();
+				files[i].m_dataSize = fb->Size();
+			}
+			{
+				char buf[100];
+				sprintf_s(buf, 100, "%s.zip", name_string.c_str());
+				alArchive::SaveZip(files, zipfiles.m_size, buf);
+			}
+
+			for (size_t i = 0; i < zipfiles.m_size; ++i)
+			{
+				alLib::RemoveFile(files[i].m_fileName);
+			}
+
+			for (size_t i = 0; i < fbs.m_size; ++i)
+			{
+				delete fbs.m_data[i];
+			}
+			delete[] files;
+		}
+
+		m_guiPanel_edit->SetVisible(true);
+		m_guiPanel_save->SetVisible(false);
+	}
+}
+
+void FontTool::OnButtonSave_Cancel()
+{
+	m_guiPanel_edit->SetVisible(true);
+	m_guiPanel_save->SetVisible(false);
+}
+
+void FontTool::OnComboSaveSize(uint32_t index)
+{
+	if (index != -1)
+	{
+		switch (index)
+		{
+		default:
+		case 0:
+			m_saveImageSize = 256;
+			break;
+		case 1:
+			m_saveImageSize = 512;
+			break;
+		case 2:
+			m_saveImageSize = 1024;
+			break;
+		case 3:
+			m_saveImageSize = 2048;
+			break;
+		case 4:
+			m_saveImageSize = 4096;
+			break;
+		}
+	}
+
+	int imageNumber = 1;
+	int drawPositionX = 0;
+	int drawPositionY = 0;
+	for (int i = 0; i < 0x10FFFF; ++i)
+	{
+		auto G = m_glyphs[i];
+		if (G.m_data)
+		{
+			int rbX = drawPositionX + G.m_width;
+			int rbY = drawPositionY + m_fontHeightMax;
+
+			if (rbX > m_saveImageSize)
+			{
+				drawPositionX = 0;
+				rbX = drawPositionX + G.m_width;
+
+				drawPositionY = rbY;
+				rbY = drawPositionY + m_fontHeightMax;
+
+				if (rbY > m_saveImageSize)
+				{
+					++imageNumber;
+					drawPositionY = 0;
+					rbY = drawPositionY + m_fontHeightMax;
+				}
+			}
+			drawPositionX = rbX;
+		}
+	}
+
+	auto e = m_guiPanel_save->GetElementByID(FontToolGUIID_textSave_NumImages);
+	if (e)
+	{
+		alGUIText* text = dynamic_cast<alGUIText*>(e);
+		if (text)
+		{
+			alUnicodeString str;
+			str = U"Texture Size. It will use ";
+			str.Append(imageNumber);
+			str.Append(U" images");
+			text->SetText(str.c_str());
+			text->Rebuild();
+		}
+	}
 }
 
 int main()

@@ -50,7 +50,7 @@ alGUIFontGlyph* alGUIFont::GetUnknownGlyph()
 
 void alGUIFont::SetGlyph(char32_t ch, int32_t textureID, float32_t h, float32_t w, alVec4f* uv)
 {
-	if (ch && ch < 0x10FFFF)
+	if (ch < 0x10FFFF)
 	{
 		if (!m_glyphs[(uint32_t)ch])
 			m_glyphs[(uint32_t)ch] = alCreate<alGUIFontGlyph>();

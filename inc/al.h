@@ -210,6 +210,25 @@ public:
 	static void DLLFree(alDLLHandle);
 
 	static bool GUIDIsEqual(const alGUID&, const alGUID&);
+
+	struct OpenFIleDialogFileTypeDesc
+	{
+		wchar_t m_title[100];
+		wchar_t m_extensions[1000];
+	};
+	static void OpenSaveFileDialog(
+		alSystemWindow*,
+		const wchar_t* title,
+		const wchar_t* okButtonLabel,
+		const wchar_t* extension,
+		alStringW*);
+	static void OpenOpenFileDialog(
+		alSystemWindow*,
+		const wchar_t* title,
+		const wchar_t* okButtonLabel,
+		OpenFIleDialogFileTypeDesc* descs,
+		uint32_t descsSz,
+		alStringW*);
 };
 
 

@@ -30,6 +30,12 @@
 #include "System/alSystemPopupWin32.h"
 #include "System/alSystemWindow.h"
 
+#ifdef AL_PLATFORM_WIN32
+#include <shobjidl.h> 
+#include "Shlwapi.h"
+#include <shellapi.h>
+#endif
+
 alLibGlobalData g_alLibGlobalData;
 
 AL_LINK_LIBRARY(zlib);
@@ -172,6 +178,10 @@ alLibImpl::~alLibImpl()
 		AL_DESTROY(m_cursorsDefault[i]);
 	}
 	AL_DESTROY(m_input);
+
+	if (m_fileSaveDialog) m_fileSaveDialog->Release();
+	if (m_fileOpenDialog) m_fileOpenDialog->Release();
+	CoUninitialize();
 }
 
 // ==================================================
@@ -234,6 +244,18 @@ void alLib::InitializeLib()
 
 			g_alLib->m_cursors[i] = g_alLib->m_cursorsDefault[i];
 		}
+
+		HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+		if (FAILED(hr))
+			return ;
+
+		hr = CoCreateInstance(CLSID_FileSaveDialog, NULL, CLSCTX_ALL, IID_IFileSaveDialog, reinterpret_cast<void**>(&g_alLib->m_fileSaveDialog));
+		if (FAILED(hr))
+			return ;
+
+		hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL, IID_IFileOpenDialog, reinterpret_cast<void**>(&g_alLib->m_fileOpenDialog));
+		if (FAILED(hr))
+			return ;
 #endif
 
 	}
@@ -916,7 +938,7 @@ void alLib::InitializeDefaultFont(alGS* gs)
 	if(t)
 		font->AddTexture(t);
 
-	alLib::SaveImage("test.png", &imgFont, alSaveImageType::png);
+	//alLib::SaveImage("test.png", &imgFont, alSaveImageType::png);
 }
 
 alGUIFont* alLib::GetDefaultFont()
@@ -1100,5 +1122,110 @@ FILE* alLib::fopen(const wchar_t* str, const wchar_t* mode)
 		return f;
 	}
 	return 0;
+}
+
+void alLib::OpenSaveFileDialog(
+	alSystemWindow* window,
+	const wchar_t* title,
+	const wchar_t* okButtonLabel,
+	const wchar_t* extension,
+	alStringW* returnPath)
+{
+	AL_ASSERT_ST(window);
+	AL_ASSERT_ST(title);
+	AL_ASSERT_ST(okButtonLabel);
+	alSystemWindowOSDataWin32* w32 = (alSystemWindowOSDataWin32*)window->GetOSData();
+
+	g_alLib->m_fileSaveDialog->SetTitle(title);
+	g_alLib->m_fileSaveDialog->SetOkButtonLabel(okButtonLabel);
+	COMDLG_FILTERSPEC rgSpec;
+	rgSpec.pszName = extension;
+
+	alStringW wstr;
+	wstr = "*.";
+	wstr += extension;
+	rgSpec.pszSpec = wstr.data();
+
+	g_alLib->m_fileSaveDialog->SetFileTypes(1, &rgSpec);
+	auto hr = g_alLib->m_fileSaveDialog->Show(w32->m_hwnd);
+	if (SUCCEEDED(hr))
+	{
+		IShellItem* pItem;
+		hr = g_alLib->m_fileSaveDialog->GetResult(&pItem);
+		if (SUCCEEDED(hr))
+		{
+			PWSTR pszFilePath;
+			hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+			if (SUCCEEDED(hr))
+			{
+				returnPath->append((const char16_t*)pszFilePath);
+				CoTaskMemFree(pszFilePath);
+			}
+			pItem->Release();
+		}
+	}
+	g_alLib->m_fileSaveDialog->Release();
+	CoCreateInstance(CLSID_FileSaveDialog, NULL, CLSCTX_ALL, IID_IFileSaveDialog, reinterpret_cast<void**>(&g_alLib->m_fileSaveDialog));
+}
+
+void alLib::OpenOpenFileDialog(
+	alSystemWindow* window,
+	const wchar_t* title,
+	const wchar_t* okButtonLabel,
+	OpenFIleDialogFileTypeDesc* descs,
+	uint32_t descsSz,
+	alStringW* returnPath)
+{
+	AL_ASSERT_ST(window);
+	AL_ASSERT_ST(title);
+	AL_ASSERT_ST(okButtonLabel);
+	alSystemWindowOSDataWin32* w32 = (alSystemWindowOSDataWin32*)window->GetOSData();
+
+	g_alLib->m_fileOpenDialog->SetTitle(title);
+	g_alLib->m_fileOpenDialog->SetOkButtonLabel(okButtonLabel);
+
+	COMDLG_FILTERSPEC* rgSpec = 0;
+	if (descs)
+	{
+		rgSpec = new COMDLG_FILTERSPEC[descsSz];
+		for (uint32_t i = 0; i < descsSz; ++i)
+		{
+			rgSpec[i].pszName = descs[i].m_title;
+			rgSpec[i].pszSpec = descs[i].m_extensions;
+		}
+		g_alLib->m_fileOpenDialog->SetFileTypes(descsSz, rgSpec);
+	}
+	else
+	{
+		FILEOPENDIALOGOPTIONS options;
+		auto hr = g_alLib->m_fileOpenDialog->GetOptions(&options);
+		if (SUCCEEDED(hr))
+		{
+			g_alLib->m_fileOpenDialog->SetOptions(options | FOS_PICKFOLDERS);
+		}
+	}
+
+	auto hr = g_alLib->m_fileOpenDialog->Show((HWND)w32->m_hwnd);
+	if (SUCCEEDED(hr))
+	{
+		IShellItem* pItem;
+		hr = g_alLib->m_fileOpenDialog->GetResult(&pItem);
+		if (SUCCEEDED(hr))
+		{
+			PWSTR pszFilePath;
+			hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+			if (SUCCEEDED(hr))
+			{
+				returnPath->append((const char16_t*)pszFilePath);
+				CoTaskMemFree(pszFilePath);
+			}
+			pItem->Release();
+		}
+	}
+	if (rgSpec)
+		delete[]rgSpec;
+	g_alLib->m_fileOpenDialog->Release();
+	CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL,
+		IID_IFileOpenDialog, reinterpret_cast<void**>(&g_alLib->m_fileOpenDialog));
 }
 
