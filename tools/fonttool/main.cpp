@@ -229,6 +229,16 @@ public:
 	virtual void OnButtonRelease() override;
 };
 
+class FontTool_slider : public alGUIRangeSlider1
+{
+public:
+	FontTool_slider(alGUIContext* ct, const alVec2f& position, const alVec2f& size)
+		:
+		alGUIRangeSlider1(ct, position, size) {}
+	virtual ~FontTool_slider() {}
+	AL_DECLARE_DEFAULT_ALLOCATOR(FontTool_slider);
+};
+
 
 
 class SystemWindowCallback;
@@ -316,6 +326,7 @@ public:
 
 	GlyphInfo m_glyphs[0x10FFFF];
 	float m_fontHeightMax = 10.f;
+	int32_t m_fontHeightMax_i = 10; // for slider
 	float m_fontWidthMax = 0.f;
 
 	alGSTexture* m_whiteTexture = 0;
@@ -644,6 +655,21 @@ bool FontTool::Init()
 	btn->SetText(U"Create");
 	btn->SetFont(m_fontGUI);
 	m_guiPanel_first->AddElement(btn, true);
+
+	auto text = new FontTool_Text(m_guiContext, alVec2f(160, position), alVec2f(50, 15));
+	text->SetFont(m_fontGUI);
+	text->SetText(U"Height");
+	m_guiPanel_first->AddElement(text, true);
+
+	FontTool_slider* slider = new FontTool_slider(m_guiContext, alVec2f(160, position + 15), alVec2f(150.f, 13.f));
+	slider->SetUserData(this);
+	slider->m_minMax_i[0] = 6;
+	slider->m_minMax_i[1] = 64;
+	slider->m_ptr_i = &m_fontHeightMax_i;
+	slider->m_type = alGUIRangeSlider1::Type::type_IntLimits;
+	slider->m_colorTheme->m_slider_bg = 0xFFBB22FF;
+	m_guiPanel_first->AddElement(slider, true);
+
 	position += 40;
 	m_guiPanel_first->Rebuild();
 
@@ -708,7 +734,7 @@ bool FontTool::Init()
 	range->SetItems(&imageSizes, 5,
 		sizeof(ImageSizesInfo), 0);
 	m_guiPanel_save->AddElement(range, true);
-	auto text = new FontTool_Text(m_guiContext, alVec2f(50, 50), alVec2f(50, 15));
+	text = new FontTool_Text(m_guiContext, alVec2f(50, 50), alVec2f(50, 15));
 	text->SetText(U"Texture Size");
 	text->SetFont(m_fontGUI);
 	text->SetID(FontToolGUIID_textSave_NumImages);
@@ -1077,6 +1103,8 @@ void FontTool::OnButtonOpen()
 
 void FontTool::OnButtonCreate()
 {
+	m_fontHeightMax = m_fontHeightMax_i;
+	InitCellTexture();
 	StartEdit();
 }
 
