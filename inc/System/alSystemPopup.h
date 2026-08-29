@@ -1,6 +1,7 @@
 ﻿#ifndef _AL_SYSTEMPOPUP_H_
 #define _AL_SYSTEMPOPUP_H_
 
+// Create using this alLib::CreateSystemPopup();
 class alSystemPopup
 {
 public:

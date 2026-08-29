@@ -5,7 +5,7 @@
 template<typename type>
 class alArray
 {
-	size_t     m_allocated;
+	size_t     m_allocated = 0;
 	void Reallocate(size_t new_capacity)
 	{
 		new_capacity += 4 * (m_allocated / 2);

@@ -25,6 +25,7 @@ void alGUIPanel::Draw(float32_t dt)
 {
 	if (m_visible)
 	{
+		m_gs->SetScissorRect(m_clipArea);
 		OnDraw();
 		if (m_drawBG)
 		{

@@ -5,6 +5,7 @@
 
 #include "System/alSystemWindow.h"
 #include "System/alSystemWindowWin32.h"
+#include "System/alSystemPopup.h"
 #include "GS/alGS.h"
 #include "Input/alInput.h"
 #include "Classes/alColor.h"
@@ -51,6 +52,11 @@ AL_LINK_LIBRARY(al);
 #define FontToolGUIID_comboRanges 8
 #define FontToolGUIID_comboSave_ImageSizes 9
 #define FontToolGUIID_textSave_NumImages 10
+#define FontToolGUIID_popupCell_Create 11
+#define FontToolGUIID_popupCell_Delete 12
+
+#define FontToolEventID_popupCell_Create 1
+#define FontToolEventID_popupCell_Delete 2
 
 class FontTool_Text : public alGUIText
 {
@@ -228,6 +234,8 @@ public:
 class SystemWindowCallback;
 class FontTool
 {
+	bool m_pollEventAtTheEndOfFrame = false;
+	void _pollEvents();
 	//void _state_NewOrOpen();
 	//void _state_GenerateOrFromScratch();
 	//void _state_Generate();
@@ -264,6 +272,7 @@ class FontTool
 
 	uint32_t m_selected = 0;
 	void OnSelect();
+	void ShowPopupOnCell();
 
 	alGUIFont* m_testFont = 0;
 	void UpdateTestFont();
@@ -274,6 +283,10 @@ public:
 
 	bool Init();
 	void Run();
+	void OnPopupCommand(uint32_t cmd);
+
+	void DeleteCell(uint32_t);
+	void CreateCell(uint32_t);
 
 	void StartEdit();
 
@@ -302,7 +315,7 @@ public:
 	alGS* m_gs = 0;
 
 	GlyphInfo m_glyphs[0x10FFFF];
-	float m_fontHeightMax = 0.f;
+	float m_fontHeightMax = 10.f;
 	float m_fontWidthMax = 0.f;
 
 	alGSTexture* m_whiteTexture = 0;
@@ -400,14 +413,14 @@ void FontTool_TextInput::OnCancel()
 
 class SystemWindowCallback : public alSystemWindowCallback
 {
-	FontTool* m_demo = 0;
+	FontTool* m_app = 0;
 public:
-	SystemWindowCallback(FontTool* dd) : m_demo(dd) {}
+	SystemWindowCallback(FontTool* dd) : m_app(dd) {}
 	virtual ~SystemWindowCallback() {}
 
 	virtual void OnSizeChanged(alSystemWindow*)
 	{
-		m_demo->OnRebuild();
+		m_app->OnRebuild();
 	}
 	
 	virtual alVec2i OnGPUUpdateSize(alSystemWindow* w) 
@@ -428,8 +441,12 @@ public:
 		auto windowID = window->GetID();
 		if (!windowID)
 		{
-			m_demo->m_run = false;
+			m_app->m_run = false;
 		}
+	}
+	virtual void OnPopupCommand(uint32_t cmd)
+	{
+		m_app->OnPopupCommand(cmd);
 	}
 };
 
@@ -781,12 +798,13 @@ void FontTool::OnDraw()
 			}
 		}
 
-		m_gs->DrawText(
-			m_textInput_editor_oneLine->m_text.c_str(),
-			m_textInput_editor_oneLine->m_text.size(),
-			m_testFont,
-			alVec2f(m_editRect.x, m_textInput_editor_oneLine->m_buildArea.y - m_testFont->m_maxHeight),
-			ColorWhite);
+		if(m_testFont)
+			m_gs->DrawText(
+				m_textInput_editor_oneLine->m_text.c_str(),
+				m_textInput_editor_oneLine->m_text.size(),
+				m_testFont,
+				alVec2f(m_editRect.x, m_textInput_editor_oneLine->m_buildArea.y - m_testFont->m_maxHeight),
+				ColorWhite);
 	}
 	m_guiContext->Draw(*dt);
 
@@ -972,6 +990,16 @@ void FontTool::OnUpdate()
 					m_selected = drawIndex;
 					OnSelect();
 				}
+				else if (input->m_isRMBDown)
+				{
+					m_selected = drawIndex;
+					OnSelect();
+					alEvent event;
+					event.m_type = alEventType::User;
+					event.m_event_user.m_id = FontToolEventID_popupCell_Create;
+					alLib::AddEvent(event, true);
+					m_pollEventAtTheEndOfFrame = true;
+				}
 			}
 
 			drawPosition.x += m_cellSizeX;
@@ -1006,6 +1034,9 @@ void FontTool::Run()
 
 	while (m_run)
 	{
+		if(!m_pollEventAtTheEndOfFrame)
+			_pollEvents();
+
 		alLib::Update();
 		m_guiContext->Update(*dt);
 
@@ -1021,431 +1052,22 @@ void FontTool::Run()
 			timer = 0.f;
 			OnDraw();
 		}
+
+		if (m_pollEventAtTheEndOfFrame)
+		{
+			// I don't know why it can't draw using 1 call
+			OnDraw();
+			OnDraw();
+
+			_pollEvents();
+			m_pollEventAtTheEndOfFrame = false;
+		}
 	}
 }
 
 void FontTool::GoTo(size_t i)
 {
 	m_startDrawCellIndex = i;
-}
-
-//void FontTool::_state_NewOrOpen()
-//{
-//	m_gs->SetViewport(0, 0, m_mainWindow->m_clientSize.x, m_mainWindow->m_clientSize.y);
-//	m_gs->BeginDraw();
-//	m_gs->ClearAll();
-//	m_gs->EndDraw();
-//	m_gs->BeginDrawGUI();
-//
-//	uint32_t tw = m_guiTextureNodes[TextureID_NEW_RED]->m_texture->GetWidth();
-//	uint32_t th = m_guiTextureNodes[TextureID_NEW_RED]->m_texture->GetHeight();
-//
-//	alVec4f buttonRect;
-//	buttonRect.x = 0.f;
-//	buttonRect.y = 0.f;
-//	buttonRect.z = tw;
-//	buttonRect.w = th;
-//
-//	auto input = alLib::GetInput();
-//
-//	int textureID = TextureID_NEW_RED;
-//	if (alMath::PointInRect(input->m_cursorCoords.x, input->m_cursorCoords.y, buttonRect))
-//	{
-//		textureID = TextureID_NEW_GREEN;
-//
-//		if (input->m_isLMBDown)
-//		{
-//			OnRun = &FontTool::_state_GenerateOrFromScratch;
-//		}
-//	}
-//
-//	m_gs->DrawRectangle(buttonRect, ColorWhite, ColorWhite,
-//		m_guiTextureNodes[textureID]->m_texture);
-//
-//
-//	tw = m_guiTextureNodes[TextureID_OPEN_RED]->m_texture->GetWidth();
-//	th = m_guiTextureNodes[TextureID_OPEN_RED]->m_texture->GetHeight();
-//	buttonRect.x = 0.f;
-//	buttonRect.y += buttonRect.w + 5.f;
-//	buttonRect.z = tw;
-//	buttonRect.w = buttonRect.y + th;
-//
-//	textureID = TextureID_OPEN_RED;
-//	if (alMath::PointInRect(input->m_cursorCoords.x, input->m_cursorCoords.y, buttonRect))
-//	{
-//		textureID = TextureID_OPEN_GREEN;
-//
-//		if (input->m_isLMBDown)
-//		{
-//			//OnRun = &FontTool::_state_GenerateOrFromScratch;
-//		}
-//	}
-//	m_gs->DrawRectangle(buttonRect, ColorWhite, ColorWhite,
-//		m_guiTextureNodes[textureID]->m_texture);
-//
-//	m_gs->EndDrawGUI();
-//	m_gs->SwapBuffers();
-//}
-//
-//void FontTool::_state_GenerateOrFromScratch()
-//{
-//	m_gs->SetViewport(0, 0, m_mainWindow->m_clientSize.x, m_mainWindow->m_clientSize.y);
-//	m_gs->BeginDraw();
-//	m_gs->ClearAll();
-//	m_gs->EndDraw();
-//	m_gs->BeginDrawGUI();
-//
-//	int textureID = TextureID_GENERATE_RED;
-//	uint32_t tw = m_guiTextureNodes[textureID]->m_texture->GetWidth();
-//	uint32_t th = m_guiTextureNodes[textureID]->m_texture->GetHeight();
-//
-//	alVec4f buttonRect;
-//	buttonRect.x = 0.f;
-//	buttonRect.y = 0.f;
-//	buttonRect.z = tw;
-//	buttonRect.w = th;
-//
-//	auto input = alLib::GetInput();
-//
-//	if (alMath::PointInRect(input->m_cursorCoords.x, input->m_cursorCoords.y, buttonRect))
-//	{
-//		textureID = TextureID_GENERATE_GREEN;
-//
-//		if (input->m_isLMBDown)
-//		{
-//			OnRun = &FontTool::_state_Generate;
-//
-//			create_tmp_font();
-//		}
-//	}
-//
-//	m_gs->DrawRectangle(buttonRect, ColorWhite, ColorWhite,
-//		m_guiTextureNodes[textureID]->m_texture);
-//
-//	textureID = TextureID_FROMSCRATCH_RED;
-//	tw = m_guiTextureNodes[textureID]->m_texture->GetWidth();
-//	th = m_guiTextureNodes[textureID]->m_texture->GetHeight();
-//	buttonRect.x = 0.f;
-//	buttonRect.y += buttonRect.w + 5.f;
-//	buttonRect.z = (float32_t)tw;
-//	buttonRect.w = buttonRect.y + th;
-//
-//	if (alMath::PointInRect(input->m_cursorCoords.x, input->m_cursorCoords.y, buttonRect))
-//	{
-//		textureID = TextureID_FROMSCRATCH_GREEN;
-//
-//		if (input->m_isLMBDown)
-//		{
-//			//OnRun = &FontTool::_state_Generate;
-//		}
-//	}
-//	m_gs->DrawRectangle(buttonRect, ColorWhite, ColorWhite,
-//		m_guiTextureNodes[textureID]->m_texture);
-//
-//	m_gs->EndDrawGUI();
-//	m_gs->SwapBuffers();
-//}
-//
-//void FontTool::_state_Generate()
-//{
-//}
-//
-//void FontTool::_state_Edit()
-//{
-//}
-
-void FontTool::create_tmp_font()
-{
-	int fontSize = 10;
-	HDC dc = CreateDC(L"DISPLAY", L"DISPLAY", 0, 0);
-
-	bool bold = false;
-	bool italic = false;
-	bool aa = false;
-
-	HFONT font = CreateFontW(
-		-MulDiv(fontSize, GetDeviceCaps(dc, LOGPIXELSY), 72), 0,
-		0, 0,
-		bold ? FW_BOLD : 0,
-		italic, 0, 0,
-		ANSI_CHARSET, 0, 0,
-		aa ? ANTIALIASED_QUALITY : 0,
-		0, L"Consolas");
-
-	SelectObject(dc, font);
-	SetTextAlign(dc, TA_LEFT | TA_TOP | TA_NOUPDATECP);
-
-	int size = GetFontUnicodeRanges(dc, 0);
-	
-	uint8_t* buf = new uint8_t[size];
-	LPGLYPHSET glyphs = (LPGLYPHSET)buf;
-	GetFontUnicodeRanges(dc, glyphs);
-
-	int maxSizeX = 0;
-	int maxSizeY = 0;
-	//alImage img;
-
-	//printf("glyphs->cRanges %i\n", glyphs->cRanges);
-	for (DWORD range = 0; range < glyphs->cRanges; ++range)
-	{
-		WCRANGE* current = &glyphs->ranges[range];
-		//printf("Range %i, num of glyphs %i\n", range, current->cGlyphs);
-		for (int ch = current->wcLow; ch < current->wcLow + current->cGlyphs; ++ch)
-		{
-			wchar_t currentchar = ch;
-			if (IsDBCSLeadByte((BYTE)ch))
-				continue;
-
-		//	wprintf(L"Char%i: %c\n", ch, currentchar);
-
-			// get the dimensions
-			SIZE size;
-			ABC abc;
-			GetTextExtentPoint32W(dc, &currentchar, 1, &size);
-			
-			int underhang = 0;
-			int overhang = 0;
-
-			if (GetCharABCWidthsW(dc, currentchar, currentchar, &abc)) // for unicode fonts, get overhang, underhang, width
-			{
-			//	size.cx = abc.abcB;		// full font width (ignoring padding/underhang )
-				underhang = abc.abcA;	// underhang/padding left - can also be negative (in which case it's overhang left)
-				overhang = abc.abcC;	// overhang/padding right - can also be negative (in which case it's underhand right)
-
-				if (abc.abcB - abc.abcA + abc.abcC < 1)
-					continue; // nothing of width 0
-			}
-			if (size.cy < 1)
-				continue;
-			if (size.cx < 1)
-				continue;
-			
-			HBITMAP bmp = CreateCompatibleBitmap(dc, size.cx, size.cy);
-			HDC bmpdc = CreateCompatibleDC(dc);
-			LOGBRUSH lbrush;
-			lbrush.lbColor = RGB(0, 0, 0);
-			lbrush.lbHatch = 0;
-			lbrush.lbStyle = BS_SOLID;
-			HBRUSH brush = CreateBrushIndirect(&lbrush);
-			HPEN pen = CreatePen(PS_NULL, 0, 0);
-			HGDIOBJ oldbmp = SelectObject(bmpdc, bmp);
-			HGDIOBJ oldbmppen = SelectObject(bmpdc, pen);
-			HGDIOBJ oldbmpbrush = SelectObject(bmpdc, brush);
-			HGDIOBJ oldbmpfont = SelectObject(bmpdc, font);
-			SetTextColor(bmpdc, RGB(255, 255, 255));
-			Rectangle(bmpdc, 0, 0, size.cx, size.cy);
-			SetBkMode(bmpdc, TRANSPARENT);
-
-			
-
-			TextOutW(bmpdc, 
-				0,
-				0,
-				&currentchar,
-				1);
-
-
-			BITMAP b;
-			GetObject(bmp, sizeof(BITMAP), (LPSTR)&b);
-			WORD cClrBits = (WORD)(b.bmPlanes * b.bmBitsPixel);
-			
-
-			PBITMAPINFO pbmi = (PBITMAPINFO)LocalAlloc(LPTR,
-				sizeof(BITMAPINFOHEADER));
-			pbmi->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-			pbmi->bmiHeader.biWidth = b.bmWidth;
-			pbmi->bmiHeader.biHeight = b.bmHeight;
-			pbmi->bmiHeader.biPlanes = b.bmPlanes;
-			pbmi->bmiHeader.biBitCount = b.bmBitsPixel;
-			pbmi->bmiHeader.biCompression = BI_RGB;
-			pbmi->bmiHeader.biSizeImage = ((pbmi->bmiHeader.biWidth * cClrBits + 31) & ~31) / 8
-				* pbmi->bmiHeader.biHeight;
-			pbmi->bmiHeader.biClrImportant = 0;
-			LPBYTE lpBits; // memory pointer
-			PBITMAPINFOHEADER pbih = (PBITMAPINFOHEADER)pbmi;
-			lpBits = (LPBYTE)GlobalAlloc(GMEM_FIXED, pbih->biSizeImage);
-			GetDIBits(dc, bmp, 0, (WORD)pbih->biHeight, lpBits, pbmi, DIB_RGB_COLORS);
-			if (cClrBits <= 8) // we're not supporting these
-			{
-			}
-			else if (cClrBits <= 16)
-			{
-			}
-			else if (cClrBits <= 24)
-			{
-			}
-			else
-			{
-				alImage* img = alCreate<alImage>();
-				img->Create(size.cx, size.cy);
-
-				int rowsize = img->m_pitch;
-				uint8_t* dst = img->m_data;
-				uint8_t* src = lpBits;
-				for (int i = 0; i < pbih->biHeight; ++i)
-				{
-					memcpy(dst, src, rowsize);
-
-					dst += rowsize;
-					src += rowsize;
-				}
-
-				uint8_t* m;
-				for (m = img->m_data; m < img->m_data+ img->m_dataSize; m += 4)
-				{
-					if (m[0] > 0) // pixel has colour
-					{
-					//	printf("%i ", m[0]);
-
-						m[3] = m[0];  // set alpha
-						m[0] = m[1] = m[2] = 255; // everything else is full
-					}
-				}
-
-				//char cbuf[100];
-				//sprintf_s(cbuf, 100, "file0x%X.png", (uint32_t)ch);
-				//alLib::SaveImage(cbuf, &img, alSaveImageType::png);
-				img->FlipVertical();
-				/*myglyphs[currentchar] = alCreate<GlyphNode>();
-				myglyphs[currentchar]->image = img;
-				myglyphs[currentchar]->character = currentchar;
-				myglyphs[currentchar]->overhang = overhang;
-				myglyphs[currentchar]->underhang = underhang;
-				myglyphs[currentchar]->sizeX = size.cx;
-				myglyphs[currentchar]->sizeY = size.cy;
-				myglyphs[currentchar]->leftTopX = 0;
-				myglyphs[currentchar]->leftTopY = 0;
-				myglyphs[currentchar]->rightBottomX = 0;
-				myglyphs[currentchar]->rightBottomY = 0;*/
-
-				if (size.cx > maxSizeX)
-					maxSizeX = size.cx;
-				if (size.cy > maxSizeY)
-					maxSizeY = size.cy;
-			}
-
-			LocalFree(pbmi);
-			GlobalFree(lpBits);
-			DeleteDC(bmpdc);
-			DeleteObject(brush);
-			DeleteObject(pen);
-			DeleteObject(bmp);
-		}
-	}
-	
-	int imageIndex = 0;
-	alImage img;
-	img.Create(512, 512);
-	int drawPositionX = 0;
-	int drawPositionY = 0;
-
-	alUnicodeString ustr;
-
-	alArray<alStringA> zipfiles;
-
-	for (int i = 0; i < 0x10FFFF; ++i)
-	{
-		//if (myglyphs[i])
-		//{
-		//	myglyphs[i]->textureID = imageIndex;
-
-		//	int rbX = drawPositionX + myglyphs[i]->sizeX;
-		//	int rbY = drawPositionY + myglyphs[i]->sizeY;
-
-		//	if (rbX > 512)
-		//	{
-		//		drawPositionX = 0;
-		//		rbX = drawPositionX + myglyphs[i]->sizeX;
-
-		//		drawPositionY = rbY;
-		//		rbY = drawPositionY + myglyphs[i]->sizeY;
-
-		//		if (rbY > 512)
-		//		{
-		//			char buf[100];
-		//			sprintf_s(buf, 100, "font%i.png", imageIndex);
-		//			alLib::SaveImage(buf, &img, alSaveImageType::png);
-		//			
-		//			zipfiles.push_back(buf);
-
-		//			imageIndex++;
-
-		//			drawPositionY = 0;
-		//			rbY = drawPositionY + myglyphs[i]->sizeY;
-
-		//			img.Fill(alColor(0.f,0.f,0.f,0.f));
-		//		}
-		//	}
-
-		//	img.Fill(myglyphs[i]->image, alVec2u(drawPositionX, drawPositionY), 0, 0);
-
-		//	// write code, not char
-		//	ustr.Append((uint32_t)myglyphs[i]->character);
-
-		//	ustr.Append(" ");
-		//	ustr.Append(drawPositionX);
-		//	ustr.Append(" ");
-		//	ustr.Append(drawPositionY);
-		//	ustr.Append(" ");
-		//	ustr.Append(drawPositionX + myglyphs[i]->sizeX);
-		//	ustr.Append(" ");
-		//	ustr.Append(drawPositionY + myglyphs[i]->sizeY);
-		//	ustr.Append(" ");
-		//	ustr.Append(myglyphs[i]->underhang);
-		//	ustr.Append(" ");
-		//	ustr.Append(myglyphs[i]->overhang);
-		//	ustr.Append(" ");
-		//	ustr.Append(myglyphs[i]->textureID);
-		//	ustr.Append("\n");
-
-		//	drawPositionX = rbX;
-		//}
-	}
-
-	if (imageIndex == 0)
-	{
-		char buf[100];
-		sprintf_s(buf, 100, "font%i.png", imageIndex);
-		alLib::SaveImage(buf, &img, alSaveImageType::png);
-		zipfiles.push_back(buf);
-	}
-
-	{
-		char buf[100];
-		sprintf_s(buf, 100, "font.txt");
-		ustr.SaveToFileUTF32(buf);
-		zipfiles.push_back(buf);
-	}
-
-	if(zipfiles.m_size)
-	{
-		alArray<alFileBuffer*> fbs;
-		alArchiveFileZipFileData* files = new alArchiveFileZipFileData[zipfiles.m_size];
-		
-		for (size_t i = 0; i < zipfiles.m_size; ++i)
-		{
-			sprintf_s(files[i].m_fileName, 0xff, zipfiles.m_data[i].c_str());
-			
-			alFileBuffer* fb = new alFileBuffer;
-			fbs.push_back(fb);
-			fb->ReadFile(files[i].m_fileName);
-			files[i].m_data = fb->Data();
-			files[i].m_dataSize = fb->Size();
-		}
-
-		alArchive::SaveZip(files, zipfiles.m_size, "font.zip");
-
-		for (size_t i = 0; i < zipfiles.m_size; ++i)
-		{
-			alLib::RemoveFile(files[i].m_fileName);
-		}
-
-		for (size_t i = 0; i < fbs.m_size; ++i)
-		{
-			delete fbs.m_data[i];
-		}
-		delete[] files;
-	}
 }
 
 void FontTool::OnButtonOpen()
@@ -1457,7 +1079,6 @@ void FontTool::OnButtonCreate()
 {
 	StartEdit();
 }
-
 
 void FontTool::OnButtonGenerate()
 {
@@ -2111,6 +1732,95 @@ void FontTool::OnComboSaveSize(uint32_t index)
 		}
 	}
 }
+
+void FontTool::ShowPopupOnCell()
+{
+	alSystemPopup* popup = alLib::CreateSystemPopup();
+	if (popup)
+	{
+		alInput* input = alLib::GetInput();
+		auto G = &m_glyphs[m_selected];
+		if (G->m_data)
+		{
+			popup->AddItem(U"Delete", FontToolGUIID_popupCell_Delete, 0);
+			//popup->AddItem(U"Copy", 0, 0);
+		}
+		else
+		{
+			popup->AddItem(U"Create", FontToolGUIID_popupCell_Create, 0);
+		}
+		popup->Show(m_mainWindow, input->m_cursorCoords.x, input->m_cursorCoords.y);
+
+		AL_DESTROY(popup);
+	}
+}
+
+void FontTool::_pollEvents()
+{
+	alEvent event;
+	while (alLib::PollEvent(event))
+	{
+		switch (event.m_type)
+		{
+		case alEventType::User:
+		{
+			switch (event.m_event_user.m_id)
+			{
+				case FontToolEventID_popupCell_Create:
+					ShowPopupOnCell();
+					break;
+				case FontToolEventID_popupCell_Delete:
+					break;
+			}
+		}break;
+		}
+	}
+}
+
+void FontTool::OnPopupCommand(uint32_t cmd)
+{
+	switch (cmd)
+	{
+	case FontToolGUIID_popupCell_Delete:
+		DeleteCell(m_selected);
+		break;
+	case FontToolGUIID_popupCell_Create:
+		CreateCell(m_selected);
+		break;
+	}
+}
+
+void FontTool::DeleteCell(uint32_t index)
+{
+	if (index < 0x10FFFF)
+	{
+		auto G = &m_glyphs[index];
+		if (G->m_data)
+		{
+			alMemory::Free(G->m_data);
+			G->m_data = 0;
+			UpdateTestFont();
+		}
+	}
+}
+
+void FontTool::CreateCell(uint32_t index)
+{
+	if (index < 0x10FFFF)
+	{
+		auto G = &m_glyphs[index];
+		if (!G->m_data)
+		{
+			G->m_width = 10;
+			G->textureID = 0;
+			G->m_data = (uint8_t*)alMemory::Calloc(G->m_width * m_fontHeightMax * 4);
+
+			UpdateTestFont();
+			OnSelect();
+		}
+	}
+}
+
 
 int main()
 {
