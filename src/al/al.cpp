@@ -629,11 +629,16 @@ void alLib::CopyTextToClipboard(alUnicodeString* str)
 
 	auto len = str->Size();
 	EmptyClipboard();
-	HGLOBAL clipbuffer;
-	clipbuffer = GlobalAlloc(GMEM_DDESHARE, (len + 1) * sizeof(WCHAR));
+	HGLOBAL clipbuffer = GlobalAlloc(GMEM_MOVEABLE, (len + 1) * sizeof(WCHAR));
+	if (!clipbuffer)
+		return;
 
-	wchar_t* buffer;
-	buffer = (wchar_t*)GlobalLock(clipbuffer);
+	wchar_t* buffer = (wchar_t*)GlobalLock(clipbuffer);
+	if (!buffer)
+	{
+		GlobalFree(clipbuffer);
+		return;
+	}
 
 	alStringW wstr;
 	str->ToUTF16(wstr);
@@ -657,15 +662,85 @@ void alLib::GetTextFromClipboard(alUnicodeString* str)
 		return;
 
 	HANDLE hData = GetClipboardData(CF_UNICODETEXT);
-	char16_t* buffer = (char16_t*)GlobalLock(hData);
-	GlobalUnlock(hData);
+	if (hData)
+	{
+		char16_t* buffer = (char16_t*)GlobalLock(hData);
+		if (buffer)
+		{
+			GlobalUnlock(hData);
+			str->Assign(buffer);
+		}
+	}
 	CloseClipboard();
-
-	str->Assign(buffer);
 #else
 #error Need implementation....
 #endif
 }
+
+void alLib::CopyDataToClipboard(void* data, uint32_t dataSize)
+{
+	AL_ASSERT_ST(data);
+	AL_ASSERT_ST(dataSize);
+#ifdef AL_PLATFORM_WIN32
+	if (!OpenClipboard(0))
+		return;
+
+	EmptyClipboard();
+	HGLOBAL clipbuffer = GlobalAlloc(GMEM_MOVEABLE, dataSize);
+	if (!clipbuffer)
+		return;
+
+	void* buffer = (void*)GlobalLock(clipbuffer);
+	if (!buffer)
+	{
+		GlobalFree(clipbuffer);
+		return;
+	}
+
+	memcpy(buffer, data, dataSize);
+
+	GlobalUnlock(clipbuffer);
+
+	SetClipboardData(CF_DIB, clipbuffer);
+	CloseClipboard();
+#else
+#error Need implementation....
+#endif
+}
+
+void alLib::GetDataFromClipboard(void* pData, uint32_t* pSize)
+{
+	AL_ASSERT_ST(pSize);
+#ifdef AL_PLATFORM_WIN32
+	if (!OpenClipboard(0))
+		return;
+
+	HANDLE hData = GetClipboardData(CF_DIB);
+	if (hData)
+	{
+		SIZE_T size = GlobalSize(hData);
+		if (size)
+		{
+			*pSize = size;
+
+			if (pData)
+			{
+				uint8_t* buffer = (uint8_t*)GlobalLock(hData);
+				if (buffer)
+				{
+					memcpy(pData, buffer, size);
+					GlobalUnlock(hData);
+				}
+			}
+		}
+	}
+	CloseClipboard();
+#else
+#error Need implementation....
+//#endifmplementation....
+#endif
+}
+
 
 void alLib::SaveImage(const char* fn, alImage* image, alSaveImageType type)
 {

@@ -190,6 +190,8 @@ public:
 
 	static void CopyTextToClipboard(alUnicodeString*);
 	static void GetTextFromClipboard(alUnicodeString*);
+	static void CopyDataToClipboard(void*, uint32_t);
+	static void GetDataFromClipboard(void*, uint32_t*);
 
 	static void LoadMesh(const char*, alMeshLoaderCallback*);
 

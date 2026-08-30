@@ -24,6 +24,24 @@
 
 AL_LINK_LIBRARY(al);
 
+#define FontToolClipboardData_MAGIC 0xBBAABBCC
+struct FontToolClipboardData_t
+{
+	enum
+	{
+		type_rgba8,
+		type_cell,
+	};
+
+	uint32_t m_magic = 0;
+	uint32_t m_type = type_rgba8;
+	uint32_t m_glyphDataSize = 0;
+	uint32_t m_glyphWidth = 0;
+	uint32_t m_fontHeight = 0;
+	int m_overhang = 0;
+	int m_underhang = 0;
+};
+
 //enum
 //{
 //	TextureID_NEW_GREEN,
@@ -54,9 +72,10 @@ AL_LINK_LIBRARY(al);
 #define FontToolGUIID_textSave_NumImages 10
 #define FontToolGUIID_popupCell_Create 11
 #define FontToolGUIID_popupCell_Delete 12
+#define FontToolGUIID_popupCell_Copy 13
+#define FontToolGUIID_popupCell_Paste 14
 
-#define FontToolEventID_popupCell_Create 1
-#define FontToolEventID_popupCell_Delete 2
+#define FontToolEventID_popupCell 1
 
 class FontTool_Text : public alGUIText
 {
@@ -297,6 +316,8 @@ public:
 
 	void DeleteCell(uint32_t);
 	void CreateCell(uint32_t);
+	void CopyCellToClipboard(uint32_t);
+	void PasteCellFromClipboard(uint32_t);
 
 	void StartEdit();
 
@@ -325,8 +346,7 @@ public:
 	alGS* m_gs = 0;
 
 	GlyphInfo m_glyphs[0x10FFFF];
-	float m_fontHeightMax = 10.f;
-	int32_t m_fontHeightMax_i = 10; // for slider
+	int32_t m_fontHeightMax = 10;
 	float m_fontWidthMax = 0.f;
 
 	alGSTexture* m_whiteTexture = 0;
@@ -665,7 +685,7 @@ bool FontTool::Init()
 	slider->SetUserData(this);
 	slider->m_minMax_i[0] = 6;
 	slider->m_minMax_i[1] = 64;
-	slider->m_ptr_i = &m_fontHeightMax_i;
+	slider->m_ptr_i = &m_fontHeightMax;
 	slider->m_type = alGUIRangeSlider1::Type::type_IntLimits;
 	slider->m_colorTheme->m_slider_bg = 0xFFBB22FF;
 	m_guiPanel_first->AddElement(slider, true);
@@ -1022,7 +1042,7 @@ void FontTool::OnUpdate()
 					OnSelect();
 					alEvent event;
 					event.m_type = alEventType::User;
-					event.m_event_user.m_id = FontToolEventID_popupCell_Create;
+					event.m_event_user.m_id = FontToolEventID_popupCell;
 					alLib::AddEvent(event, true);
 					m_pollEventAtTheEndOfFrame = true;
 				}
@@ -1103,7 +1123,6 @@ void FontTool::OnButtonOpen()
 
 void FontTool::OnButtonCreate()
 {
-	m_fontHeightMax = m_fontHeightMax_i;
 	InitCellTexture();
 	StartEdit();
 }
@@ -1766,16 +1785,43 @@ void FontTool::ShowPopupOnCell()
 	alSystemPopup* popup = alLib::CreateSystemPopup();
 	if (popup)
 	{
+		bool canPaste = false;
+		uint32_t clipboardDataSize = 0;
+		alLib::GetDataFromClipboard(0, &clipboardDataSize);
+		if (clipboardDataSize > sizeof(FontToolClipboardData_t))
+		{
+			uint8_t* data = (uint8_t*)malloc(clipboardDataSize);
+			if (data)
+			{
+				alLib::GetDataFromClipboard(data, &clipboardDataSize);
+				FontToolClipboardData_t* d = (FontToolClipboardData_t*)data;
+				if (d->m_magic == FontToolClipboardData_MAGIC
+					&& d->m_type == d->type_cell
+					&& d->m_fontHeight == m_fontHeightMax
+					&& d->m_glyphWidth > 0)
+				{
+					if(d->m_glyphDataSize == (clipboardDataSize - sizeof(FontToolClipboardData_t)))
+						canPaste = true;
+				}
+				free(data);
+			}
+		}
+
 		alInput* input = alLib::GetInput();
 		auto G = &m_glyphs[m_selected];
 		if (G->m_data)
 		{
 			popup->AddItem(U"Delete", FontToolGUIID_popupCell_Delete, 0);
-			//popup->AddItem(U"Copy", 0, 0);
+			popup->AddItem(U"Copy", FontToolGUIID_popupCell_Copy, 0);
+
+			if(canPaste)
+				popup->AddItem(U"Paste", FontToolGUIID_popupCell_Paste, 0);
 		}
 		else
 		{
 			popup->AddItem(U"Create", FontToolGUIID_popupCell_Create, 0);
+			if (canPaste)
+				popup->AddItem(U"Paste", FontToolGUIID_popupCell_Paste, 0);
 		}
 		popup->Show(m_mainWindow, input->m_cursorCoords.x, input->m_cursorCoords.y);
 
@@ -1794,10 +1840,8 @@ void FontTool::_pollEvents()
 		{
 			switch (event.m_event_user.m_id)
 			{
-				case FontToolEventID_popupCell_Create:
+				case FontToolEventID_popupCell:
 					ShowPopupOnCell();
-					break;
-				case FontToolEventID_popupCell_Delete:
 					break;
 			}
 		}break;
@@ -1814,6 +1858,12 @@ void FontTool::OnPopupCommand(uint32_t cmd)
 		break;
 	case FontToolGUIID_popupCell_Create:
 		CreateCell(m_selected);
+		break;
+	case FontToolGUIID_popupCell_Copy:
+		CopyCellToClipboard(m_selected);
+		break;
+	case FontToolGUIID_popupCell_Paste:
+		PasteCellFromClipboard(m_selected);
 		break;
 	}
 }
@@ -1849,6 +1899,85 @@ void FontTool::CreateCell(uint32_t index)
 	}
 }
 
+void FontTool::CopyCellToClipboard(uint32_t index)
+{
+	if (index < 0x10FFFF)
+	{
+		auto G = &m_glyphs[index];
+		if (G->m_data)
+		{
+			FontToolClipboardData_t d;
+			d.m_magic = FontToolClipboardData_MAGIC;
+			d.m_type = FontToolClipboardData_t::type_cell;
+			d.m_glyphWidth = G->m_width;
+			d.m_glyphDataSize = G->m_width * (uint32_t)m_fontHeightMax * 4;
+			d.m_fontHeight = m_fontHeightMax;
+			d.m_overhang = G->overhang;
+			d.m_underhang = G->underhang;
+			if (!d.m_glyphDataSize)
+				return;
+
+			uint8_t* data = (uint8_t*)malloc(d.m_glyphDataSize + sizeof(FontToolClipboardData_t));
+			if (!data)
+				return;
+			
+			memcpy(&data[0], &d, sizeof(FontToolClipboardData_t));
+			memcpy(&data[sizeof(FontToolClipboardData_t)], G->m_data, d.m_glyphDataSize);
+
+			alLib::CopyDataToClipboard(&data[0], d.m_glyphDataSize + sizeof(FontToolClipboardData_t));
+			free(data);
+		}
+	}
+}
+
+void FontTool::PasteCellFromClipboard(uint32_t index)
+{
+	if (index < 0x10FFFF)
+	{
+		auto G = &m_glyphs[index];
+		/*if (G->m_data)
+			DeleteCell(index);*/
+
+		uint32_t clipboardDataSize = 0;
+		alLib::GetDataFromClipboard(0, &clipboardDataSize);
+		if (clipboardDataSize > sizeof(FontToolClipboardData_t))
+		{
+			uint8_t* data = (uint8_t*)malloc(clipboardDataSize);
+			if (data)
+			{
+				alLib::GetDataFromClipboard(data, &clipboardDataSize);
+				FontToolClipboardData_t* d = (FontToolClipboardData_t*)data;
+				if (d->m_magic == FontToolClipboardData_MAGIC
+					&& d->m_type == d->type_cell
+					&& d->m_fontHeight == m_fontHeightMax
+					&& d->m_glyphWidth > 0)
+				{
+					if (d->m_glyphDataSize == (clipboardDataSize - sizeof(FontToolClipboardData_t)))
+					{
+
+						uint8_t* new_data = (uint8_t*)malloc(d->m_glyphDataSize);
+						if (new_data)
+						{
+							if (G->m_data)
+								DeleteCell(index);
+
+							memcpy(new_data, &data[sizeof(FontToolClipboardData_t)], d->m_glyphDataSize);
+
+							G->m_data = new_data;
+							G->m_width = d->m_glyphWidth;
+							G->overhang = d->m_overhang;
+							G->underhang = d->m_underhang;
+
+							UpdateTestFont();
+							OnSelect();
+						}
+					}
+				}
+				free(data);
+			}
+		}
+	}
+}
 
 int main()
 {
