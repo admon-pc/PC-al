@@ -126,6 +126,13 @@ enum class alDirection : uint32_t
 	NorthWest
 };
 
+enum class alClipboardDataType
+{
+	Data,
+	RGBA8,
+	RIFF,
+};
+
 /*
 * Добавлять архивы чтобы потом загружать файлы из них НЕНАДО
 * Пусть это будет реализовано на стороне приложения. Так будет гибче.
@@ -190,7 +197,8 @@ public:
 
 	static void CopyTextToClipboard(alUnicodeString*);
 	static void GetTextFromClipboard(alUnicodeString*);
-	static void CopyDataToClipboard(void*, uint32_t);
+
+	static void CopyDataToClipboard(void*, uint32_t, alClipboardDataType);
 	static void GetDataFromClipboard(void*, uint32_t*);
 
 	static void LoadMesh(const char*, alMeshLoaderCallback*);

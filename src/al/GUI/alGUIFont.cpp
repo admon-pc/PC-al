@@ -38,7 +38,7 @@ alGUIFont::~alGUIFont()
 
 alGUIFontGlyph* alGUIFont::GetGlyph(char32_t ch)
 {
-	if (ch && ch < 0x10FFFF)
+	if (ch < 0x10FFFF)
 		return m_glyphs[(uint32_t)ch];
 	return nullptr;
 }

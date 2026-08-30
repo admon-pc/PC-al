@@ -74,6 +74,8 @@ struct FontToolClipboardData_t
 #define FontToolGUIID_popupCell_Delete 12
 #define FontToolGUIID_popupCell_Copy 13
 #define FontToolGUIID_popupCell_Paste 14
+#define FontToolGUIID_popupEdit_Copy 15
+#define FontToolGUIID_popupEdit_Paste 16
 
 #define FontToolEventID_popupCell 1
 
@@ -303,6 +305,8 @@ class FontTool
 	void OnSelect();
 	void ShowPopupOnCell();
 
+	void ShowPopupOnEditRect();
+
 	alGUIFont* m_testFont = 0;
 	void UpdateTestFont();
 
@@ -318,6 +322,8 @@ public:
 	void CreateCell(uint32_t);
 	void CopyCellToClipboard(uint32_t);
 	void PasteCellFromClipboard(uint32_t);
+	void CopyImageToClipboard(uint32_t);
+	void PasteImageFromClipboard(uint32_t);
 
 	void StartEdit();
 
@@ -1047,6 +1053,7 @@ void FontTool::OnUpdate()
 					m_pollEventAtTheEndOfFrame = true;
 				}
 			}
+			
 
 			drawPosition.x += m_cellSizeX;
 
@@ -1066,6 +1073,15 @@ void FontTool::OnUpdate()
 		++drawIndex;
 		if (drawIndex >= 0x10FFFF)
 			break;
+	}
+
+	if (alMath::PointInRect(
+		input->m_cursorCoordsForGUI.x,
+		input->m_cursorCoordsForGUI.y,
+		m_editRect))
+	{
+		if (input->m_isRMBDown)
+			ShowPopupOnEditRect();
 	}
 }
 
@@ -1780,6 +1796,49 @@ void FontTool::OnComboSaveSize(uint32_t index)
 	}
 }
 
+void FontTool::ShowPopupOnEditRect()
+{
+	alSystemPopup* popup = alLib::CreateSystemPopup();
+	if (popup)
+	{
+		/*bool canPaste = false;
+		uint32_t clipboardDataSize = 0;
+		alLib::GetDataFromClipboard(0, &clipboardDataSize);
+		if (clipboardDataSize > sizeof(FontToolClipboardData_t))
+		{
+			uint8_t* data = (uint8_t*)malloc(clipboardDataSize);
+			if (data)
+			{
+				alLib::GetDataFromClipboard(data, &clipboardDataSize);
+				FontToolClipboardData_t* d = (FontToolClipboardData_t*)data;
+				if (d->m_magic == FontToolClipboardData_MAGIC
+					&& d->m_type == d->type_cell
+					&& d->m_fontHeight == m_fontHeightMax
+					&& d->m_glyphWidth > 0)
+				{
+					if (d->m_glyphDataSize == (clipboardDataSize - sizeof(FontToolClipboardData_t)))
+						canPaste = true;
+				}
+				free(data);
+			}
+		}*/
+
+		alInput* input = alLib::GetInput();
+		auto G = &m_glyphs[m_selected];
+		if (G->m_data)
+		{
+			popup->AddItem(U"Copy Image", FontToolGUIID_popupEdit_Copy, 0);
+
+			/*if (canPaste)
+				popup->AddItem(U"Paste", FontToolGUIID_popupCell_Paste, 0);*/
+		}
+		
+		popup->Show(m_mainWindow, input->m_cursorCoords.x, input->m_cursorCoords.y);
+
+		AL_DESTROY(popup);
+	}
+}
+
 void FontTool::ShowPopupOnCell()
 {
 	alSystemPopup* popup = alLib::CreateSystemPopup();
@@ -1865,6 +1924,12 @@ void FontTool::OnPopupCommand(uint32_t cmd)
 	case FontToolGUIID_popupCell_Paste:
 		PasteCellFromClipboard(m_selected);
 		break;
+	case FontToolGUIID_popupEdit_Copy:
+		CopyImageToClipboard(m_selected);
+		break;
+	case FontToolGUIID_popupEdit_Paste:
+		PasteImageFromClipboard(m_selected);
+		break;
 	}
 }
 
@@ -1899,6 +1964,81 @@ void FontTool::CreateCell(uint32_t index)
 	}
 }
 
+void FontTool::CopyImageToClipboard(uint32_t index)
+{
+	if (index < 0x10FFFF)
+	{
+		auto G = &m_glyphs[index];
+		if (G->m_data)
+		{
+			size_t pixelBytes = G->m_width * m_fontHeightMax * 4;
+			size_t totalSize = sizeof(BITMAPV5HEADER) + pixelBytes;
+			uint8_t* pMem = (uint8_t*)malloc(totalSize);
+			if (pMem)
+			{
+				BITMAPV5HEADER* hdr = (BITMAPV5HEADER*)pMem;
+				memset(hdr, 0, sizeof(BITMAPV5HEADER));
+				hdr->bV5Size = sizeof(BITMAPV5HEADER);
+				hdr->bV5Width = G->m_width;
+				hdr->bV5Height = m_fontHeightMax; // positive = bottom-up
+				hdr->bV5Planes = 1;
+				hdr->bV5BitCount = 32;
+				hdr->bV5Compression = BI_BITFIELDS;
+				hdr->bV5SizeImage = pixelBytes;
+				hdr->bV5RedMask = 0x00FF0000;
+				hdr->bV5GreenMask = 0x0000FF00;
+				hdr->bV5BlueMask = 0x000000FF;
+				hdr->bV5AlphaMask = 0xFF000000;
+				hdr->bV5CSType = LCS_sRGB;
+
+				uint8_t* dst = pMem + sizeof(BITMAPV5HEADER);
+				int rowsize = hdr->bV5Width * 4; // width * rgba
+				uint8_t* src = G->m_data + (rowsize * hdr->bV5Height) - rowsize;;
+				//uint8_t* src2= G->m_data ;
+
+				uint8_t* dstPtr = dst;
+				uint8_t* srcPtr = src;
+				alImage::rgba* src_rgba = (alImage::rgba*)(srcPtr);
+				alImage::rgba* dst_rgba = (alImage::rgba*)(dstPtr);
+				for (uint32_t y = 0; y < hdr->bV5Height; ++y)
+				{
+					for (uint32_t x = 0; x < hdr->bV5Width; ++x)
+					{
+						dst_rgba->r = src_rgba[x].b;
+						dst_rgba->g = src_rgba[x].g;
+						dst_rgba->b = src_rgba[x].r;
+						dst_rgba->a = src_rgba[x].a;
+
+						dstPtr += 4;
+						dst_rgba = (alImage::rgba*)(dstPtr);
+					}
+
+					srcPtr -= rowsize;
+					src_rgba = (alImage::rgba*)srcPtr;
+				}
+
+				/*alImage img;
+				img.m_data = dst;
+				img.m_bits = 32;
+				img.m_width = hdr->bV5Width;
+				img.m_height = hdr->bV5Height;
+				img.m_pitch = img.m_width * 4;
+				img.m_dataSize = img.m_pitch * img.m_height;
+				alLib::SaveImage("test.png", &img, alSaveImageType::png);
+				img.m_data = 0;*/
+
+				alLib::CopyDataToClipboard(pMem, totalSize, alClipboardDataType::RGBA8);
+				free(pMem);
+			}
+		}
+	}
+}
+
+void FontTool::PasteImageFromClipboard(uint32_t index)
+{
+}
+
+
 void FontTool::CopyCellToClipboard(uint32_t index)
 {
 	if (index < 0x10FFFF)
@@ -1924,7 +2064,7 @@ void FontTool::CopyCellToClipboard(uint32_t index)
 			memcpy(&data[0], &d, sizeof(FontToolClipboardData_t));
 			memcpy(&data[sizeof(FontToolClipboardData_t)], G->m_data, d.m_glyphDataSize);
 
-			alLib::CopyDataToClipboard(&data[0], d.m_glyphDataSize + sizeof(FontToolClipboardData_t));
+			alLib::CopyDataToClipboard(&data[0], d.m_glyphDataSize + sizeof(FontToolClipboardData_t), alClipboardDataType::Data);
 			free(data);
 		}
 	}
@@ -1935,8 +2075,6 @@ void FontTool::PasteCellFromClipboard(uint32_t index)
 	if (index < 0x10FFFF)
 	{
 		auto G = &m_glyphs[index];
-		/*if (G->m_data)
-			DeleteCell(index);*/
 
 		uint32_t clipboardDataSize = 0;
 		alLib::GetDataFromClipboard(0, &clipboardDataSize);
@@ -1955,7 +2093,7 @@ void FontTool::PasteCellFromClipboard(uint32_t index)
 					if (d->m_glyphDataSize == (clipboardDataSize - sizeof(FontToolClipboardData_t)))
 					{
 
-						uint8_t* new_data = (uint8_t*)malloc(d->m_glyphDataSize);
+						uint8_t* new_data = (uint8_t*)alMemory::Malloc(d->m_glyphDataSize);
 						if (new_data)
 						{
 							if (G->m_data)

@@ -677,7 +677,7 @@ void alLib::GetTextFromClipboard(alUnicodeString* str)
 #endif
 }
 
-void alLib::CopyDataToClipboard(void* data, uint32_t dataSize)
+void alLib::CopyDataToClipboard(void* data, uint32_t dataSize, alClipboardDataType type)
 {
 	AL_ASSERT_ST(data);
 	AL_ASSERT_ST(dataSize);
@@ -701,7 +701,21 @@ void alLib::CopyDataToClipboard(void* data, uint32_t dataSize)
 
 	GlobalUnlock(clipbuffer);
 
-	SetClipboardData(CF_DIB, clipbuffer);
+	int t = CF_DIB;
+	switch (type)
+	{
+	case alClipboardDataType::Data:
+	default:
+		break;
+	case alClipboardDataType::RGBA8:
+		t = CF_DIBV5;
+		break;
+	case alClipboardDataType::RIFF:
+		t = CF_RIFF;
+		break;
+}
+
+	SetClipboardData(t, clipbuffer);
 	CloseClipboard();
 #else
 #error Need implementation....
