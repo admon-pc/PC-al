@@ -76,6 +76,7 @@ struct FontToolClipboardData_t
 #define FontToolGUIID_popupCell_Paste 14
 #define FontToolGUIID_popupEdit_Copy 15
 #define FontToolGUIID_popupEdit_Paste 16
+#define FontToolGUIID_popupEdit_Clear 17
 
 #define FontToolEventID_popupCell 1
 
@@ -129,75 +130,17 @@ public:
 };
 
 
-
 struct UnicodeRangeInfo
 {
 	char32_t m_title[100];
 	size_t m_index = 0;
 };
-UnicodeRangeInfo g_UnicodeRangeInfo[] =
+#include "ranges.inl"
+struct GlyphName
 {
-	{U"Basic Latin 0x0-0x7F", 0},
-	{U"Latin-1 Supplement 0x80-0xFF", 0x80},
-	{U"Latin Extended-A 0x100-0x17F", 0x100},
-	{U"Latin Extended-B 0x180-0x24F", 0x180},
-	{U"IPA Extensions 0x250-0x2AF", 0x250},
-	{U"Spacing Modifier Letters 0x2B0-0x2FF", 0x2B0},
-	{U"Combining Diacritical Marks 0x300-0x36F", 0x300},
-	{U"Greek and Coptic 0x370-0x3FF", 0x370},
-	{U"Cyrillic 0x400-0x4FF", 0x400},
-	{U"Cyrillic Supplement 0x500-0x52F", 0x500},
-	{U"Armenian 0x530-0x58F", 0x530},
-	{U"Hebrew 0x590-0x5FF", 0x590},
-	{U"Arabic 0x600-0x6FF", 0x600},
-	{U"Syriac 0x700-0x74F", 0x700},
-	{U"Arabic Supplement 0x750-0x77F", 0x750},
-	{U"Thaana 0x780-0x7BF", 0x780},
-	{U"NKo 0x7C0-0x7FF", 0x7C0},
-	{U"Samaritan 0x800-0x83F", 0x800},
-	{U"Mandaic 0x840-0x85F", 0x840},
-	{U"Syriac Supplement 0x860-0x86F", 0x860},
-	{U"Arabic Extended-B 0x870-0x89F", 0x870},
-	{U"Arabic Extended-A 0x8A0-0x8FF", 0x8A0},
-	{U"Devanagari 0x900-0x97F", 0x900},
-	{U"Bengali 0x980-0x9FF", 0x980},
-	{U"Gurmukhi 0xA00-0xA7F", 0xA00},
-	{U"Gujarati 0xA80-0xAFF", 0xA80},
-	{U"Oriya 0xB00-0xB7F", 0xB00},
-	{U"Tamil 0xB80-0xBFF", 0xB80},
-	{U"Telugu 0xC00-0xC7F", 0xC00},
-	{U"Kannada 0xC80-0xCFF", 0xC80},
-	{U"Malayalam 0xD00-0xD7F", 0xD00},
-	{U"Sinhala 0xD80-0xDFF", 0xD80},
-	{U"Thai 0xE00-0xE7F", 0xE00},
-	{U"Lao 0xE80-0xEFF", 0xE80},
-	{U"Tibetan 0xF00-0xFFF", 0xF00},
-	{U"Myanmar 0x1000-0x109F", 0x1000},
-	{U"Georgian 0x10A0-0x10FF", 0x10A0},
-	{U"Hangul Jamo 0x1100-0x11FF", 0x1100},
-	{U"Ethiopic 0x1200-0x137F", 0x1200},
-	{U"Ethiopic Supplement 0x1380-0x139F", 0x1380},
-	{U"Cherokee 0x13A0-0x13FF", 0x13A0},
-	{U"Unified Canadian Aboriginal Syllabics 0x1400-0x167F", 0x1400},
-	{U"Ogham 0x1680-0x169F", 0x1680},
-	{U"Runic 0x16A0-0x16FF", 0x16A0},
-	{U"Tagalog 0x1700-0x171F", 0x1700},
-	{U"Hanunoo 0x1720-0x173F", 0x1720},
-	{U"Buhid 0x1740-0x175F", 0x1740},
-	{U"Tagbanwa 0x1760-0x177F", 0x1760},
-	{U"Khmer 0x1780-0x17FF", 0x1780},
-	{U"Mongolian 0x1800-0x18AF", 0x1800},
-	{U"Unified Canadian Aboriginal Syllabics Extended 0x18B0-0x18FF", 0x18B0},
-	//...
-	{U"General Punctuation 0x2000-0x206F", 0x2000},
-	//...
-	{U"Currency Symbols 0x20A0-0x20CF", 0x20A0},
-	//...
-	{U"Number Forms 0x2150-0x218F", 0x2150},
-	{U"Arrows 0x2190-0x21FF", 0x2190},
-	//...
-	{U"Emoticons (Emoji) 0x1F600-0x1F64F", 0x1F600},
+	char32_t m_title[100];
 };
+#include "names.inl"
 
 struct ImageSizesInfo
 {
@@ -324,6 +267,7 @@ public:
 	void PasteCellFromClipboard(uint32_t);
 	void CopyImageToClipboard(uint32_t);
 	void PasteImageFromClipboard(uint32_t);
+	void ClearImage(uint32_t);
 
 	void StartEdit();
 
@@ -809,12 +753,23 @@ void FontTool::OnDraw()
 	m_gs->EndDraw();
 	m_gs->BeginDrawGUI();
 
+	m_gs->SetScissorRect(alVec4f(0.f, 0.f, m_mainWindow->m_clientSize.x, m_mainWindow->m_clientSize.y));
+	
 	if (m_guiPanel_edit->m_visible)
 	{
-		m_gs->SetScissorRect(alVec4f(0.f, 0.f, m_mainWindow->m_clientSize.x, m_mainWindow->m_clientSize.y));
 		auto G_selected = m_glyphs[m_selected];
+		if (m_selected <= 127)
+		{
+			m_gs->DrawText(
+				g_GlyphNames[m_selected].m_title,
+				alLib::strlen(g_GlyphNames[m_selected].m_title),
+				m_fontGUI,
+				alVec2f(m_guiPanel_edit->m_buildArea.x, 12),
+				ColorWhite);
+		}
 		if (G_selected.m_data)
 		{
+
 			m_gs->DrawRectangle(m_editRect, ColorGrey);
 
 			alVec2f position;
@@ -1801,36 +1756,47 @@ void FontTool::ShowPopupOnEditRect()
 	alSystemPopup* popup = alLib::CreateSystemPopup();
 	if (popup)
 	{
-		/*bool canPaste = false;
+		bool canPaste = false;
 		uint32_t clipboardDataSize = 0;
 		alLib::GetDataFromClipboard(0, &clipboardDataSize);
-		if (clipboardDataSize > sizeof(FontToolClipboardData_t))
+		if (clipboardDataSize > sizeof(BITMAPINFOHEADER))
 		{
 			uint8_t* data = (uint8_t*)malloc(clipboardDataSize);
 			if (data)
 			{
 				alLib::GetDataFromClipboard(data, &clipboardDataSize);
-				FontToolClipboardData_t* d = (FontToolClipboardData_t*)data;
-				if (d->m_magic == FontToolClipboardData_MAGIC
-					&& d->m_type == d->type_cell
-					&& d->m_fontHeight == m_fontHeightMax
-					&& d->m_glyphWidth > 0)
+				BITMAPINFOHEADER* hdr = (BITMAPINFOHEADER*)data;
+				if (hdr->biSize == 40
+					&& hdr->biWidth
+					&& hdr->biHeight
+					&& hdr->biBitCount == 32)
 				{
-					if (d->m_glyphDataSize == (clipboardDataSize - sizeof(FontToolClipboardData_t)))
-						canPaste = true;
+					canPaste = true;
+					/*uint32_t srcRowSz = hdr->biWidth * 4;
+					uint32_t srcSz = srcRowSz * hdr->biHeight;
+					uint8_t* src = (uint8_t*)alMemory::Malloc(srcSz);
+					if (src)
+					{
+						memcpy(src, &data[sizeof(hdr->biSize)], srcSz);
+
+						alImage img;
+						img.m_bits = 32;
+						img.m_data = G.
+					}*/
 				}
 				free(data);
 			}
-		}*/
-
+		}
+		
 		alInput* input = alLib::GetInput();
 		auto G = &m_glyphs[m_selected];
 		if (G->m_data)
 		{
-			popup->AddItem(U"Copy Image", FontToolGUIID_popupEdit_Copy, 0);
+			popup->AddItem(U"Copy", FontToolGUIID_popupEdit_Copy, 0);
+			popup->AddItem(U"Clear", FontToolGUIID_popupEdit_Clear, 0);
 
-			/*if (canPaste)
-				popup->AddItem(U"Paste", FontToolGUIID_popupCell_Paste, 0);*/
+			if (canPaste)
+				popup->AddItem(U"Paste", FontToolGUIID_popupEdit_Paste, 0);
 		}
 		
 		popup->Show(m_mainWindow, input->m_cursorCoords.x, input->m_cursorCoords.y);
@@ -1929,6 +1895,9 @@ void FontTool::OnPopupCommand(uint32_t cmd)
 		break;
 	case FontToolGUIID_popupEdit_Paste:
 		PasteImageFromClipboard(m_selected);
+		break;
+	case FontToolGUIID_popupEdit_Clear:
+		this->ClearImage(m_selected);
 		break;
 	}
 }
@@ -2036,6 +2005,66 @@ void FontTool::CopyImageToClipboard(uint32_t index)
 
 void FontTool::PasteImageFromClipboard(uint32_t index)
 {
+	if (index < 0x10FFFF)
+	{
+		auto G = &m_glyphs[index];
+		if (G->m_data)
+		{
+			uint32_t clipboardDataSize = 0;
+			alLib::GetDataFromClipboard(0, &clipboardDataSize);
+			if (clipboardDataSize > sizeof(BITMAPINFOHEADER))
+			{
+				uint8_t* data = (uint8_t*)malloc(clipboardDataSize);
+				if (data)
+				{
+					alLib::GetDataFromClipboard(data, &clipboardDataSize);
+					BITMAPINFOHEADER* hdr = (BITMAPINFOHEADER*)data;
+					if (hdr->biSize == 40
+						&& hdr->biWidth
+						&& hdr->biHeight
+						&& hdr->biBitCount == 32)
+					{
+						uint32_t srcRowSz = hdr->biWidth * 4;
+						uint32_t srcSz = srcRowSz * hdr->biHeight;
+						uint8_t* src = (uint8_t*)alMemory::Malloc(srcSz);
+						if (src)
+						{
+							memcpy(src, &data[clipboardDataSize - hdr->biSizeImage], srcSz);
+							alImage imgSrc;
+							imgSrc.m_data = src;
+							imgSrc.m_bits = 32;
+							imgSrc.m_width = hdr->biWidth;
+							imgSrc.m_height = hdr->biHeight;
+							imgSrc.m_pitch = imgSrc.m_width * 4;
+							imgSrc.m_dataSize = imgSrc.m_pitch * imgSrc.m_height;
+							imgSrc.FlipPixel();
+							imgSrc.FlipVertical();
+							//alLib::SaveImage("imgSrc.png", &imgSrc, alSaveImageType::png);
+
+							alImage imgDst;
+							imgDst.m_data = G->m_data;
+							imgDst.m_bits = 32;
+							imgDst.m_width = G->m_width;
+							imgDst.m_height = m_fontHeightMax;
+							imgDst.m_pitch = imgDst.m_width * 4;
+							imgDst.m_dataSize = imgDst.m_pitch * imgDst.m_height;
+
+							memset(imgDst.m_data, 0, imgDst.m_dataSize);
+
+							imgDst.Fill(src, alVec2u(hdr->biWidth, hdr->biHeight), alVec2u(), 0, 0);
+							//alLib::SaveImage("imgDst.png", &imgDst, alSaveImageType::png);
+
+							imgDst.m_data = 0;
+
+							UpdateTestFont();
+							OnSelect();
+						}
+					}
+					free(data);
+				}
+			}
+		}
+	}
 }
 
 
@@ -2113,6 +2142,20 @@ void FontTool::PasteCellFromClipboard(uint32_t index)
 				}
 				free(data);
 			}
+		}
+	}
+}
+
+void FontTool::ClearImage(uint32_t index)
+{
+	if (index < 0x10FFFF)
+	{
+		auto G = &m_glyphs[index];
+		if (G->m_data)
+		{
+			memset(G->m_data, 0, G->m_width * m_fontHeightMax * 4);
+			UpdateTestFont();
+			OnSelect();
 		}
 	}
 }

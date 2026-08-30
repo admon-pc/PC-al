@@ -461,7 +461,7 @@ float64_t alUnicodeString::ToFloat64()
 	while (*ptr >= U'0' && *ptr <= U'9')
 	{
 		i *= 10;
-		i += *ptr - U'0';
+		i += (*ptr) - U'0';
 		++ptr;
 	}
 	result = (float64_t)i;

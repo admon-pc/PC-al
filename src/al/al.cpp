@@ -491,7 +491,7 @@ void alLib::StringGetWords(
 
 void alLib::StringGetExtension(const char* str, bool addDot, alStringA& out)
 {
-	size_t sz = strlen(str);
+	size_t sz = ::strlen(str);
 	if (sz)
 	{
 		for (size_t i = sz-1; i >= 0; --i)
@@ -1139,6 +1139,18 @@ int32_t alLib::strcmp(const char32_t* p1, const char32_t* p2)
 	} while (c1 == c2);
 
 	return c1 - c2;
+}
+
+size_t alLib::strlen(const char32_t* s)
+{
+	AL_ASSERT_ST(s);
+	size_t len = 0;
+	if (s)
+	{
+		while ((size_t)*s++)
+			len++;
+	}
+	return len;
 }
 
 alDLLHandle alLib::DLLLoad(const char* fn)

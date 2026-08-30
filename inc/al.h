@@ -212,6 +212,7 @@ public:
 	static uint32_t snprintf(char32_t* str, size_t n, const char32_t* format, ...);
 	static uint32_t vsnprintf(char32_t* s, size_t n, const char32_t* format, va_list arg);
 	static int32_t strcmp(const char32_t* s1, const char32_t* s2);
+	static size_t strlen(const char32_t* s);
 	static FILE* fopen(const char* str, const char* mode);
 	static FILE* fopen(const wchar_t* str, const wchar_t* mode);
 
