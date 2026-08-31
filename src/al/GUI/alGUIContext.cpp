@@ -43,7 +43,8 @@ void alGUIContext::Update(float32_t dt)
 		{
 			for (size_t i = 0; i < m_panels.m_size; ++i)
 			{
-				m_panels.m_data[i]->Update(dt);
+				if (m_panels.m_data[i]->m_visible)
+					m_panels.m_data[i]->Update(dt);
 			}
 		}
 	}
@@ -62,7 +63,8 @@ void alGUIContext::Draw(float32_t dt)
 		if (m_activeElement == m_panels.m_data[i])
 			continue;
 
-		m_panels.m_data[i]->Draw(dt);
+		if(m_panels.m_data[i]->m_visible)
+			m_panels.m_data[i]->Draw(dt);
 	}
 
 	if (m_activeElement)

@@ -18,7 +18,10 @@ alImage::~alImage()
 void alImage::Delete()
 {
 	if (m_data)
+	{
 		alMemory::Free(m_data);
+		m_data = 0;
+	}
 }
 
 void alImage::Create(uint32_t x, uint32_t y)

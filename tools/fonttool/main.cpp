@@ -77,6 +77,9 @@ struct FontToolClipboardData_t
 #define FontToolGUIID_popupEdit_Copy 15
 #define FontToolGUIID_popupEdit_Paste 16
 #define FontToolGUIID_popupEdit_Clear 17
+#define FontToolGUIID_btnSetWidth 18
+#define FontToolGUIID_btnSetWidth_Close 19
+#define FontToolGUIID_rangeSetWidth 20
 
 #define FontToolEventID_popupCell 1
 
@@ -201,6 +204,8 @@ public:
 		alGUIRangeSlider1(ct, position, size) {}
 	virtual ~FontTool_slider() {}
 	AL_DECLARE_DEFAULT_ALLOCATOR(FontTool_slider);
+
+	virtual void OnSliderValueChanged() override;
 };
 
 
@@ -220,6 +225,8 @@ class FontTool
 	alGUIContext* m_guiContext = 0;
 	alGUIPanel* m_guiPanel_first = 0;
 	alGUIPanel* m_guiPanel_edit = 0;
+	alGUIPanel* m_guiPanel_edit_base = 0;
+	alGUIPanel* m_guiPanel_edit_setWidth = 0;
 	alGUIPanel* m_guiPanel_save = 0;
 	alGUITextureAtlas* m_textureAtlas = 0;
 	alGSTexture* m_textureAtlasTexture = 0;
@@ -279,6 +286,9 @@ public:
 	void OnButtonSave_Cancel();
 	
 	void OnComboSaveSize(uint32_t);
+	void OnButtonEnableSetWidthMode();
+	void OnButtonDisableSetWidthMode();
+	void OnSliderSetWidth();
 
 	void OnRebuild();
 	void OnDraw();
@@ -305,6 +315,9 @@ public:
 
 	void InitCellTexture();
 	alGSTexture* m_cellTexture = 0;
+
+	alImage m_glyphImageOriginal;
+	void _saveGlyphImageOriginal();
 
 	void GoTo(size_t);
 	//alGSTextureCacheNode* m_guiTextureNodes[TextureID__end];
@@ -359,6 +372,12 @@ void FontTool_button::OnButtonRelease()
 	case FontToolGUIID_btnSave_Save:
 		app->OnButtonSave_Save();
 		break;
+	case FontToolGUIID_btnSetWidth:
+		app->OnButtonEnableSetWidthMode();
+		break;
+	case FontToolGUIID_btnSetWidth_Close:
+		app->OnButtonDisableSetWidthMode();
+		break;
 	}
 }
 void FontTool_buttonIcon::OnButtonToggleOn()
@@ -391,6 +410,16 @@ void FontTool_TextInput::OnCancel()
 {
 }
 
+void FontTool_slider::OnSliderValueChanged()
+{
+	FontTool* app = (FontTool*)GetUserData();
+	switch (GetID())
+	{
+	case FontToolGUIID_rangeSetWidth:
+		app->OnSliderSetWidth();
+		break;
+	}
+}
 
 class SystemWindowCallback : public alSystemWindowCallback
 {
@@ -666,11 +695,12 @@ bool FontTool::Init()
 	m_checkHideUnused->m_textIndent.y = -1;
 	m_guiPanel_edit->AddElement(m_checkHideUnused, true);
 
-	btn = new FontTool_button(m_guiContext, alVec2f(0, 330), alVec2f(50.f, 32.f));
+	btn = new FontTool_button(m_guiContext, alVec2f(0, 0), alVec2f(50.f, 32.f));
 	btn->SetUserData(this);
 	btn->SetID(FontToolGUIID_btnSave);
 	btn->SetText(U"Save");
 	btn->SetFont(m_fontGUI);
+	btn->m_alignment = alGUIElementAlignment::RightTop;
 	m_guiPanel_edit->AddElement(btn, true);
 
 	m_textInput_editor_oneLine = alCreate<FontTool_TextInput>(m_guiContext, alVec2f(610.f, 5.f), alVec2f(140, 18));
@@ -684,6 +714,42 @@ bool FontTool::Init()
 	m_textInput_editor_oneLine->m_useVerticalScrollbar = false;
 	m_guiPanel_edit->AddElement(m_textInput_editor_oneLine, true);
 
+
+	m_guiPanel_edit_base = alCreate<alGUIPanel>(m_guiContext, 
+		alVec2f(0, 350), 
+		alVec2f(300.f, 200.f));
+	m_guiPanel_edit->AddElement(m_guiPanel_edit_base, true);
+	btn = new FontTool_button(m_guiContext, alVec2f(0, 0), alVec2f(110.f, 20.f));
+	btn->SetUserData(this);
+	btn->SetID(FontToolGUIID_btnSetWidth);
+	btn->SetText(U"Set Width");
+	btn->SetFont(m_fontGUI);
+	m_guiPanel_edit_base->AddElement(btn, true);
+	m_guiPanel_edit_base->Rebuild();
+
+	m_guiPanel_edit_setWidth = alCreate<alGUIPanel>(m_guiContext,
+		alVec2f(0, 350),
+		alVec2f(300.f, 200.f));
+	m_guiPanel_edit->AddElement(m_guiPanel_edit_setWidth, true);
+	btn = new FontTool_button(m_guiContext, alVec2f(0, 0), alVec2f(30.f, 20.f));
+	btn->SetUserData(this);
+	btn->SetID(FontToolGUIID_btnSetWidth_Close);
+	btn->SetText(U"OK");
+	btn->SetFont(m_fontGUI);
+	btn->m_alignment = alGUIElementAlignment::RightTop;
+	m_guiPanel_edit_setWidth->AddElement(btn, true);
+	slider = new FontTool_slider(m_guiContext, alVec2f(160, position + 15), alVec2f(150.f, 13.f));
+	slider->SetID(FontToolGUIID_rangeSetWidth);
+	slider->SetUserData(this);
+	slider->m_minMax_i[0] = 1;
+	slider->m_minMax_i[1] = 100;
+	slider->m_ptr_i = 0;
+	slider->m_type = alGUIRangeSlider1::Type::type_IntLimits;
+	slider->m_colorTheme->m_slider_bg = 0xFFBB22FF;
+	m_guiPanel_edit_setWidth->AddElement(slider, true);
+	m_guiPanel_edit_setWidth->Rebuild();
+	m_guiPanel_edit_setWidth->SetVisible(false);
+
 	m_guiPanel_edit->m_size.x = 400;
 	m_guiPanel_edit->Rebuild();
 	m_guiPanel_edit->SetVisible(false);
@@ -696,14 +762,14 @@ bool FontTool::Init()
 	btn->SetText(U"Cancel");
 	btn->SetFont(m_fontGUI);
 	m_guiPanel_save->AddElement(btn, true);
-	auto range = new FontTool_combo_unicodeRange(m_guiContext, alVec2f(0, 50), alVec2f(50, 15));
-	range->SetID(FontToolGUIID_comboSave_ImageSizes);
-	range->SetUserData(this);
-	range->SetFont(m_fontGUI);
-	range->m_text.Assign(U"512");
-	range->SetItems(&imageSizes, 5,
+	auto combo = new FontTool_combo_unicodeRange(m_guiContext, alVec2f(0, 50), alVec2f(50, 15));
+	combo->SetID(FontToolGUIID_comboSave_ImageSizes);
+	combo->SetUserData(this);
+	combo->SetFont(m_fontGUI);
+	combo->m_text.Assign(U"512");
+	combo->SetItems(&imageSizes, 5,
 		sizeof(ImageSizesInfo), 0);
-	m_guiPanel_save->AddElement(range, true);
+	m_guiPanel_save->AddElement(combo, true);
 	text = new FontTool_Text(m_guiContext, alVec2f(50, 50), alVec2f(50, 15));
 	text->SetText(U"Texture Size");
 	text->SetFont(m_fontGUI);
@@ -758,18 +824,21 @@ void FontTool::OnDraw()
 	if (m_guiPanel_edit->m_visible)
 	{
 		auto G_selected = m_glyphs[m_selected];
+		auto str_size = alLib::snprintf(char32Buf, 100, U"U+%.4X", m_selected);
+		m_gs->DrawText(char32Buf, str_size, m_fontGUI,
+			alVec2f(m_guiPanel_edit->m_buildArea.x+1, 12), ColorWhite);
+
 		if (m_selected <= 127)
 		{
 			m_gs->DrawText(
 				g_GlyphNames[m_selected].m_title,
 				alLib::strlen(g_GlyphNames[m_selected].m_title),
 				m_fontGUI,
-				alVec2f(m_guiPanel_edit->m_buildArea.x, 12),
+				alVec2f(m_guiPanel_edit->m_buildArea.x + 50, 12),
 				ColorWhite);
 		}
 		if (G_selected.m_data)
 		{
-
 			m_gs->DrawRectangle(m_editRect, ColorGrey);
 
 			alVec2f position;
@@ -803,7 +872,11 @@ void FontTool::OnDraw()
 					position.y += m_editorCellSize;
 				}
 			}
+			str_size = alLib::snprintf(char32Buf, 100, U"Width: %u, Font Height: %u", G_selected.m_width, m_fontHeightMax);
+			m_gs->DrawText(char32Buf, str_size, m_fontGUI,
+				alVec2f(m_editRect.x, m_editRect.w), ColorWhite);
 		}
+
 
 		if(m_testFont)
 			m_gs->DrawText(
@@ -1339,6 +1412,11 @@ void FontTool::OnRebuild()
 		m_guiPanel_edit->m_size.y = m_mainWindow->m_clientSize.y;
 		m_guiPanel_edit->m_position.x = m_mainWindow->m_clientSize.x - m_guiPanel_edit->m_size.x;
 		m_guiPanel_edit->m_position.y = 0;
+		/*FontTool_button* btn = dynamic_cast<FontTool_button*>(m_guiPanel_edit->GetElementByID(FontToolGUIID_btnSave));
+		if (btn)
+		{
+			btn->m_position.x = 
+		}*/
 		m_guiPanel_edit->Rebuild();
 
 		m_guiPanel_save->m_size = m_guiPanel_edit->m_size;
@@ -2157,6 +2235,93 @@ void FontTool::ClearImage(uint32_t index)
 			UpdateTestFont();
 			OnSelect();
 		}
+	}
+}
+
+void FontTool::OnButtonEnableSetWidthMode()
+{
+	auto G = &m_glyphs[m_selected];
+	if (G->m_data)
+	{
+		m_guiPanel_edit_base->SetVisible(false);
+		m_guiPanel_edit_setWidth->SetVisible(true);
+
+		auto slider = dynamic_cast<alGUIRangeSlider1*>(
+			m_guiPanel_edit_setWidth->
+				GetElementByID(FontToolGUIID_rangeSetWidth));
+		if (slider)
+		{
+			slider->m_ptr_i = &G->m_width;
+		}
+
+		_saveGlyphImageOriginal();
+	}
+}
+
+void FontTool::OnButtonDisableSetWidthMode()
+{
+	m_guiPanel_edit_base->SetVisible(true);
+	m_guiPanel_edit_setWidth->SetVisible(false);
+
+	UpdateTestFont();
+	OnSelect();
+}
+
+void FontTool::OnSliderSetWidth()
+{
+	auto G = &m_glyphs[m_selected];
+	if (G->m_data)
+	{
+		alMemory::Free(G->m_data);
+
+		uint32_t dstRowSize = G->m_width * 4;
+		uint32_t dataSize = dstRowSize * m_fontHeightMax;		
+		G->m_data = (uint8_t*)alMemory::Calloc(dataSize);
+
+		uint8_t* src = (uint8_t*)m_glyphImageOriginal.m_data;
+		uint8_t* dst = (uint8_t*)G->m_data;
+		
+		uint32_t srcRowSize = m_glyphImageOriginal.m_width * 4;
+
+		alImage::rgba* srcRGBA = (alImage::rgba*)src;
+		alImage::rgba* dstRGBA = (alImage::rgba*)dst;
+
+		for (uint32_t y = 0; y < m_fontHeightMax; ++y)
+		{
+			uint32_t src_width_counter = 0;
+
+			for (uint32_t x = 0; x < G->m_width; ++x)
+			{
+				*dstRGBA = *srcRGBA;
+
+				++dstRGBA;
+				++srcRGBA;
+
+				++src_width_counter;
+				if (src_width_counter == m_glyphImageOriginal.m_width)
+					break;
+			}
+
+			src += srcRowSize;
+			dst += dstRowSize;
+
+			srcRGBA = (alImage::rgba*)src;
+			dstRGBA = (alImage::rgba*)dst;
+		}
+	}
+
+//	OnSelect();
+}
+
+void FontTool::_saveGlyphImageOriginal()
+{
+	m_glyphImageOriginal.Delete();
+
+	auto G = &m_glyphs[m_selected];
+	if (G->m_data)
+	{
+		m_glyphImageOriginal.Create(G->m_width, m_fontHeightMax);
+		memcpy(m_glyphImageOriginal.m_data, G->m_data, m_glyphImageOriginal.m_dataSize);
 	}
 }
 

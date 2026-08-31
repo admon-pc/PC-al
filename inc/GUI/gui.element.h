@@ -53,18 +53,6 @@ public:
 	virtual void SetVisible(bool set)
 	{
 		m_visible = set;
-		auto c = m_children.m_head;
-		if (c)
-		{
-			auto l = c->m_left;
-			while (true)
-			{
-				c->m_data->SetVisible(set);
-				if (c == l)
-					break;
-				c = c->m_right;
-			}
-		}
 	}
 
 	virtual alGUIElement* GetParent() { return m_parent; }

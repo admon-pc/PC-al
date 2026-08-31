@@ -75,6 +75,7 @@ public:
 	// so, you do not need to care about changin where everytime.
 	void Fill(const uint8_t* indices, alColor* palette, const alVec2u& size, alVec2u* where, alVec2i* outPosition, alVec4f* outUV);
 
+	// alMemory::Free(m_data);
 	void Delete();
 
 	void GetUV(int32_t x, int32_t y, alVec2f* uv)

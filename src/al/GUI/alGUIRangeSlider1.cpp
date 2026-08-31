@@ -111,15 +111,7 @@ void alGUIRangeSlider1::_checkLimits()
 
 void alGUIRangeSlider1::Draw(float32_t dt)
 {
-	if (m_clickCount)
-	{
-		m_clickTimer += dt;
-		if (m_clickTimer > 0.4f)
-		{
-			m_clickTimer = 0.f;
-			m_clickCount = 0;
-		}
-	}
+
 
 	m_gs->SetScissorRect(m_clipArea);
 	OnDraw();
@@ -157,6 +149,16 @@ void alGUIRangeSlider1::Draw(float32_t dt)
 
 void alGUIRangeSlider1::Update(float32_t dt)
 {
+	if (m_clickCount)
+	{
+		m_clickTimer += dt;
+		if (m_clickTimer > 0.4f)
+		{
+			m_clickTimer = 0.f;
+			m_clickCount = 0;
+		}
+	}
+
 	auto input = alLib::GetInput();
 	alGUIElement::Update(dt);
 

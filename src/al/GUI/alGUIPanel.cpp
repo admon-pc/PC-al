@@ -34,7 +34,8 @@ void alGUIPanel::Draw(float32_t dt)
 	
 		for (size_t i = 0; i < m_elements.m_size; ++i)
 		{
-			m_elements.m_data[i]->Draw(dt);
+			if(m_elements.m_data[i]->m_visible)
+				m_elements.m_data[i]->Draw(dt);
 		}
 	}
 }
@@ -58,7 +59,8 @@ void alGUIPanel::Update(float32_t dt)
 		{
 			for (size_t i = m_elements.m_size - 1; ; )
 			{
-				m_elements.m_data[i]->Update(dt);
+				if (m_elements.m_data[i]->m_visible)
+					m_elements.m_data[i]->Update(dt);
 
 				if (!i)
 					break;

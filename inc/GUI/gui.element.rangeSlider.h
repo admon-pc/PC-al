@@ -92,6 +92,7 @@ public:
 
 	Type m_type = Type::type_Int;
 
+	// Will be called after changing value
 	virtual void OnSliderValueChanged() {}
 
 };
