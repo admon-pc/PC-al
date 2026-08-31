@@ -1522,7 +1522,6 @@ void FontTool::OnSelect()
 		if (width > editRectWidth)
 		{
 			m_editorCellSize *= editRectWidth / width;
-			m_editorCellSize = G_selected.m_width * m_editorCellSize;
 		}
 
 		float32_t height = m_fontHeightMax * m_editorCellSize;
@@ -1531,7 +1530,6 @@ void FontTool::OnSelect()
 		if (height > editRectHeight)
 		{
 			m_editorCellSize *= editRectHeight / height;
-			//m_editorCellSize = m_fontHeightMax * m_editorCellSize;
 		}
 	}
 }
@@ -2309,8 +2307,8 @@ void FontTool::OnSliderSetWidth()
 			dstRGBA = (alImage::rgba*)dst;
 		}
 	}
-
-//	OnSelect();
+	//OnRebuild();
+	OnSelect();
 }
 
 void FontTool::_saveGlyphImageOriginal()
