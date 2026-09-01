@@ -111,8 +111,6 @@ void alGUIRangeSlider1::_checkLimits()
 
 void alGUIRangeSlider1::Draw(float32_t dt)
 {
-
-
 	m_gs->SetScissorRect(m_clipArea);
 	OnDraw();
 	auto input = alLib::GetInput();
@@ -135,14 +133,17 @@ void alGUIRangeSlider1::Draw(float32_t dt)
 		if (m_useText)
 		{
 			auto sz = m_text.size();
-			m_gs->SetScissorRect(m_clipArea);
+			if (sz)
+			{
+				m_gs->SetScissorRect(m_clipArea);
 
-			m_gs->DrawText(
-				m_text.data(),
-				sz,
-				m_font,
-				alVec2f(m_buildArea.x, m_buildArea.y),
-				m_colorTheme->m_slider_text);
+				m_gs->DrawText(
+					m_text.data(),
+					sz,
+					m_font,
+					alVec2f(m_buildArea.x, m_buildArea.y),
+					m_colorTheme->m_slider_text);
+			}
 		}
 	}
 }

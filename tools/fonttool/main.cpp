@@ -80,6 +80,15 @@ struct FontToolClipboardData_t
 #define FontToolGUIID_btnSetWidth 18
 #define FontToolGUIID_btnSetWidth_Close 19
 #define FontToolGUIID_rangeSetWidth 20
+#define FontToolGUIID_btnMove 21
+#define FontToolGUIID_btnMove_Close 22
+#define FontToolGUIID_btnMove_Reset 23
+#define FontToolGUIID_rangeMoveX 24
+#define FontToolGUIID_rangeMoveY 25
+#define FontToolGUIID_rangeUnderhang 26
+#define FontToolGUIID_rangeOverhang 27
+#define FontToolGUIID_btnUpdateFont 28
+#define FontToolGUIID_rangeHelpLine 29
 
 #define FontToolEventID_popupCell 1
 
@@ -226,11 +235,14 @@ class FontTool
 	alGUIPanel* m_guiPanel_first = 0;
 	alGUIPanel* m_guiPanel_edit = 0;
 	alGUIPanel* m_guiPanel_edit_base = 0;
+	alGUIPanel* m_guiPanel_edit_move = 0;	
 	alGUIPanel* m_guiPanel_edit_setWidth = 0;
 	alGUIPanel* m_guiPanel_save = 0;
 	alGUITextureAtlas* m_textureAtlas = 0;
 	alGSTexture* m_textureAtlasTexture = 0;
 
+	int32_t m_moveMode_X = 0;
+	int32_t m_moveMode_Y = 0;
 
 	FontTool_combo_unicodeRange* m_comboRanges = 0;
 	FontTool_buttonIcon* m_checkHideUnused = 0;
@@ -289,6 +301,11 @@ public:
 	void OnButtonEnableSetWidthMode();
 	void OnButtonDisableSetWidthMode();
 	void OnSliderSetWidth();
+	void OnButtonEnableMoveMode();
+	void OnButtonDisableMoveMode();
+	void OnButtonMoveModeReset();
+	void OnSliderMove();
+	void OnButtonUpdateFont();
 
 	void OnRebuild();
 	void OnDraw();
@@ -304,6 +321,7 @@ public:
 	alGSTexture* m_textureNoData = 0;
 	alGSTexture* m_textureSelect = 0;
 	alGS* m_gs = 0;
+	int32_t m_helpLine = 0;
 
 	GlyphInfo m_glyphs[0x10FFFF];
 	int32_t m_fontHeightMax = 10;
@@ -378,6 +396,18 @@ void FontTool_button::OnButtonRelease()
 	case FontToolGUIID_btnSetWidth_Close:
 		app->OnButtonDisableSetWidthMode();
 		break;
+	case FontToolGUIID_btnMove:
+		app->OnButtonEnableMoveMode();
+		break;
+	case FontToolGUIID_btnMove_Close:
+		app->OnButtonDisableMoveMode();
+		break;
+	case FontToolGUIID_btnMove_Reset:
+		app->OnButtonMoveModeReset();
+		break;
+	case FontToolGUIID_btnUpdateFont:
+		app->OnButtonUpdateFont();
+		break;
 	}
 }
 void FontTool_buttonIcon::OnButtonToggleOn()
@@ -417,6 +447,12 @@ void FontTool_slider::OnSliderValueChanged()
 	{
 	case FontToolGUIID_rangeSetWidth:
 		app->OnSliderSetWidth();
+		break;
+	case FontToolGUIID_rangeMoveX:
+		app->OnSliderMove();
+		break;
+	case FontToolGUIID_rangeMoveY:
+		app->OnSliderMove();
 		break;
 	}
 }
@@ -702,6 +738,15 @@ bool FontTool::Init()
 	btn->SetFont(m_fontGUI);
 	btn->m_alignment = alGUIElementAlignment::RightTop;
 	m_guiPanel_edit->AddElement(btn, true);
+	slider = new FontTool_slider(m_guiContext, alVec2f(260, m_editRect.w), alVec2f(50.f, 13.f));
+	slider->SetID(FontToolGUIID_rangeHelpLine);
+	slider->SetUserData(this);
+	slider->m_minMax_i[0] = 0;
+	slider->m_minMax_i[1] = 100;
+	slider->m_ptr_i = &m_helpLine;
+	slider->m_type = alGUIRangeSlider1::Type::type_IntLimits;
+	slider->m_colorTheme->m_slider_bg = 0xFFBB22FF;
+	m_guiPanel_edit->AddElement(slider, true);
 
 	m_textInput_editor_oneLine = alCreate<FontTool_TextInput>(m_guiContext, alVec2f(610.f, 5.f), alVec2f(140, 18));
 	m_textInput_editor_oneLine->SetUserData(this);
@@ -725,7 +770,42 @@ bool FontTool::Init()
 	btn->SetText(U"Set Width");
 	btn->SetFont(m_fontGUI);
 	m_guiPanel_edit_base->AddElement(btn, true);
+	btn = new FontTool_button(m_guiContext, alVec2f(0, 25), alVec2f(110.f, 20.f));
+	btn->SetUserData(this);
+	btn->SetID(FontToolGUIID_btnMove);
+	btn->SetText(U"Move");
+	btn->SetFont(m_fontGUI);
+	m_guiPanel_edit_base->AddElement(btn, true);
+	text = new FontTool_Text(m_guiContext, alVec2f(5, 130), alVec2f(50, 15));
+	text->SetText(U"Underhang:");
+	text->SetFont(m_fontGUI);
+	m_guiPanel_edit_base->AddElement(text, true);
+	slider = new FontTool_slider(m_guiContext, alVec2f(130, 130), alVec2f(50.f, 13.f));
+	slider->SetID(FontToolGUIID_rangeUnderhang);
+	slider->SetUserData(this);
+	slider->m_ptr_i = 0;
+	slider->m_type = alGUIRangeSlider1::Type::type_Int;
+	slider->m_colorTheme->m_slider_bg = 0xFFBB22FF;
+	m_guiPanel_edit_base->AddElement(slider, true);
+	text = new FontTool_Text(m_guiContext, alVec2f(5, 150), alVec2f(50, 15));
+	text->SetText(U"Overhang:");
+	text->SetFont(m_fontGUI);
+	m_guiPanel_edit_base->AddElement(text, true);
+	slider = new FontTool_slider(m_guiContext, alVec2f(130, 150), alVec2f(50.f, 13.f));
+	slider->SetID(FontToolGUIID_rangeOverhang);
+	slider->SetUserData(this);
+	slider->m_ptr_i = 0;
+	slider->m_type = alGUIRangeSlider1::Type::type_Int;
+	slider->m_colorTheme->m_slider_bg = 0xFFBB22FF;
+	m_guiPanel_edit_base->AddElement(slider, true);
+	btn = new FontTool_button(m_guiContext, alVec2f(190, 130), alVec2f(100.f, 32.f));
+	btn->SetUserData(this);
+	btn->SetID(FontToolGUIID_btnUpdateFont);
+	btn->SetText(U"Update Font");
+	btn->SetFont(m_fontGUI);
+	m_guiPanel_edit_base->AddElement(btn, true);
 	m_guiPanel_edit_base->Rebuild();
+
 
 	m_guiPanel_edit_setWidth = alCreate<alGUIPanel>(m_guiContext,
 		alVec2f(0, 350),
@@ -749,6 +829,50 @@ bool FontTool::Init()
 	m_guiPanel_edit_setWidth->AddElement(slider, true);
 	m_guiPanel_edit_setWidth->Rebuild();
 	m_guiPanel_edit_setWidth->SetVisible(false);
+
+	m_guiPanel_edit_move = alCreate<alGUIPanel>(m_guiContext,
+		alVec2f(0, 350),
+		alVec2f(300.f, 200.f));
+	m_guiPanel_edit->AddElement(m_guiPanel_edit_move, true);
+	btn = new FontTool_button(m_guiContext, alVec2f(0, 0), alVec2f(30.f, 20.f));
+	btn->SetUserData(this);
+	btn->SetID(FontToolGUIID_btnMove_Close);
+	btn->SetText(U"OK");
+	btn->SetFont(m_fontGUI);
+	btn->m_alignment = alGUIElementAlignment::RightTop;
+	m_guiPanel_edit_move->AddElement(btn, true);
+	btn = new FontTool_button(m_guiContext, alVec2f(0, 0), alVec2f(50.f, 20.f));
+	btn->SetUserData(this);
+	btn->SetID(FontToolGUIID_btnMove_Reset);
+	btn->SetText(U"Reset");
+	btn->SetFont(m_fontGUI);
+	m_guiPanel_edit_move->AddElement(btn, true);
+	slider = new FontTool_slider(m_guiContext, alVec2f(30, 50), alVec2f(150.f, 13.f));
+	slider->SetID(FontToolGUIID_rangeMoveX);
+	slider->SetUserData(this);
+	slider->m_ptr_i = &m_moveMode_X;
+	slider->m_type = alGUIRangeSlider1::Type::type_Int;
+	slider->m_colorTheme->m_slider_bg = 0xFFBB22FF;
+	m_guiPanel_edit_move->AddElement(slider, true);
+	text = new FontTool_Text(m_guiContext, alVec2f(10, 50), alVec2f(50, 15));
+	text->SetText(U"X:");
+	text->SetFont(m_fontGUI);
+	m_guiPanel_edit_move->AddElement(text, true);
+	slider = new FontTool_slider(m_guiContext, alVec2f(30, 80), alVec2f(150.f, 13.f));
+	slider->SetID(FontToolGUIID_rangeMoveY);
+	slider->SetUserData(this);
+	slider->m_ptr_i = &m_moveMode_Y;
+	slider->m_type = alGUIRangeSlider1::Type::type_Int;
+	slider->m_colorTheme->m_slider_bg = 0xFFBB22FF;
+	m_guiPanel_edit_move->AddElement(slider, true);
+	text = new FontTool_Text(m_guiContext, alVec2f(10, 80), alVec2f(50, 15));
+	text->SetText(U"Y:");
+	text->SetFont(m_fontGUI);
+	m_guiPanel_edit_move->AddElement(text, true);
+	m_guiPanel_edit_move->Rebuild();
+	m_guiPanel_edit_move->SetVisible(false);
+
+
 
 	m_guiPanel_edit->m_size.x = 400;
 	m_guiPanel_edit->Rebuild();
@@ -845,18 +969,38 @@ void FontTool::OnDraw()
 			position.x = m_editRect.x;
 			position.y = m_editRect.y;
 
+			bool findUnderhangPos = G_selected.underhang <= 0;
+
+			float32_t underhangPos = position.x;
+			float32_t overhangPos = 0.f;
+
 			uint8_t* srcBuffer = G_selected.m_data;
 			alImage::rgba* src_rgba = (alImage::rgba*)srcBuffer;
+
+			uint32_t lineCounter = 0;
+			float32_t linePos = position.y+ m_editorCellSize*m_fontHeightMax;
 
 			uint32_t pixelsNum = G_selected.m_width * (int)m_fontHeightMax;
 			uint32_t widthCounter = 0;
 			for (uint32_t i = 0; i < pixelsNum; ++i)
 			{
+				if (findUnderhangPos)
+				{
+					int u = G_selected.underhang * -1;
+					if (u == widthCounter)
+					{
+						underhangPos = position.x;
+					}
+				}
+
 				alVec4f cellRect;
 				cellRect.x = position.x;
 				cellRect.y = position.y;
 				cellRect.z = cellRect.x + m_editorCellSize;
 				cellRect.w = cellRect.y + m_editorCellSize;
+
+				if (m_helpLine == (m_fontHeightMax - lineCounter))
+					linePos = cellRect.y;
 
 				m_gs->DrawRectangle(cellRect, ColorBlack);
 				m_gs->DrawRectangle(cellRect, alColor(src_rgba->r, src_rgba->g, src_rgba->b, src_rgba->a));
@@ -868,10 +1012,25 @@ void FontTool::OnDraw()
 				if (widthCounter >= G_selected.m_width)
 				{
 					widthCounter = 0;
+
 					position.x = m_editRect.x;
 					position.y += m_editorCellSize;
+					++lineCounter;
 				}
 			}
+			alVec4f lineRect;
+			lineRect.x = m_editRect.x;
+			lineRect.y = linePos - 1;
+			lineRect.z = lineRect.x + m_editRect.z;
+			lineRect.w = lineRect.y + 2;
+			m_gs->DrawRectangle(lineRect, ColorRed);
+			alVec4f uLineRect;
+			uLineRect.x = underhangPos;
+			uLineRect.y = m_editRect.y;
+			uLineRect.z = uLineRect.x + 2;
+			uLineRect.w = m_editRect.w;
+			m_gs->DrawRectangle(uLineRect, ColorLime);
+
 			str_size = alLib::snprintf(char32Buf, 100, U"Width: %u, Font Height: %u", G_selected.m_width, m_fontHeightMax);
 			m_gs->DrawText(char32Buf, str_size, m_fontGUI,
 				alVec2f(m_editRect.x, m_editRect.w), ColorWhite);
@@ -1437,6 +1596,12 @@ void FontTool::StartEdit()
 	m_guiPanel_first->SetVisible(false);
 	m_guiPanel_edit->SetVisible(true);
 	m_editMode = true;
+
+	alGUIRangeSlider1* r = dynamic_cast<alGUIRangeSlider1*>(m_guiPanel_edit->GetElementByID(FontToolGUIID_rangeHelpLine));
+	if (r)
+	{
+		r->m_minMax_i[1] = m_fontHeightMax;
+	}
 }
 
 void FontTool::_moveUpView(uint32_t num)
@@ -1509,12 +1674,15 @@ void FontTool::_moveDownView(uint32_t num)
 
 void FontTool::OnSelect()
 {
+	alGUIRangeSlider1* rangeU = dynamic_cast<alGUIRangeSlider1*>(m_guiPanel_edit_base->GetElementByID(FontToolGUIID_rangeUnderhang));
+	alGUIRangeSlider1* rangeO = dynamic_cast<alGUIRangeSlider1*>(m_guiPanel_edit_base->GetElementByID(FontToolGUIID_rangeOverhang));
+
 	m_editorCellSize = 0.f;
-	auto G_selected = m_glyphs[m_selected];
-	if (G_selected.m_data)
+	auto G_selected = &m_glyphs[m_selected];
+	if (G_selected->m_data)
 	{
 		m_editorCellSize = 20.f;
-		float32_t width = G_selected.m_width * m_editorCellSize;
+		float32_t width = G_selected->m_width * m_editorCellSize;
 
 		auto editRectWidth = m_editRect.z - m_editRect.x;
 		if (editRectWidth <= 0.f) editRectWidth = 1.f;
@@ -1530,6 +1698,15 @@ void FontTool::OnSelect()
 		if (height > editRectHeight)
 		{
 			m_editorCellSize *= editRectHeight / height;
+		}
+
+		if (rangeU)
+		{
+			rangeU->m_ptr_i = &G_selected->underhang;
+			rangeO->m_ptr_i = &G_selected->overhang;
+
+			rangeU->UpdateText();
+			rangeO->UpdateText();
 		}
 	}
 }
@@ -2307,7 +2484,6 @@ void FontTool::OnSliderSetWidth()
 			dstRGBA = (alImage::rgba*)dst;
 		}
 	}
-	//OnRebuild();
 	OnSelect();
 }
 
@@ -2321,6 +2497,67 @@ void FontTool::_saveGlyphImageOriginal()
 		m_glyphImageOriginal.Create(G->m_width, m_fontHeightMax);
 		memcpy(m_glyphImageOriginal.m_data, G->m_data, m_glyphImageOriginal.m_dataSize);
 	}
+}
+
+void FontTool::OnButtonEnableMoveMode()
+{
+	m_moveMode_X = 0;
+	m_moveMode_Y = 0;
+
+	auto G = &m_glyphs[m_selected];
+	if (G->m_data)
+	{
+		m_guiPanel_edit_base->SetVisible(false);
+		m_guiPanel_edit_move->SetVisible(true);
+
+		_saveGlyphImageOriginal();
+	}
+}
+
+void FontTool::OnButtonDisableMoveMode()
+{
+	m_guiPanel_edit_base->SetVisible(true);
+	m_guiPanel_edit_move->SetVisible(false);
+
+	UpdateTestFont();
+	OnSelect();
+}
+
+void FontTool::OnButtonMoveModeReset()
+{
+	m_moveMode_X = 0;
+	m_moveMode_Y = 0;
+	OnSelect();
+}
+
+void FontTool::OnSliderMove()
+{
+	auto G = &m_glyphs[m_selected];
+	if (G->m_data)
+	{
+		alMemory::Free(G->m_data);
+
+		uint32_t dstRowSize = G->m_width * 4;
+		uint32_t dataSize = dstRowSize * m_fontHeightMax;
+		G->m_data = (uint8_t*)alMemory::Calloc(dataSize);
+
+		alImage imgDst;
+		imgDst.m_data = G->m_data;
+		imgDst.m_bits = 32;
+		imgDst.m_width = G->m_width;
+		imgDst.m_height = m_fontHeightMax;
+		imgDst.m_pitch = imgDst.m_width * 4;
+		imgDst.m_dataSize = imgDst.m_pitch * imgDst.m_height;
+
+		imgDst.Fill(&m_glyphImageOriginal, alVec2u(m_moveMode_X, m_moveMode_Y), 0, 0);
+		imgDst.m_data = 0;
+	}
+	OnSelect();
+}
+
+void FontTool::OnButtonUpdateFont()
+{
+	UpdateTestFont();
 }
 
 int main()
