@@ -32,7 +32,7 @@ void alImage::Create(uint32_t x, uint32_t y)
 	m_height = y;
 	m_pitch = m_width * 4;
 	m_dataSize = m_pitch * m_height;
-	m_data = (uint8_t*)alMemory::Malloc(m_dataSize);
+	m_data = (uint8_t*)alMemory::Calloc(m_dataSize);
 }
 
 void alImage::_convertToR8G8B8A8_from_X8R8G8B8()

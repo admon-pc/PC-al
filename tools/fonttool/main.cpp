@@ -1588,7 +1588,7 @@ void FontTool::OnButtonGenerate()
 						GlyphInfo* g = &m_glyphs[ch];
 						if (!g->m_data)
 						{
-							g->m_data = (uint8_t*)alMemory::Malloc(size.cx * size.cy * 4);
+							g->m_data = (uint8_t*)alMemory::Calloc(size.cx * size.cy * 4);
 							g->m_width = size.cx;
 							g->underhang = abc.abcA;
 							g->overhang = abc.abcC;
@@ -1934,6 +1934,7 @@ void FontTool::OnButtonSave_Save()
 	if (str.size())
 	{
 		std::filesystem::path p(str.c_str());
+	//	auto name = p.path();
 		auto name = p.stem();
 		auto name_string = name.generic_string();
 
@@ -2041,7 +2042,7 @@ void FontTool::OnButtonSave_Save()
 			}
 			{
 				char buf[100];
-				sprintf_s(buf, 100, "%s.zip", name_string.c_str());
+				sprintf_s(buf, 100, "%s/%s.zip", p.parent_path().generic_string().c_str(), name_string.c_str());
 				alArchive::SaveZip(files, zipfiles.m_size, buf);
 			}
 
@@ -2162,7 +2163,7 @@ void FontTool::ShowPopupOnEditRect()
 					canPaste = true;
 					/*uint32_t srcRowSz = hdr->biWidth * 4;
 					uint32_t srcSz = srcRowSz * hdr->biHeight;
-					uint8_t* src = (uint8_t*)alMemory::Malloc(srcSz);
+					uint8_t* src = (uint8_t*)alMemory::Calloc(srcSz);
 					if (src)
 					{
 						memcpy(src, &data[sizeof(hdr->biSize)], srcSz);
@@ -2414,7 +2415,7 @@ void FontTool::PasteImageFromClipboard(uint32_t index)
 					{
 						uint32_t srcRowSz = hdr->biWidth * 4;
 						uint32_t srcSz = srcRowSz * hdr->biHeight;
-						uint8_t* src = (uint8_t*)alMemory::Malloc(srcSz);
+						uint8_t* src = (uint8_t*)alMemory::Calloc(srcSz);
 						if (src)
 						{
 							memcpy(src, &data[clipboardDataSize - hdr->biSizeImage], srcSz);
@@ -2510,7 +2511,7 @@ void FontTool::PasteCellFromClipboard(uint32_t index)
 					if (d->m_glyphDataSize == (clipboardDataSize - sizeof(FontToolClipboardData_t)))
 					{
 
-						uint8_t* new_data = (uint8_t*)alMemory::Malloc(d->m_glyphDataSize);
+						uint8_t* new_data = (uint8_t*)alMemory::Calloc(d->m_glyphDataSize);
 						if (new_data)
 						{
 							if (G->m_data)
