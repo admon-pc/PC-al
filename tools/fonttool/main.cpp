@@ -2,6 +2,7 @@
 
 #include "al.h"
 #include "Image/alImage.h"
+#include "Image/alImageLoader.h"
 
 #include "System/alSystemWindow.h"
 #include "System/alSystemWindowWin32.h"
@@ -10,6 +11,7 @@
 #include "Input/alInput.h"
 #include "Classes/alColor.h"
 
+#include "Classes/alTextReader.h"
 #include "GUI/alGUI.h"
 
 #include "Archive/alArchive.h"
@@ -1321,6 +1323,139 @@ void FontTool::GoTo(size_t i)
 
 void FontTool::OnButtonOpen()
 {
+	alStringW str;
+	alLib::OpenFIleDialogFileTypeDesc desc;
+	swprintf_s(desc.m_extensions, 1000, L"*.zip;");
+	swprintf_s(desc.m_title, 100, L"Zip Archive");
+	alLib::OpenOpenFileDialog(
+		m_mainWindow,
+		L"Open",
+		L"Open",
+		&desc, 1,
+		&str);
+	if (str.size())
+	{
+		//alLib::fopen(str.c_str(), L"rb");
+		/*size_t retVal = 0;
+		char buff[1000];
+		mbstate_t state;
+		auto ptr = str.c_str();
+		wcsrtombs_s(&retVal, buff, 1000, &ptr, str.size(), &state);*/
+		auto fp = std::filesystem::path(str.c_str());
+		auto zip = alArchive::LoadZip(fp.generic_string().c_str());
+		if (zip)
+		{
+			auto name = fp.stem().generic_string();
+			alArray<alImage*> images;
+
+			for (int i = 0; i < 100; ++i)
+			{
+				char buf[0xff];
+				sprintf_s(buf, 0xff, "%s%i.png", name.c_str(), i);
+
+				alFileBuffer* fb = zip->GetFile(buf);
+				if (fb)
+				{
+					alLog::Print("Load Image: ../%s\n", buf);
+					alImage* image = alLib::GetImageLoaderPNG()->Load(fb);
+					if (image)
+					{
+						images.push_back(image);
+					}
+				}
+			}
+
+			char buf[0xff];
+			sprintf_s(buf, 0xff, "%s.txt", name.c_str());
+			alFileBuffer* fileBuffer = zip->GetFile(buf);
+			if (fileBuffer)
+			{
+				auto data = fileBuffer->Data();
+				const char32_t* str = (const char32_t*)(&data[4]);
+
+				alUnicodeString ustr;
+				ustr.Append(str, (fileBuffer->Size() / 4) - 4);
+
+				char32_t ch = 0;
+				alTextReader<char32_t> tr(ustr.Data(), ustr.Size());
+				m_fontHeightMax = 0;
+				while (!tr.IsEnd())
+				{
+					auto line = tr.GetLine(true);
+					uint32_t charCode = line.GetUint();
+					uint32_t leftTopX = line.GetUint();
+					uint32_t leftTopY = line.GetUint();
+					uint32_t rightBotX = line.GetUint();
+					uint32_t rightBotY = line.GetUint();
+					int32_t underhang = line.GetInt();
+					int32_t overhang = line.GetInt();
+					uint32_t textureID = line.GetUint();
+					if (charCode < 0x10FFFF)
+					{
+						auto H = rightBotY - leftTopY;
+						if (H > m_fontHeightMax)
+							m_fontHeightMax = H;
+					}
+				}
+				tr.GoToBegin();
+				while (!tr.IsEnd())
+				{
+					auto line = tr.GetLine(true);
+					uint32_t charCode = line.GetUint();
+					uint32_t leftTopX = line.GetUint();
+					uint32_t leftTopY = line.GetUint();
+					uint32_t rightBotX = line.GetUint();
+					uint32_t rightBotY = line.GetUint();
+					int32_t underhang = line.GetInt();
+					int32_t overhang = line.GetInt();
+					uint32_t textureID = line.GetUint();
+					if (charCode < 0x10FFFF)
+					{
+						auto glyph = &m_glyphs[charCode];
+						glyph->m_width = rightBotX - leftTopX;
+						glyph->underhang = underhang;
+						glyph->overhang = overhang;
+						glyph->textureID = textureID;
+						glyph->m_data = (uint8_t*)alMemory::Calloc(glyph->m_width*4*m_fontHeightMax);
+
+						uint8_t* src = (uint8_t*)images.m_data[glyph->textureID]->m_data;
+						uint8_t* dst = (uint8_t*)glyph->m_data;
+						uint32_t srcRowSize = images.m_data[glyph->textureID]->m_pitch;
+						alImage::rgba* srcRGBA = (alImage::rgba*)src;
+						alImage::rgba* dstRGBA = (alImage::rgba*)dst;
+
+						srcRGBA = srcRGBA + leftTopX;
+						srcRGBA += leftTopY * images.m_data[glyph->textureID]->m_width;
+						auto srcRGBABegin = srcRGBA;
+						for (uint32_t y = 0; y < m_fontHeightMax; ++y)
+						{
+							for (uint32_t x = 0; x < glyph->m_width; ++x)
+							{
+								*dstRGBA = *srcRGBA;
+
+								++dstRGBA;
+								++srcRGBA;
+							}
+
+							srcRGBA = srcRGBABegin + images.m_data[glyph->textureID]->m_width;
+							srcRGBABegin = srcRGBA;
+						}
+
+					}
+				}
+			}
+
+			for (size_t i = 0; i < images.m_size; ++i)
+			{
+				alDestroy(images.m_data[i]);
+			}
+
+			alDestroy(zip);
+		}
+	}
+
+	InitCellTexture();
+	this->UpdateTestFont();
 	StartEdit();
 }
 

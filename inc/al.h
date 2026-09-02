@@ -224,6 +224,9 @@ public:
 
 	struct OpenFIleDialogFileTypeDesc
 	{
+		// how to set. for example 
+		// swprintf_s(desc.m_extensions, 1000, L"*.zip;*.pdb");
+		// swprintf_s(desc.m_title, 100, L"Some Format");
 		wchar_t m_title[100];
 		wchar_t m_extensions[1000];
 	};
