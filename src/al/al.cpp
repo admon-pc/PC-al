@@ -618,16 +618,15 @@ void alLib::SetCursor(alCursorType ct, alCursor* c)
 	c->Activate();
 }
 
-void alLib::CopyTextToClipboard(alUnicodeString* str)
+void alLib::CopyTextToClipboard(const wchar_t* str, size_t len)
 {
 	AL_ASSERT_ST(str);
-	if (!str->Size())
-		return;
+
+
 #ifdef AL_PLATFORM_WIN32
 	if (!OpenClipboard(0))
 		return;
 
-	auto len = str->Size();
 	EmptyClipboard();
 	HGLOBAL clipbuffer = GlobalAlloc(GMEM_MOVEABLE, (len + 1) * sizeof(WCHAR));
 	if (!clipbuffer)
@@ -640,15 +639,26 @@ void alLib::CopyTextToClipboard(alUnicodeString* str)
 		return;
 	}
 
-	alStringW wstr;
-	str->ToUTF16(wstr);
-
-	memcpy(buffer, wstr.data(), wstr.size() * sizeof(wchar_t));
+	memcpy(buffer, str, len * sizeof(wchar_t));
 	buffer[len] = 0;
 
 	GlobalUnlock(clipbuffer);
 	SetClipboardData(CF_UNICODETEXT, clipbuffer);
 	CloseClipboard();
+#else
+#error Need implementation....
+#endif
+}
+
+void alLib::CopyTextToClipboard(alUnicodeString* str)
+{
+	AL_ASSERT_ST(str);
+	if (!str->Size())
+		return;
+#ifdef AL_PLATFORM_WIN32
+	alStringW wstr;
+	str->ToUTF16(wstr);
+	CopyTextToClipboard(wstr.c_str(), wstr.size());
 #else
 #error Need implementation....
 #endif

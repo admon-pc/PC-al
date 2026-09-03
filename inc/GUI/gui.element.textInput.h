@@ -125,7 +125,6 @@ class alGUITextInput : public alGUIElement
 	void _onTab();
 	void _onTab_multiInsert(size_t lineNum, uint8_t* set, uint8_t* get);
 	bool _onTab_multiDelete(size_t lineNum, uint8_t* set);
-	void InsertChar(char32_t c);
 	void _findCurLineWidth();
 	void _moveTextCursorToColPrefer();
 	void _moveTextCursorUp(uint32_t);
@@ -372,6 +371,8 @@ public:
 	void GoTo(uint32_t line, uint32_t col, bool tabs);
 	void Select(size_t begin, size_t end);
 	void Select(size_t num);
+	void InsertChar(char32_t c);
+	void InsertChar(char32_t c, size_t pos);
 
 	// It open only for reading.
 	// USE SetText() for writing.

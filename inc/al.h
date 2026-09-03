@@ -195,6 +195,7 @@ public:
 		bool add_tab = false,
 		bool add_newLine = false);
 
+	static void CopyTextToClipboard(const wchar_t* _str, size_t _strlen);
 	static void CopyTextToClipboard(alUnicodeString*);
 	static void GetTextFromClipboard(alUnicodeString*);
 

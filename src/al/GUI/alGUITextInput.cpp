@@ -2863,6 +2863,26 @@ void alGUITextInput::InsertChar(char32_t c)
 		m_textCursorPositionNext = m_textCursorPosition;
 	}
 }
+void alGUITextInput::InsertChar(char32_t c, size_t pos)
+{
+	if (pos > m_text.size())
+		return;
+
+	if (m_textCursorPositionNext != pos)
+		m_history.AddUndo();
+
+	//	m_isSaved = false;
+
+	if (OnCharacter(c))
+	{
+		m_history.OnAddChar(
+			c,
+			pos);
+
+		m_text.Insert(c, pos);
+		m_textData.Insert(1, pos);
+	}
+}
 void alGUITextInput::_findCurLineWidth()
 {
 	size_t textSize = m_text.size();

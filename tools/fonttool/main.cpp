@@ -91,6 +91,11 @@ struct FontToolClipboardData_t
 #define FontToolGUIID_rangeOverhang 27
 #define FontToolGUIID_btnUpdateFont 28
 #define FontToolGUIID_rangeHelpLine 29
+#define FontToolGUIID_popupCell_CopyAsChar 30
+#define FontToolGUIID_popupCell_CopyAsHEX 31
+#define FontToolGUIID_popupCell_InsertIntoTextInput 32
+#define FontToolGUIID_popupTextEdit_Copy 33
+#define FontToolGUIID_popupTextEdit_Paste 34
 
 #define FontToolEventID_popupCell 1
 
@@ -345,6 +350,23 @@ public:
 	uint32_t m_saveImageSize = 512;
 };
 
+void FontTool_TextInput::OnRMBRelease()
+{
+	alLib::GetCursor(alCursorType::Arrow)->Activate();
+	alSystemPopup* popup = alLib::CreateSystemPopup();
+	if (popup)
+	{
+		FontTool* app = (FontTool*)GetUserData();
+		alInput* input = alLib::GetInput();
+
+		if(IsSelected())
+			popup->AddItem(U"Copy", FontToolGUIID_popupTextEdit_Copy, 0);
+		popup->AddItem(U"Paste", FontToolGUIID_popupTextEdit_Paste, 0);
+		popup->Show(app->m_mainWindow, input->m_cursorCoords.x, input->m_cursorCoords.y);
+		AL_DESTROY(popup);
+	}
+}
+
 void FontTool_combo_unicodeRange::OnComboSelectItem(size_t index)
 {
 	switch (GetID())
@@ -428,10 +450,6 @@ void FontTool_buttonIcon::OnButtonToggleOff()
 	{
 		app->m_hideUnUsed = false;
 	}
-}
-
-void FontTool_TextInput::OnRMBRelease()
-{
 }
 
 void FontTool_TextInput::OnAccept()
@@ -2226,17 +2244,24 @@ void FontTool::ShowPopupOnCell()
 		if (G->m_data)
 		{
 			popup->AddItem(U"Delete", FontToolGUIID_popupCell_Delete, 0);
-			popup->AddItem(U"Copy", FontToolGUIID_popupCell_Copy, 0);
+			popup->AddItem(U"Copy Cell", FontToolGUIID_popupCell_Copy, 0);
+			
 
 			if(canPaste)
-				popup->AddItem(U"Paste", FontToolGUIID_popupCell_Paste, 0);
+				popup->AddItem(U"Paste Cell", FontToolGUIID_popupCell_Paste, 0);
 		}
 		else
 		{
 			popup->AddItem(U"Create", FontToolGUIID_popupCell_Create, 0);
 			if (canPaste)
-				popup->AddItem(U"Paste", FontToolGUIID_popupCell_Paste, 0);
+				popup->AddItem(U"Paste Cell", FontToolGUIID_popupCell_Paste, 0);
 		}
+
+		popup->AddSeparator();
+		popup->AddItem(U"Copy Character", FontToolGUIID_popupCell_CopyAsChar, 0);
+		popup->AddItem(U"Copy HEX Code", FontToolGUIID_popupCell_CopyAsHEX, 0);
+		popup->AddItem(U"Insert into demonstration text input", FontToolGUIID_popupCell_InsertIntoTextInput, 0);
+
 		popup->Show(m_mainWindow, input->m_cursorCoords.x, input->m_cursorCoords.y);
 
 		AL_DESTROY(popup);
@@ -2288,6 +2313,29 @@ void FontTool::OnPopupCommand(uint32_t cmd)
 	case FontToolGUIID_popupEdit_Clear:
 		this->ClearImage(m_selected);
 		break;
+	case FontToolGUIID_popupCell_CopyAsChar:
+	{
+		wchar_t ch[2] = { m_selected,0 };
+		alLib::CopyTextToClipboard(ch, 1);
+	}break;
+	case FontToolGUIID_popupTextEdit_Copy:
+	{
+		m_textInput_editor_oneLine->CopyToClipboard();
+	}break;
+	case FontToolGUIID_popupTextEdit_Paste:
+	{
+		m_textInput_editor_oneLine->PasteFromClipboard();
+	}break;
+	case FontToolGUIID_popupCell_CopyAsHEX:
+	{
+		wchar_t buf[100];
+		int len = swprintf_s(buf, 100, L"0x%X", m_selected);
+		alLib::CopyTextToClipboard(buf, len);
+	}break;
+	case FontToolGUIID_popupCell_InsertIntoTextInput:
+	{
+		m_textInput_editor_oneLine->InsertChar(m_selected, m_textInput_editor_oneLine->m_text.size());
+	}break;
 	}
 }
 
