@@ -26,7 +26,7 @@
 
 struct alGUIRadioGroup
 {
-	alGUIButtonIcon* m_activeButton = 0;
+	alGUIButton* m_activeButton = 0;
 };
 
 class alGUIContext

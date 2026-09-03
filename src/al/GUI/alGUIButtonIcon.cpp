@@ -9,7 +9,7 @@ extern alLibGlobalData g_alLibGlobalData;
 
 alGUIButtonIcon::alGUIButtonIcon(alGUIContext* ct, alGUITextureAtlas* ta, uint32_t iconIndex, const alVec2f& position, const alVec2f& size)
 	:
-	alGUIElement(ct,position,size),
+	alGUIButton(ct,position,size),
 	m_textureAtlas(ta)
 {
 	m_iconIndexBase = iconIndex;
@@ -196,44 +196,6 @@ void alGUIButtonIcon::Rebuild()
 		m_clipArea.z += tlen;
 		m_sensorArea.z += tlen;
 	}
-}
-
-void alGUIButtonIcon::SetFont(alGUIFont* font)
-{
-	m_font = font;
-}
-
-void alGUIButtonIcon::SetText(const char32_t* text, ...)
-{
-	char32_t buf[0xF00];
-
-	va_list args;
-	va_start(args, text);
-	alLib::vsnprintf(buf, 0xF00, text, args);
-	va_end(args);
-
-	m_text.Assign(buf);
-}
-
-void alGUIButtonIcon::ClearText()
-{
-	m_text.Clear();
-}
-
-void alGUIButtonIcon::RadioCheck()
-{
-	if (m_context->m_radioGroups[m_radioGroup].m_activeButton != this)
-	{
-		if (m_context->m_radioGroups[m_radioGroup].m_activeButton)
-		{
-			m_context->m_radioGroups[m_radioGroup].m_activeButton->m_isToggleOn = false;
-			m_context->m_radioGroups[m_radioGroup].m_activeButton
-				->OnButtonToggleOff();
-		}
-	}
-
-	m_context->m_radioGroups[m_radioGroup].m_activeButton = this;
-	m_isToggleOn = true;
 }
 
 

@@ -51,6 +51,13 @@ void alGUIButton::Draw(float32_t dt)
 					m_currColBG1 = m_colorTheme->m_button_bg1_enabled;
 					m_currColBG2 = m_colorTheme->m_button_bg2_enabled;
 					m_currColText = m_colorTheme->m_button_textColor_enabled;
+
+					if (m_isCursorInSensorArea)
+					{
+						m_currColBG1 = m_colorTheme->m_button_bg1_mouseHover;
+						m_currColBG2 = m_colorTheme->m_button_bg2_mouseHover;
+						m_currColText = m_colorTheme->m_button_textColor_mouseHover;
+					}
 				}
 			}
 			else
@@ -143,15 +150,23 @@ void alGUIButton::Update(float32_t dt)
 		{
 			if (m_isLMBClicked && m_input->m_isLMBDown)
 			{
-				if (m_isToggleOn)
+				if (m_radioButton)
 				{
-					m_isToggleOn = false;
-					OnButtonToggleOff();
+					OnButtonToggleOn();
+					this->RadioCheck();
 				}
 				else
 				{
-					m_isToggleOn = true;
-					OnButtonToggleOn();
+					if (m_isToggleOn)
+					{
+						m_isToggleOn = false;
+						OnButtonToggleOff();
+					}
+					else
+					{
+						m_isToggleOn = true;
+						OnButtonToggleOn();
+					}
 				}
 			}
 		}
@@ -251,6 +266,21 @@ void alGUIButton::ClearText()
 	m_text.Clear();
 }
 
+void alGUIButton::RadioCheck()
+{
+	if (m_context->m_radioGroups[m_radioGroup].m_activeButton != this)
+	{
+		if (m_context->m_radioGroups[m_radioGroup].m_activeButton)
+		{
+			m_context->m_radioGroups[m_radioGroup].m_activeButton->m_isToggleOn = false;
+			m_context->m_radioGroups[m_radioGroup].m_activeButton
+				->OnButtonToggleOff();
+		}
+	}
+
+	m_context->m_radioGroups[m_radioGroup].m_activeButton = this;
+	m_isToggleOn = true;
+}
 
 
 

@@ -729,6 +729,7 @@ void alGSD3D11::UpdateGUIProjection()
 
 void alGSD3D11::SetShader(alGSShader* s)
 {
+	AL_ASSERT_ST(s);
 	alD3D11Shader* shader = dynamic_cast<alD3D11Shader*>(s);
 		m_currShader = shader;
 		m_d3d11DevCon->IASetInputLayout(shader->m_vLayout);

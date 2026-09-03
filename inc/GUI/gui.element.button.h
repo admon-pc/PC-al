@@ -3,6 +3,7 @@
 
 class alGUIButton : public alGUIElement
 {
+protected:
 	alUnicodeString m_text;
 	alGUIFont* m_font = 0;
 	alColor m_currColBG1;
@@ -34,6 +35,10 @@ public:
 
 	bool m_toggleButton = false;
 	bool m_isToggleOn = false;
+
+	bool m_radioButton = false;
+	uint32_t m_radioGroup = 0;
+	void RadioCheck();
 
 	virtual void OnButtonRelease() {}
 	virtual void OnButtonToggleOn() {}
