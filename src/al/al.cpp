@@ -38,16 +38,8 @@
 
 alLibGlobalData g_alLibGlobalData;
 
-AL_LINK_LIBRARY(zlib);
-AL_LINK_LIBRARY(jpeglib);
-AL_LINK_LIBRARY(libpng);
-AL_LINK_LIBRARY(fastlz);
-AL_LINK_LIBRARY(minizip);
-
-
 // GS
 alGS* alCreateGS_d3d11();
-AL_LINK_LIBRARY(al.d3d11);
 
 #ifdef LoadImage
 #undef LoadImage
@@ -1116,9 +1108,11 @@ alGUIColorTheme* alLib::GetDefaultColorTheme()
 		
 		g_alLib->m_colorTheme.m_list_bg = 0xFFEFF4FF;
 		g_alLib->m_colorTheme.m_list_bgItemHover = 0xFF0C97FF;
-		g_alLib->m_colorTheme.m_list_bgItemSelected = 0xFF0074C6;
+		g_alLib->m_colorTheme.m_list_bgItemSelected = ColorOrange;
+		g_alLib->m_colorTheme.m_list_bgItemHoverSelected = ColorOrangeRed;
 		g_alLib->m_colorTheme.m_list_text = 0xFF111111;
 		g_alLib->m_colorTheme.m_list_textHover = 0xFFEFF4FF;
+		g_alLib->m_colorTheme.m_list_textHoverSelected = 0xFFEFF4FF;
 		g_alLib->m_colorTheme.m_list_textSelected = ColorWhite;
 		
 		g_alLib->m_colorTheme.m_combo_bg_enabled = 0xFF2B63FF;

@@ -136,6 +136,7 @@ void DemoExample_gui_all2_combo::OnComboSelectItem(size_t index)
 
 void DemoExample_gui_all2_list::OnListSelectItem(size_t index)
 {
+
 	DemoExample_gui_all2* ex = (DemoExample_gui_all2*)GetUserData();
 	uint8_t* ptr = (uint8_t*)m_items;
 	ex->m_combobox1->m_text = (char32_t*)(&ptr[index * m_stride] + m_textOffset);
@@ -146,6 +147,7 @@ void DemoExample_gui_all2_list::OnListSelectItem(size_t index)
 	}
 	else
 	{
+		DeselectAll();
 		*flags |= flag_selected;
 	}
 }

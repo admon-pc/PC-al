@@ -66,9 +66,11 @@ struct alGUIColorTheme
 	
 	alColor m_list_bg;
 	alColor m_list_bgItemHover;
+	alColor m_list_bgItemHoverSelected;
 	alColor m_list_bgItemSelected;
 	alColor m_list_text;
 	alColor m_list_textHover;
+	alColor m_list_textHoverSelected;
 	alColor m_list_textSelected;
 	
 	alColor m_slider_bg;

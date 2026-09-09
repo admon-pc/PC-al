@@ -163,6 +163,13 @@ void alGUIElement::Rebuild()
 		case alGUIElementAlignment::LeftBottom:
 			break;
 		case alGUIElementAlignment::RightBottom:
+		{
+			m_buildArea.x = m_parent->m_buildArea.z - m_position.x - m_size.x;
+			m_buildArea.y = m_parent->m_buildArea.w - m_position.y - m_size.y;
+		
+			m_buildArea.z = m_buildArea.x + m_size.x;
+			m_buildArea.w = m_buildArea.y + m_size.y;
+		}
 			break;
 		case alGUIElementAlignment::Center:
 			break;

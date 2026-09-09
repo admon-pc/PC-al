@@ -41,7 +41,24 @@ public:
 	virtual void Update(float32_t dt) override;
 	virtual void Rebuild() override;
 
+	// For selection implement this method like this.
+	/*void AppGUIListBox::OnListSelectItem(size_t index)
+	{
+		uint8_t* ptr = (uint8_t*)m_items;
+		uint32_t* flags = (uint32_t*)(&ptr[index * m_stride] + m_flagsOffset);
+		if (*flags & flag_selected)
+		{
+			*flags &= ~flag_selected;
+		}
+		else
+		{
+			//DeselectAll();
+			*flags |= flag_selected;
+		}
+	}*/
+	// You can add DeselectAll();
 	virtual void OnListSelectItem(size_t) {};
+	virtual void DeselectAll();
 
 	void SetFont(alGUIFont*);
 

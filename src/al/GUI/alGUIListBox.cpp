@@ -87,14 +87,34 @@ void alGUIListBox::Draw(float32_t dt)
 				}
 			}
 
-			if (pointIn || (*flags & flag_selected))
+			if (*flags & flag_selected)
 			{
-				m_gs->DrawRectangle(
-					itemRect,
-					m_colorTheme->m_popup_bg1_mouseHover,
-					m_colorTheme->m_popup_bg2_mouseHover);
-				textColor = m_colorTheme->m_popup_itemText_mouseHover;
+				if (pointIn)
+				{
+					m_gs->DrawRectangle(
+						itemRect,
+						m_colorTheme->m_list_bgItemHoverSelected);
+					textColor = m_colorTheme->m_list_textHoverSelected;
+				}
+				else
+				{
+					m_gs->DrawRectangle(
+						itemRect,
+						m_colorTheme->m_list_bgItemSelected);
+					textColor = m_colorTheme->m_list_textSelected;
+				}
 			}
+			else
+			{
+				if (pointIn)
+				{
+					m_gs->DrawRectangle(
+						itemRect,
+						m_colorTheme->m_list_bgItemHover);
+					textColor = m_colorTheme->m_list_textHover;
+				}
+			}
+
 				
 			if(itemTextSz)
 				m_gs->DrawText(itemText, itemTextSz, m_font,
@@ -234,5 +254,15 @@ void alGUIListBox::SetItems(
 	m_stride = stride;
 	m_textOffset = text_offset;
 	m_flagsOffset = flags_offset;
+}
+
+void alGUIListBox::DeselectAll()
+{
+	uint8_t* ptr = (uint8_t*)m_items;
+	for (size_t i = 0; i < m_itemsNum; ++i)
+	{
+		uint32_t* flags = (uint32_t*)(&ptr[i * m_stride] + m_flagsOffset);
+		*flags &= ~flag_selected;
+	}
 }
 
