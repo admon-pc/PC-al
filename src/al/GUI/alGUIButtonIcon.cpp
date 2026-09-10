@@ -189,7 +189,6 @@ void alGUIButtonIcon::Rebuild()
 	{
 		m_textPosition.x = m_buildArea.z + m_textIndent.x;
 		m_textPosition.y = m_buildArea.y + m_textIndent.y;
-
 		m_textPosition.x += 1;
 
 		float32_t tlen = m_font->GetTextLength(m_text.c_str(), m_text.Size());

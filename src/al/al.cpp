@@ -38,8 +38,16 @@
 
 alLibGlobalData g_alLibGlobalData;
 
+AL_LINK_LIBRARY(zlib);
+AL_LINK_LIBRARY(jpeglib);
+AL_LINK_LIBRARY(libpng);
+AL_LINK_LIBRARY(fastlz);
+AL_LINK_LIBRARY(minizip);
+
+
 // GS
 alGS* alCreateGS_d3d11();
+AL_LINK_LIBRARY(al.d3d11);
 
 #ifdef LoadImage
 #undef LoadImage
