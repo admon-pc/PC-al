@@ -1,6 +1,8 @@
 ﻿#ifndef _AL_MATHH_
 #define _AL_MATHH_
 
+#ifndef AL_MATH
+#define AL_MATH
 #define alInfinity std::numeric_limits<float32_t>::infinity()
 #define alEpsilon std::numeric_limits<float32_t>::epsilon()
 
@@ -31,7 +33,7 @@ constexpr float64_t PI = 3.14159265358979323846;
 constexpr float64_t PIHalf = 3.14159265358979323846 * 0.5;
 constexpr float64_t PIPlusHalf = 3.14159265358979323846 + PIHalf;
 constexpr float64_t PIPI = PI+PI;
-
+#endif
 
 #include "Math/alVector.h"
 #include "Math/alQuaternion.h"

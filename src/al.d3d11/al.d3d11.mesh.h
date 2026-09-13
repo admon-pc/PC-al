@@ -14,6 +14,8 @@ public:
 	
 	void OnCreate();
 
+	alMesh* m_mesh = 0;
+
 	ID3D11Buffer* m_lockedResource = 0;
 	ID3D11Buffer* m_vBuffer = 0;
 	ID3D11Buffer* m_iBuffer = 0;

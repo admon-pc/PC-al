@@ -17,7 +17,7 @@ class alImage;
 class alGS;
 class alColor;
 class alGSMesh;
-class alGSMeshInfo;
+//class alGSMeshInfo;
 struct alGSShaderCreationInfo;
 struct alCompressDataInfo;
 struct alGUIColorTheme;

@@ -211,10 +211,10 @@ alGSMesh* alGUIContext::_create_bg_mesh(
 		inds++;
 	}
 
-	alGSMeshInfo info;
-	info.m_meshPtr = mesh;
+	//alGSMeshInfo info;
+	//info.m_meshPtr = mesh;
 
-	auto meshGPU = m_gs->CreateMesh(&info);
+	auto meshGPU = m_gs->CreateMesh(mesh);
 	alDestroy(mesh);
 	return meshGPU;
 }

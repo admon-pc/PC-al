@@ -140,7 +140,7 @@ public:
 	}
 
 	// 0xff112233
-	uint32_t getAsInteger()
+	uint32_t GetAsInteger()
 	{
 		return AL_MAKEFOURCC(
 			this->GetAsByteBlue(),

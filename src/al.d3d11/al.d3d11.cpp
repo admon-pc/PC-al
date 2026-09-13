@@ -321,7 +321,8 @@ bool alGSD3D11::Init(alSystemWindow* sw)
 		inds[5] = 3;
 
 		m_mainTargetSurface = alCreate<alD3D11Model>();
-		m_mainTargetSurface->GetMeshInfo()->m_meshPtr = mesh;
+		//m_mainTargetSurface->GetMeshInfo()->m_meshPtr = mesh;
+		m_mainTargetSurface->m_mesh = mesh;
 		m_mainTargetSurface->OnCreate();
 		alDestroy(mesh);
 	}
@@ -641,10 +642,12 @@ alGSTexture* alGSD3D11::CreateTexture(alGSTextureInfo* ti)
 	return t;
 }
 
-alGSMesh* alGSD3D11::CreateMesh(alGSMeshInfo* mi)
+//alGSMesh* alGSD3D11::CreateMesh(alGSMeshInfo* mi)
+alGSMesh* alGSD3D11::CreateMesh(alMesh* mesh)
 {
 	auto m = alCreate<alD3D11Model>();
-	*m->GetMeshInfo() = *mi;
+	//*m->GetMeshInfo() = *mesh;
+	m->m_mesh = mesh;
 	m->OnCreate();
 	return m;
 }

@@ -57,7 +57,10 @@ public:
 	virtual void SwapBuffers() = 0;
 	virtual void UpdateWindowData() = 0;
 	virtual alGSTexture* CreateTexture(alGSTextureInfo*) = 0;
-	virtual alGSMesh* CreateMesh(alGSMeshInfo*) = 0;
+	
+	//virtual alGSMesh* CreateMesh(alGSMeshInfo*) = 0;
+	virtual alGSMesh* CreateMesh(alMesh*) = 0;
+
 	virtual void SetRenderTarget(alGSTexture*) = 0;
 	virtual void SetViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) = 0;
 	virtual void SetScissorRect(const alVec4f& rect) = 0;

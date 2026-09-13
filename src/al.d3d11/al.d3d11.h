@@ -181,7 +181,10 @@ public:
 	virtual void SwapBuffers() override;
 	virtual void UpdateWindowData() override;
 	virtual alGSTexture* CreateTexture(alGSTextureInfo*) override;
-	virtual alGSMesh* CreateMesh(alGSMeshInfo*) override;
+	
+	//virtual alGSMesh* CreateMesh(alGSMeshInfo*) override;
+	virtual alGSMesh* CreateMesh(alMesh*) override;
+
 	virtual void SetRenderTarget(alGSTexture*) override;
 	virtual void SetViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) override;
 	virtual void SetScissorRect(const alVec4f& rect) override;

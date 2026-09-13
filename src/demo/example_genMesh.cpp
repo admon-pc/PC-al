@@ -28,9 +28,7 @@ bool DemoExample_genMesh::Init()
 	alMesh* mesh = pmesh.CreateMesh();
 	if (mesh)
 	{
-		alGSMeshInfo mi;
-		mi.m_meshPtr = mesh;
-		m_meshCube = m_gs->CreateMesh(&mi);
+		m_meshCube = m_gs->CreateMesh(mesh);
 		AL_DESTROY(mesh);
 	}
 
@@ -40,9 +38,7 @@ bool DemoExample_genMesh::Init()
 	mesh = pmesh.CreateMesh();
 	if (mesh)
 	{
-		alGSMeshInfo mi;
-		mi.m_meshPtr = mesh;
-		m_meshSphere = m_gs->CreateMesh(&mi);
+		m_meshSphere = m_gs->CreateMesh(mesh);
 		AL_DESTROY(mesh);
 	}
 
@@ -70,9 +66,7 @@ bool DemoExample_genMesh::Init()
 	mesh = pmesh.CreateMesh();
 	if (mesh)
 	{
-		alGSMeshInfo mi;
-		mi.m_meshPtr = mesh;
-		m_meshTriangles = m_gs->CreateMesh(&mi);
+		m_meshTriangles = m_gs->CreateMesh(mesh);
 		AL_DESTROY(mesh);
 	}
 

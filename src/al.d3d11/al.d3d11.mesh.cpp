@@ -17,7 +17,7 @@ void alD3D11Model::OnCreate()
 	if (m_vBuffer)
 		return;
 
-	alMesh* mesh = (alMesh*)m_meshInfo.m_meshPtr;
+	alMesh* mesh = m_mesh;
 	if (!mesh->m_vertices)
 		return;
 

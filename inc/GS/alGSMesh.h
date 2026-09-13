@@ -3,24 +3,24 @@
 
 #include "Geometry/alMesh.h"
 
-class alGSMeshInfo
-{
-public:
-	alGSMeshInfo() {}
-	~alGSMeshInfo() {}
-
-	alMesh* m_meshPtr = nullptr;
-};
+//class alGSMeshInfo
+//{
+//public:
+//	alGSMeshInfo() {}
+//	~alGSMeshInfo() {}
+//
+//	alMesh* m_meshPtr = nullptr;
+//};
 
 class alGSMesh
 {
-protected:
-	alGSMeshInfo m_meshInfo;
+protected:/*
+	alGSMeshInfo m_meshInfo;*/
 public:
 	alGSMesh() {}
 	virtual ~alGSMesh() {}
 
-	alGSMeshInfo* GetMeshInfo() { return &m_meshInfo; }
+	//alGSMeshInfo* GetMeshInfo() { return &m_meshInfo; }
 
 	// destroy old mesh, create new.
 	// m_meshInfo->m_meshPtr must exist.

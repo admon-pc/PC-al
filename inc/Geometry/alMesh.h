@@ -201,8 +201,8 @@ public:
 
 	alAabb m_aabb;
 
-	uint8_t* m_vertices = nullptr;
-	uint8_t* m_indices = nullptr;
+	uint8_t* m_vertices = 0;
+	uint8_t* m_indices = 0;
 	alMeshIndexType m_indexType = alMeshIndexType::u16;
 
 	uint32_t m_vCount = 0;
