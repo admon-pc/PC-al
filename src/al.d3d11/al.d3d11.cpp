@@ -788,7 +788,7 @@ void alGSD3D11::SetShader(alGSShader* s)
 		m_d3d11DevCon->GSSetShader(shader->m_gShader, 0, 0);
 		m_d3d11DevCon->PSSetShader(shader->m_pShader, 0, 0);
 
-		m_currShader->m_info.m_callback->OnSetShader();
+	m_currShader->m_info.m_callback->OnSetShader();
 }
 
 alGSTexture* alGSD3D11::GetWhiteTexture()

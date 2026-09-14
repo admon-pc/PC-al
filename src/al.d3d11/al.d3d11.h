@@ -130,7 +130,6 @@ public:
 		alVec4 P2;
 		alColor  Color;
 	}m_cbData;
-	//ID3D11Buffer* m_cb =0;
 	alD3D11GSShaderConstantBuffer* m_cb = 0;
 
 	void SetData(const alVec4& p1, const alVec4& p2, const alColor& color, const alMat4& projMat) {
@@ -138,6 +137,10 @@ public:
 		m_cbData.P2 = p2;
 		m_cbData.Color = color;
 		m_cbData.VP = projMat; // g_d3d11->m_matrixViewProjection;
+	}
+	virtual void OnSetShader()
+	{
+		m_cb->VSSetConstantBuffers(0);
 	}
 	alD3D11Shader* m_shader = 0;
 };
