@@ -48,6 +48,9 @@ public:
 	virtual void ClearAll() = 0;
 	virtual void Draw() = 0;
 
+	virtual void DrawLine3D(const alVec4& _p1, const alVec4& _p2, const alColor& color) = 0;
+	virtual void DrawLine2D(const alVec2f& _p1, const alVec2f& _p2, const alColor& color) = 0;
+
 	// Draw mesh with alMeshVertexType::GUI
 	virtual void DrawMeshGUI(alGSMesh* mesh, const alVec2f& offset, const alColor& color) = 0;
 

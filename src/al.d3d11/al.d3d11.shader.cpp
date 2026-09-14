@@ -473,10 +473,13 @@ bool alD3D11Shader::Create(const alGSShaderCreationInfo& inf)
 		}
 		else
 		{
-			alD3D11Shader_CreateInputLayout(inf, &m_vLayout, VsBlob);
-			if (!m_vLayout)
+			if (inf.m_vertexType != alMeshVertexType::Null)
 			{
-				ret = false;
+				alD3D11Shader_CreateInputLayout(inf, &m_vLayout, VsBlob);
+				if (!m_vLayout)
+				{
+					ret = false;
+				}
 			}
 		}
 	}

@@ -51,7 +51,7 @@ public:
 
 	struct cbVertex
 	{
-		alMatrix_t<float32_t> m_ProjMtx;
+		alMat4 m_ProjMtx;
 		alVec4f m_Corners;
 		alColor m_Color1;
 		alColor m_Color2;
@@ -82,7 +82,7 @@ public:
 
 	struct cbVertex
 	{
-		alMatrix_t<float32_t> m_ProjMtx;
+		alMat4 m_ProjMtx;
 		alVec2f m_Offset;
 		alVec2f m_Padding;
 	}m_cbVertex_impl;
@@ -112,18 +112,34 @@ public:
 	}
 	
 	alD3D11Shader* m_shader = 0;
-
-	/*struct cbVertex 
-	{
-		alMat4 m_ProjMtx;
-		alVec4f m_Corners;
-		alColor m_Color1;
-		alColor m_Color2;
-		alVec4f m_UVs;
-	}m_cbVertex_impl;*/
-	//ID3D11Buffer* m_cbVertex;
-
 	alD3D11GSShaderConstantBuffer* m_cb = 0;
+};
+
+class alD3D11Shader_Line3D : public alGSShaderCallback
+{
+public:
+	alD3D11Shader_Line3D() {}
+	virtual ~alD3D11Shader_Line3D()
+	{
+		AL_DESTROY(m_shader);
+	}
+	struct cb
+	{
+		alMat4 VP;
+		alVec4  P1;
+		alVec4 P2;
+		alColor  Color;
+	}m_cbData;
+	//ID3D11Buffer* m_cb =0;
+	alD3D11GSShaderConstantBuffer* m_cb = 0;
+
+	void SetData(const alVec4& p1, const alVec4& p2, const alColor& color, const alMat4& projMat) {
+		m_cbData.P1 = p1;
+		m_cbData.P2 = p2;
+		m_cbData.Color = color;
+		m_cbData.VP = projMat; // g_d3d11->m_matrixViewProjection;
+	}
+	alD3D11Shader* m_shader = 0;
 };
 
 class alGSD3D11 : public alGS
@@ -139,7 +155,7 @@ class alGSD3D11 : public alGS
 	ID3D11BlendState* m_blendStateAlphaEnabled = 0;
 	ID3D11BlendState* m_blendStateAlphaDisabled = 0;
 
-	alMatrix_t<float32_t> m_GUIProjMtx;
+	alMat4 m_GUIProjMtx;
 
 	// for rtt from window data
 	alD3D11Texture* m_currRTT = 0;
@@ -157,6 +173,7 @@ class alGSD3D11 : public alGS
 
 	alD3D11Shader_GUIRectangle* m_shaderGUIRectangle = 0;
 	alD3D11Shader_GUIMesh* m_shaderGUIMesh = 0;
+	alD3D11Shader_Line3D* m_shaderLine3D = 0;
 
 	alD3D11Shader* m_currShader = 0;
 	alD3D11Model* m_currMesh = 0;
@@ -174,6 +191,8 @@ public:
 	virtual void ClearColor() override;
 	virtual void ClearAll() override;
 	virtual void Draw() override;
+	virtual void DrawLine3D(const alVec4& _p1, const alVec4& _p2, const alColor& color) override;
+	virtual void DrawLine2D(const alVec2f& _p1, const alVec2f& _p2, const alColor& color) override;
 	virtual void DrawMeshGUI(alGSMesh* mesh, const alVec2f& offset, const alColor& color) override;
 	virtual void EndDraw() override;
 	virtual void BeginDrawGUI(bool clear) override;

@@ -9,7 +9,7 @@ struct VSIn
 
 cbuffer cbVertex
 {
-	float4x4 ProjMtx;
+	double4x4 ProjMtx;
 	float2 Offset;
 	float2 Padding;
 };

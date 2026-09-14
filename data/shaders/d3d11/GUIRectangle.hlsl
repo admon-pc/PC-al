@@ -1,6 +1,6 @@
 cbuffer cbVertex
 {
-	float4x4 ProjMtx;
+	double4x4 ProjMtx;
 	float4 Corners;
 	float4 Color1;
 	float4 Color2;

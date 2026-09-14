@@ -30,6 +30,7 @@ alGSD3D11::~alGSD3D11()
 	AL_DESTROY(m_shaderScreenQuad);
 	AL_DESTROY(m_shaderGUIRectangle);
 	AL_DESTROY(m_shaderGUIMesh);
+	AL_DESTROY(m_shaderLine3D);
 	AL_DESTROY(m_GUIRTT);
 
 	for (size_t i = 0; i < m_allWindowsData.m_size; ++i)
@@ -357,9 +358,9 @@ bool alGSD3D11::Init(alSystemWindow* sw)
 		inf.m_shaderFile_VS = "../data/shaders/d3d11/GUIRectangle.hlsl";
 		inf.m_shaderFile_PS = "../data/shaders/d3d11/GUIRectangle.hlsl";
 		inf.m_shaderFile_GS = "../data/shaders/d3d11/GUIRectangle.hlsl";
-		inf.m_shaderModel_VS = "vs_4_0";
-		inf.m_shaderModel_PS = "ps_4_0";
-		inf.m_shaderModel_GS = "gs_4_0";
+		inf.m_shaderModel_VS = "vs_5_0";
+		inf.m_shaderModel_PS = "ps_5_0";
+		inf.m_shaderModel_GS = "gs_5_0";
 		m_shaderGUIRectangle->m_shader = dynamic_cast<alD3D11Shader*>(CreateShader(inf));
 		if (!m_shaderGUIRectangle->m_shader)
 			return false;
@@ -378,8 +379,8 @@ bool alGSD3D11::Init(alSystemWindow* sw)
 		inf.m_shaderEntry_PS = "PSMain";
 		inf.m_shaderFile_VS = "../data/shaders/d3d11/GUIMesh.hlsl";
 		inf.m_shaderFile_PS = "../data/shaders/d3d11/GUIMesh.hlsl";
-		inf.m_shaderModel_VS = "vs_4_0";
-		inf.m_shaderModel_PS = "ps_4_0";
+		inf.m_shaderModel_VS = "vs_5_0";
+		inf.m_shaderModel_PS = "ps_5_0";
 		m_shaderGUIMesh->m_shader = dynamic_cast<alD3D11Shader*>(CreateShader(inf));
 		if (!m_shaderGUIMesh->m_shader)
 			return false;
@@ -393,6 +394,26 @@ bool alGSD3D11::Init(alSystemWindow* sw)
 			(m_shaderGUIMesh->m_shader
 				->CreateConstantBuffer(
 					sizeof(m_shaderGUIMesh->m_cbPixel_impl)));
+	}
+	{
+		m_shaderLine3D = alCreate<alD3D11Shader_Line3D>();
+		alGSShaderCreationInfo inf;
+		inf.m_callback = m_shaderLine3D;
+		inf.m_vertexType = alMeshVertexType::Null;
+		inf.m_shaderEntry_VS = "VSMain";
+		inf.m_shaderEntry_PS = "PSMain";
+		inf.m_shaderFile_VS = "../data/shaders/d3d11/Line.hlsl";
+		inf.m_shaderFile_PS = "../data/shaders/d3d11/Line.hlsl";
+		inf.m_shaderModel_VS = "vs_5_0";
+		inf.m_shaderModel_PS = "ps_5_0";
+		m_shaderLine3D->m_shader = dynamic_cast<alD3D11Shader*>(CreateShader(inf));
+		if (!m_shaderLine3D->m_shader)
+			return false;
+		m_shaderLine3D->m_cb
+			= dynamic_cast<alD3D11GSShaderConstantBuffer*>
+			(m_shaderLine3D->m_shader
+				->CreateConstantBuffer(
+					sizeof(m_shaderLine3D->m_cbData)));
 	}
 
 	SetClearColor(ColorMediumSeaGreen);
@@ -465,6 +486,33 @@ void alGSD3D11::Draw()
 		break;
 	}
 }
+
+void alGSD3D11::DrawLine3D(const alVec4& _p1, const alVec4& _p2, const alColor& color)
+{
+	m_d3d11DevCon->IASetInputLayout(NULL);
+	m_d3d11DevCon->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
+
+	SetShader(m_shaderLine3D->m_shader);
+	m_shaderLine3D->SetData(_p1, _p2, color, *alLib::GetMatrix(alMatrixType::ViewProjection));
+	m_shaderLine3D->m_cb->MapData(&m_shaderLine3D->m_cbData, sizeof(m_shaderLine3D->m_cbData));
+
+	m_d3d11DevCon->Draw(2, 0);
+}
+
+void alGSD3D11::DrawLine2D(const alVec2f& _p1, const alVec2f& _p2, const alColor& color)
+{
+	alVec4 p1(_p1.x, _p1.y, 0.f, 0.f);
+	alVec4 p2(_p2.x, _p2.y, 0.f, 0.f);
+	m_d3d11DevCon->IASetInputLayout(NULL);
+	m_d3d11DevCon->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
+
+	SetShader(m_shaderLine3D->m_shader);
+	m_shaderLine3D->SetData(p1, p2, color, m_GUIProjMtx);
+	m_shaderLine3D->m_cb->MapData(&m_shaderLine3D->m_cbData, sizeof(m_shaderLine3D->m_cbData));
+
+	m_d3d11DevCon->Draw(2, 0);
+}
+
 
 void alGSD3D11::DrawMeshGUI(alGSMesh* mesh, const alVec2f& offset, const alColor& color)
 {
@@ -724,10 +772,10 @@ void alGSD3D11::UpdateGUIProjection()
 	float32_t T = 0;
 	float32_t B = (float32_t)m_activeWindow->m_clientSize.y;
 
-	m_GUIProjMtx.m_data[0] = alVec4f(2.0f / (R - L), 0.0f, 0.0f, 0.0f);
-	m_GUIProjMtx.m_data[1] = alVec4f(0.0, 2.0f / (T - B), 0.0f, 0.0f);
-	m_GUIProjMtx.m_data[2] = alVec4f(0.0, 0.0, 0.5f, 0.0f);
-	m_GUIProjMtx.m_data[3] = alVec4f((R + L) / (L - R), (T + B) / (B - T), 0.5f, 1.0f);
+	m_GUIProjMtx.m_data[0] = alVec4(2.0f / (R - L), 0.0f, 0.0f, 0.0f);
+	m_GUIProjMtx.m_data[1] = alVec4(0.0, 2.0f / (T - B), 0.0f, 0.0f);
+	m_GUIProjMtx.m_data[2] = alVec4(0.0, 0.0, 0.5f, 0.0f);
+	m_GUIProjMtx.m_data[3] = alVec4((R + L) / (L - R), (T + B) / (B - T), 0.5f, 1.0f);
 }
 
 void alGSD3D11::SetShader(alGSShader* s)
