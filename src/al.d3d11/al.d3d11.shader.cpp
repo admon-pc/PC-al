@@ -12,7 +12,7 @@ void alD3D11Shader_CreateInputLayout(
 
 	if (inf.m_vertexType != alMeshVertexType::Null)
 	{
-		D3D11_INPUT_ELEMENT_DESC vertexLayout[8];
+		D3D11_INPUT_ELEMENT_DESC vertexLayout[10];
 		uint32_t vertexLayoutSize = 0;
 		/*
 		LPCSTR SemanticName;
@@ -48,6 +48,7 @@ void alD3D11Shader_CreateInputLayout(
 			vertexLayout[ind].InstanceDataStepRate = 0;
 			break;
 		case alMeshVertexType::Triangle:
+		case alMeshVertexType::AnimatedTriangle:
 			ind = 0;
 			vertexLayout[ind].SemanticName = "POSITION";
 			vertexLayout[ind].SemanticIndex = 0;
@@ -117,110 +118,42 @@ void alD3D11Shader_CreateInputLayout(
 			vertexLayout[ind].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 			vertexLayout[ind].InstanceDataStepRate = 0;
 			abo += 16;
-			break;
-		case alMeshVertexType::AnimatedTriangle:
-			ind = 0;
-			vertexLayout[ind].SemanticName = "POSITION";
-			vertexLayout[ind].SemanticIndex = 0;
-			vertexLayout[ind].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-			vertexLayout[ind].InputSlot = 0;
-			vertexLayout[ind].AlignedByteOffset = 0;
-			vertexLayout[ind].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-			vertexLayout[ind].InstanceDataStepRate = 0;
+			if (inf.m_vertexType == alMeshVertexType::AnimatedTriangle)
+			{
+				ind++;
+				vertexLayout[ind].SemanticName = "WEIGHTS";
+				vertexLayout[ind].SemanticIndex = 0;
+				vertexLayout[ind].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+				vertexLayout[ind].InputSlot = 0;
+				vertexLayout[ind].AlignedByteOffset = abo;
+				vertexLayout[ind].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+				vertexLayout[ind].InstanceDataStepRate = 0;
+				abo += 16;
 
-			ind++;
-			vertexLayout[ind].SemanticName = "TEXCOORD";
-			vertexLayout[ind].SemanticIndex = 0;
-			vertexLayout[ind].Format = DXGI_FORMAT_R32G32_FLOAT;
-			vertexLayout[ind].InputSlot = 0;
-			vertexLayout[ind].AlignedByteOffset = 12;
-			vertexLayout[ind].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-			vertexLayout[ind].InstanceDataStepRate = 0;
-
-			ind++;
-			vertexLayout[ind].SemanticName = "NORMAL";
-			vertexLayout[ind].SemanticIndex = 0;
-			vertexLayout[ind].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-			vertexLayout[ind].InputSlot = 0;
-			vertexLayout[ind].AlignedByteOffset = 20;
-			vertexLayout[ind].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-			vertexLayout[ind].InstanceDataStepRate = 0;
-
-			ind++;
-			vertexLayout[ind].SemanticName = "BINORMAL";
-			vertexLayout[ind].SemanticIndex = 0;
-			vertexLayout[ind].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-			vertexLayout[ind].InputSlot = 0;
-			vertexLayout[ind].AlignedByteOffset = 32;
-			vertexLayout[ind].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-			vertexLayout[ind].InstanceDataStepRate = 0;
-
-			ind++;
-			vertexLayout[ind].SemanticName = "TANGENT";
-			vertexLayout[ind].SemanticIndex = 0;
-			vertexLayout[ind].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-			vertexLayout[ind].InputSlot = 0;
-			vertexLayout[ind].AlignedByteOffset = 44;
-			vertexLayout[ind].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-			vertexLayout[ind].InstanceDataStepRate = 0;
-
-			ind++;
-			vertexLayout[ind].SemanticName = "COLOR";
-			vertexLayout[ind].SemanticIndex = 0;
-			vertexLayout[ind].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-			vertexLayout[ind].InputSlot = 0;
-			vertexLayout[ind].AlignedByteOffset = 56;
-			vertexLayout[ind].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-			vertexLayout[ind].InstanceDataStepRate = 0;
-
-			ind++;
-			vertexLayout[ind].SemanticName = "WEIGHTS";
-			vertexLayout[ind].SemanticIndex = 0;
-			vertexLayout[ind].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-			vertexLayout[ind].InputSlot = 0;
-			vertexLayout[ind].AlignedByteOffset = 72;
-			vertexLayout[ind].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-			vertexLayout[ind].InstanceDataStepRate = 0;
-
-			ind++;
-			vertexLayout[ind].SemanticName = "BONES";
-			vertexLayout[ind].SemanticIndex = 0;
-			vertexLayout[ind].Format = DXGI_FORMAT_R32G32B32A32_UINT;
-			vertexLayout[ind].InputSlot = 0;
-			vertexLayout[ind].AlignedByteOffset = 88;
-			vertexLayout[ind].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-			vertexLayout[ind].InstanceDataStepRate = 0;
-
+				ind++;
+				vertexLayout[ind].SemanticName = "BONES";
+				vertexLayout[ind].SemanticIndex = 0;
+				vertexLayout[ind].Format = DXGI_FORMAT_R32G32B32A32_UINT;
+				vertexLayout[ind].InputSlot = 0;
+				vertexLayout[ind].AlignedByteOffset = abo;
+				vertexLayout[ind].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+				vertexLayout[ind].InstanceDataStepRate = 0;
+				abo += 16;
+			}
 			break;
 		case alMeshVertexType::Line:
-			ind = 0;
-			vertexLayout[ind].SemanticName = "POSITION";
-			vertexLayout[ind].SemanticIndex = 0;
-			vertexLayout[ind].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-			vertexLayout[ind].InputSlot = 0;
-			vertexLayout[ind].AlignedByteOffset = 0;
-			vertexLayout[ind].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-			vertexLayout[ind].InstanceDataStepRate = 0;
-
-
-			ind++;
-			vertexLayout[ind].SemanticName = "COLOR";
-			vertexLayout[ind].SemanticIndex = 0;
-			vertexLayout[ind].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-			vertexLayout[ind].InputSlot = 0;
-			vertexLayout[ind].AlignedByteOffset = 12;
-			vertexLayout[ind].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-			vertexLayout[ind].InstanceDataStepRate = 0;
-			break;
 		case alMeshVertexType::AnimatedLine:
 			ind = 0;
+			abo = 0;
+
 			vertexLayout[ind].SemanticName = "POSITION";
 			vertexLayout[ind].SemanticIndex = 0;
 			vertexLayout[ind].Format = DXGI_FORMAT_R32G32B32_FLOAT;
 			vertexLayout[ind].InputSlot = 0;
-			vertexLayout[ind].AlignedByteOffset = 0;
+			vertexLayout[ind].AlignedByteOffset = abo;
 			vertexLayout[ind].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 			vertexLayout[ind].InstanceDataStepRate = 0;
+			abo += 12;
 
 
 			ind++;
@@ -228,27 +161,31 @@ void alD3D11Shader_CreateInputLayout(
 			vertexLayout[ind].SemanticIndex = 0;
 			vertexLayout[ind].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 			vertexLayout[ind].InputSlot = 0;
-			vertexLayout[ind].AlignedByteOffset = 12;
+			vertexLayout[ind].AlignedByteOffset = abo;
 			vertexLayout[ind].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 			vertexLayout[ind].InstanceDataStepRate = 0;
+			abo += 16;
+			if (inf.m_vertexType == alMeshVertexType::AnimatedLine)
+			{
+				ind++;
+				vertexLayout[ind].SemanticName = "WEIGHTS";
+				vertexLayout[ind].SemanticIndex = 0;
+				vertexLayout[ind].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+				vertexLayout[ind].InputSlot = 0;
+				vertexLayout[ind].AlignedByteOffset = abo;
+				vertexLayout[ind].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+				vertexLayout[ind].InstanceDataStepRate = 0;
+				abo += 16;
 
-			ind++;
-			vertexLayout[ind].SemanticName = "WEIGHTS";
-			vertexLayout[ind].SemanticIndex = 0;
-			vertexLayout[ind].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-			vertexLayout[ind].InputSlot = 0;
-			vertexLayout[ind].AlignedByteOffset = 28;
-			vertexLayout[ind].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-			vertexLayout[ind].InstanceDataStepRate = 0;
-
-			ind++;
-			vertexLayout[ind].SemanticName = "BONES";
-			vertexLayout[ind].SemanticIndex = 0;
-			vertexLayout[ind].Format = DXGI_FORMAT_R32G32B32A32_UINT;
-			vertexLayout[ind].InputSlot = 0;
-			vertexLayout[ind].AlignedByteOffset = 44;
-			vertexLayout[ind].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-			vertexLayout[ind].InstanceDataStepRate = 0;
+				ind++;
+				vertexLayout[ind].SemanticName = "BONES";
+				vertexLayout[ind].SemanticIndex = 0;
+				vertexLayout[ind].Format = DXGI_FORMAT_R32G32B32A32_UINT;
+				vertexLayout[ind].InputSlot = 0;
+				vertexLayout[ind].AlignedByteOffset = abo;
+				vertexLayout[ind].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+				vertexLayout[ind].InstanceDataStepRate = 0;
+			}
 			break;
 		case alMeshVertexType::Point:
 			ind = 0;
