@@ -70,6 +70,43 @@ bool alMath::PointInRect(float32_t x, float32_t y, const alVec4f& rect)
 	return false;
 }
 
+bool alMath::PointInRect(const alVec2f& pt, const alVec4f& rect)
+{
+	if (pt.x >= rect.x)
+	{
+		if (pt.x <= rect.z)
+		{
+			if (pt.y >= rect.y)
+			{
+				if (pt.y <= rect.w)
+				{
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
+bool alMath::PointInRect(const alVec2i& pt, const alVec4f& rect)
+{
+	if ((float32_t)pt.x >= rect.x)
+	{
+		if ((float32_t)pt.x <= rect.z)
+		{
+			if ((float32_t)pt.y >= rect.y)
+			{
+				if ((float32_t)pt.y <= rect.w)
+				{
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
+
 float32_t alMath::DegToRad(float32_t degrees)
 {
 	return degrees * (PIf / 180.f);

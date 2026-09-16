@@ -9,7 +9,9 @@ public:
 	virtual ~alSystemPopup() {}
 
 	virtual alSystemPopup* CreateSubMenu(const char32_t* text) = 0;
-	virtual void AddItem(const char32_t*, uint32_t id, const char32_t* shortcut) = 0;
+	virtual void AddItem(const char32_t*, uint32_t id, 
+		const char32_t* shortcut, bool checked = false,
+		bool disabled = false) = 0;
 	virtual void AddSeparator() = 0;
 	virtual void Show(alSystemWindow*, uint32_t x, uint32_t y) = 0;
 };

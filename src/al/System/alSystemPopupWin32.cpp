@@ -36,7 +36,8 @@ alSystemPopup* alSystemPopupWin32::CreateSubMenu(const char32_t* text)
 	return newSubMenu;
 }
 
-void alSystemPopupWin32::AddItem(const char32_t* text, uint32_t id, const char32_t* shortcut)
+void alSystemPopupWin32::AddItem(const char32_t* text, uint32_t id, 
+	const char32_t* shortcut, bool checked, bool disabled)
 {
 	AL_ASSERT_ST(text);
 	alUnicodeString ustr;
@@ -48,7 +49,14 @@ void alSystemPopupWin32::AddItem(const char32_t* text, uint32_t id, const char32
 		strw += L"\t";
 		strw += shortcut;
 	}
-	AppendMenu(m_hPopupMenu, MF_BYPOSITION | MF_STRING, id, strw.data());
+
+	uint32_t flags = MF_BYPOSITION | MF_STRING;
+	if (checked)
+		flags |= MF_CHECKED;
+	if (disabled)
+		flags |= MF_DISABLED;
+
+	AppendMenu(m_hPopupMenu, flags, id, strw.data());
 }
 
 

@@ -52,6 +52,8 @@ public:
 	static bool PointInRect(int32_t x, int32_t y, const alVec4i& rect);
 	static bool PointInRect(int32_t x, int32_t y, const alVec4f& rect);
 	static bool PointInRect(float32_t x, float32_t y, const alVec4f& rect);
+	static bool PointInRect(const alVec2f&, const alVec4f& rect);
+	static bool PointInRect(const alVec2i&, const alVec4f& rect);
 	static float32_t DegToRad(float32_t degrees);
 	static float32_t RadToDeg(float32_t radians);
 	static float32_t Clamp(float32_t x, float32_t min, float32_t max);
