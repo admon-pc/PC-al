@@ -194,11 +194,14 @@ public:
 	virtual void ClearColor() override;
 	virtual void ClearAll() override;
 	virtual void Draw() override;
+	virtual void BeginDrawLine3D() override;
 	virtual void DrawLine3D(const alVec4& _p1, const alVec4& _p2, const alColor& color) override;
+	virtual void BeginDrawLine2D() override;
 	virtual void DrawLine2D(const alVec2f& _p1, const alVec2f& _p2, const alColor& color) override;
 	virtual void DrawMeshGUI(alGSMesh* mesh, const alVec2f& offset, const alColor& color) override;
 	virtual void EndDraw() override;
 	virtual void BeginDrawGUI(bool clear) override;
+	virtual void ActivateGUIShader() override;
 	virtual void EndDrawGUI() override;
 	virtual void SwapBuffers() override;
 	virtual void UpdateWindowData() override;

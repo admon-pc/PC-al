@@ -487,29 +487,30 @@ void alGSD3D11::Draw()
 	}
 }
 
-void alGSD3D11::DrawLine3D(const alVec4& _p1, const alVec4& _p2, const alColor& color)
+void alGSD3D11::BeginDrawLine3D()
 {
 	m_d3d11DevCon->IASetInputLayout(NULL);
 	m_d3d11DevCon->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
-
 	SetShader(m_shaderLine3D->m_shader);
+}
+void alGSD3D11::DrawLine3D(const alVec4& _p1, const alVec4& _p2, const alColor& color)
+{
 	m_shaderLine3D->SetData(_p1, _p2, color, *alLib::GetMatrix(alMatrixType::ViewProjection));
 	m_shaderLine3D->m_cb->MapData(&m_shaderLine3D->m_cbData, sizeof(m_shaderLine3D->m_cbData));
-
 	m_d3d11DevCon->Draw(2, 0);
 }
-
+void alGSD3D11::BeginDrawLine2D()
+{
+	m_d3d11DevCon->IASetInputLayout(NULL);
+	m_d3d11DevCon->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
+	SetShader(m_shaderLine3D->m_shader);
+}
 void alGSD3D11::DrawLine2D(const alVec2f& _p1, const alVec2f& _p2, const alColor& color)
 {
 	alVec4 p1(_p1.x, _p1.y, 0.f, 0.f);
 	alVec4 p2(_p2.x, _p2.y, 0.f, 0.f);
-	m_d3d11DevCon->IASetInputLayout(NULL);
-	m_d3d11DevCon->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
-
-	SetShader(m_shaderLine3D->m_shader);
 	m_shaderLine3D->SetData(p1, p2, color, m_GUIProjMtx);
 	m_shaderLine3D->m_cb->MapData(&m_shaderLine3D->m_cbData, sizeof(m_shaderLine3D->m_cbData));
-
 	m_d3d11DevCon->Draw(2, 0);
 }
 
@@ -884,6 +885,16 @@ void alGSD3D11::DrawRectangle(const alVec4f& corners,
 	DrawRectangle(corners, color,color,texture,UVs);
 }
 
+void alGSD3D11::ActivateGUIShader()
+{
+	SetShader(m_shaderGUIRectangle->m_shader);
+	m_d3d11DevCon->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+	const float blend_factor[4] = { 0.f, 0.f, 0.f, 0.f };
+	m_d3d11DevCon->OMSetBlendState(m_blendStateAlphaEnabled, blend_factor, 0xffffffff);
+	m_d3d11DevCon->OMSetDepthStencilState(m_depthStencilStateDisabled, 0);
+	m_d3d11DevCon->RSSetState(m_RasterizerSolidNoBackFaceCulling);
+}
+
 void alGSD3D11::BeginDrawGUI(bool clear)
 {
 	m_shaderGUIRectangle->m_cbVertex_impl.m_ProjMtx = m_GUIProjMtx;
@@ -900,8 +911,7 @@ void alGSD3D11::BeginDrawGUI(bool clear)
 	m_d3d11DevCon->OMSetBlendState(m_blendStateAlphaEnabled, blend_factor, 0xffffffff);
 	m_d3d11DevCon->OMSetDepthStencilState(m_depthStencilStateDisabled, 0);
 	m_d3d11DevCon->RSSetState(m_RasterizerSolidNoBackFaceCulling);
-
-	SetShader(m_shaderGUIRectangle->m_shader);
+	ActivateGUIShader();
 }
 
 void alGSD3D11::EndDrawGUI()
