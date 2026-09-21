@@ -5,6 +5,8 @@
 
 #include "Image/alImage.h"
 
+#include "GUI/alGUI2.h"
+
 extern alDemo* g_demo;
 
 

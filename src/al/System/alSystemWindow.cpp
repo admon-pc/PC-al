@@ -56,7 +56,7 @@ alSystemWindow* alLibImpl::CreateSystemWindow(alSystemWindowCallback* cb)
 			HWND hWnd = CreateWindowW(
 				className,
 				L"_",
-				WS_OVERLAPPEDWINDOW,
+				WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN,
 				CW_USEDEFAULT,
 				0,
 				CW_USEDEFAULT,
