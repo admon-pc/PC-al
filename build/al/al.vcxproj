@@ -185,6 +185,7 @@
     <ClCompile Include="..\..\src\al\Geometry\alRay.cpp" />
     <ClCompile Include="..\..\src\al\Geometry\alTriangle.cpp" />
     <ClCompile Include="..\..\src\al\GS\alGSTextureCache.cpp" />
+    <ClCompile Include="..\..\src\al\GUI\alGUI2.cpp" />
     <ClCompile Include="..\..\src\al\GUI\alGUIButton.cpp" />
     <ClCompile Include="..\..\src\al\GUI\alGUIButtonIcon.cpp" />
     <ClCompile Include="..\..\src\al\GUI\alGUIComboBox.cpp" />

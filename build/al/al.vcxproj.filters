@@ -119,6 +119,9 @@
     <ClCompile Include="..\..\src\al\GUI\alGUIRangeSlider1.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\al\GUI\alGUI2.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Common">

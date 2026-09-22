@@ -5,6 +5,8 @@
 #undef CreateWindow
 #endif
 
+class alGUI2Window;
+
 class alGUI2WindowMessage
 {
 public:
@@ -45,14 +47,14 @@ public:
 	{}
 	~alGUI2Window() {}
 
-	void SendMessage(const alGUI2WindowMessage&);
+	void SendGUI2Message(const alGUI2WindowMessage&);
 	void ShowWindow();
 };
 
 class alGUI2
 {
 public:
-	static alGUI2Window* CreateWindow(alGUI2WindowCallback*, alGUI2Window* parent);
+	static alGUI2Window* CreateGUI2Window(alGUI2WindowCallback*, alGUI2Window* parent);
 };
 
 #endif

@@ -516,6 +516,41 @@ void alUnicodeString::ToUTF16(alStringW& str)
 			str.push_back(uc.m_16[1]);
 	}
 }
+
+void alUnicodeString::ToUTF8(std::string& str)
+{
+	alUnicodeConverter uc;
+	for (size_t i = 0; i < m_size; ++i)
+	{
+		uc.Set(m_data[i]);
+
+		if (!uc.m_8Num)
+			break;
+
+		for (size_t o = 0; o < uc.m_8Num; ++o)
+		{
+			str.push_back(uc.m_8[o]);
+		}
+	}
+}
+
+void alUnicodeString::ToUTF16(std::wstring& str)
+{
+	alUnicodeConverter uc;
+	for (size_t i = 0; i < m_size; ++i)
+	{
+		uc.Set(m_data[i]);
+
+		if (!uc.m_16Num)
+			break;
+
+		str.push_back(uc.m_16[0]);
+		if (uc.m_16Num == 2)
+			str.push_back(uc.m_16[1]);
+	}
+}
+
+
 uint32_t alUnicodeString::_readFromFile(FILE* f)
 {
 	uint32_t ret = 1;

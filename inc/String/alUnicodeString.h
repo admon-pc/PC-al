@@ -1,6 +1,8 @@
 ﻿#ifndef _AL_USTRINGH_
 #define _AL_USTRINGH_
 
+#include <string>
+
 class alUnicodeConverter
 {
 	void _find16From32();
@@ -149,6 +151,8 @@ public:
 	float64_t ToFloat64();
 	void ToUTF8(alStringA&);
 	void ToUTF16(alStringW&);
+	void ToUTF8(std::string&);
+	void ToUTF16(std::wstring&);
 
 	// return is encoding type
 	// 1 - utf8
