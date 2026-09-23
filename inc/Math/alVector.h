@@ -9,12 +9,15 @@ class alVec2_t
 {
 public:
 	alVec2_t<Type>(){}
-	alVec2_t<Type>(Type _x, Type _y) :x(_x), y(_y) {}
+	template<class T1, class T2>
+	alVec2_t<Type>(T1 _x, T2 _y) :x(static_cast<Type>(_x)), y(static_cast<Type>(_y)) {}
 	alVec2_t<Type>(Type val) :x(val), y(val) {}
 	Type x = 0;
 	Type y = 0;
 
-	void Set(Type _x, Type _y) { x = _x; y = _y; }
+	template<class T1, class T2>
+	void Set(T1 _x, T2 _y) { x = static_cast<Type>(_x); y = static_cast<Type>(_y); }
+
 	alVec2_t<Type> operator*(const alVec2_t<Type>& v)const { alVec2_t<Type> r; r.x = x * v.x; r.y = y * v.y; return r; }
 	alVec2_t<Type> operator-(const alVec2_t<Type>& v)const { alVec2_t<Type> r; r.x = x - v.x; r.y = y - v.y; return r; }
 	alVec2_t<Type> operator+(const alVec2_t<Type>& v)const { alVec2_t<Type> r; r.x = x + v.x; r.y = y + v.y; return r; }
@@ -115,7 +118,16 @@ class alVec4_t
 public:
 	alVec4_t<Type>() {}
 	alVec4_t<Type>(Type _v) :x(_v), y(_v), z(_v), w(_v) {}
-	alVec4_t<Type>(Type _x, Type _y, Type _z, Type _w) : x(_x), y(_y), z(_z), w(_w) {}
+
+	template<class T1, class T2, class T3, class T4>
+	alVec4_t<Type>(T1 _x, T2 _y, T3 _z, T4 _w) 
+		:
+		x(static_cast<Type>(_x)),
+		y(static_cast<Type>(_y)),
+		z(static_cast<Type>(_z)),
+		w(static_cast<Type>(_w))
+	{}
+
 	alVec4_t<Type>(const alVec3_t<float32_t>& _v) : x(_v.x), y(_v.y), z(_v.z), w(0) {}
 	Type x = 0;
 	Type y = 0;

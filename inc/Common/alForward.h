@@ -18,8 +18,10 @@ class alGS;
 class alColor;
 class alGSMesh;
 //class alGSMeshInfo;
+class alAudio;
 struct alGSShaderCreationInfo;
 struct alCompressDataInfo;
 struct alGUIColorTheme;
+struct alAudioBufferRAW;
 
 #endif

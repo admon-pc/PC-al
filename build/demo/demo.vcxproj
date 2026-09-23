@@ -160,6 +160,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\demo\demo.cpp" />
+    <ClCompile Include="..\..\src\demo\example_audio_1.cpp" />
     <ClCompile Include="..\..\src\demo\example_genMesh.cpp" />
     <ClCompile Include="..\..\src\demo\example_gui_all.cpp" />
     <ClCompile Include="..\..\src\demo\example_gui_all2.cpp" />

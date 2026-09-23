@@ -245,10 +245,10 @@ void alGUIRangeSlider1::Update(float32_t dt)
 				cursor_coord_on_click = input->m_cursorCoordsForGUI;
 
 				alVec4i clp;
-				clp.x = cursor_coord_on_click.x - 1.f;
-				clp.y = cursor_coord_on_click.y - 1.f;
-				clp.z = cursor_coord_on_click.x + 1.f;
-				clp.w = cursor_coord_on_click.y + 1.f;
+				clp.x = int32_t(cursor_coord_on_click.x - 1.f);
+				clp.y = int32_t(cursor_coord_on_click.y - 1.f);
+				clp.z = int32_t(cursor_coord_on_click.x + 1.f);
+				clp.w = int32_t(cursor_coord_on_click.y + 1.f);
 				alLib::SetCursorClip(&clp, 0, m_context->GetWindow());
 				alLib::ShowCursor(false);
 			}

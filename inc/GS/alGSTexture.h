@@ -125,14 +125,15 @@ public:
 	uint32_t GetWidth() { return m_textureInfo.m_width; }
 	uint32_t GetHeight() { return m_textureInfo.m_height; }
 
-	alVec2f GetUV(float32_t x, float32_t y)
+	template<class T>
+	alVec2f GetUV(T x, T y)
 	{
 		alVec2f uv;
 
 		alVec2f tsz((float32_t)m_textureInfo.m_width, (float32_t)m_textureInfo.m_height);
 
-		uv.x = x * 1.f / tsz.x;
-		uv.y = y * 1.f / tsz.y;
+		uv.x = static_cast<float32_t>(x) * 1.f / tsz.x;
+		uv.y = static_cast<float32_t>(y) * 1.f / tsz.y;
 
 		return uv;
 	}

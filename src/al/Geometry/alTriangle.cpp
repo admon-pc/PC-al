@@ -112,14 +112,14 @@ bool alTriangle::RayTest_MT(const alRay& ray, bool withBackFace, float64_t& T, f
 		0.f);
 
 	float64_t inv_det = 1. / det;
-	U = tvec.Dot(pvec) * inv_det;
+	U = (float32_t)(tvec.Dot(pvec) * inv_det);
 
 	if (U < 0.f || U > 1.f)
 		return false;
 
 	alVec4  qvec;
 	tvec.Cross2(alVec4(e1.x, e1.y, e1.z, e1.w), qvec);
-	V = ray.m_direction.Dot(qvec) * inv_det;
+	V = (float32_t)(ray.m_direction.Dot(qvec) * inv_det);
 
 	if (V < 0.f || U + V > 1.f)
 		return false;

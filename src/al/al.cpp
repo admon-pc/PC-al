@@ -1,4 +1,5 @@
 ﻿#include "al.h"
+#include "Audio/alAudio.h"
 
 
 #include <filesystem>
@@ -58,6 +59,7 @@ AL_LINK_LIBRARY(al.d3d11);
 #endif
 
 alLibImpl* g_alLib = 0;
+void alAudioThreadFunction_WASAPI(alAudioEngineWASAPI* engine);
 
 namespace al_internal
 {
@@ -179,8 +181,8 @@ alLibImpl::~alLibImpl()
 	}
 	AL_DESTROY(m_input);
 
-	if (m_fileSaveDialog) m_fileSaveDialog->Release();
-	if (m_fileOpenDialog) m_fileOpenDialog->Release();
+	AL_SAFERELEASE(m_fileSaveDialog);
+	AL_SAFERELEASE(m_fileOpenDialog);
 	CoUninitialize();
 }
 
@@ -245,7 +247,8 @@ void alLib::InitializeLib()
 			g_alLib->m_cursors[i] = g_alLib->m_cursorsDefault[i];
 		}
 
-		HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+		HRESULT hr = CoInitializeEx(NULL, 
+			COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 		if (FAILED(hr))
 			return ;
 
@@ -1340,5 +1343,35 @@ void alLib::OpenOpenFileDialog(
 	g_alLib->m_fileOpenDialog->Release();
 	CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL,
 		IID_IFileOpenDialog, reinterpret_cast<void**>(&g_alLib->m_fileOpenDialog));
+}
+
+alAudio* alLib::InitializeAudio()
+{
+	if (g_alLib->m_audio)
+		return g_alLib->m_audio;
+
+	g_alLib->m_audioEngine = alCreate<alAudioEngineWASAPI>();
+	if (g_alLib->m_audioEngine->Initialize())
+	{
+		g_alLib->m_audio = alCreate<alAudio>();
+
+		g_alLib->m_audioThread = new std::thread(alAudioThreadFunction_WASAPI, g_alLib->m_audioEngine);
+	}
+	else
+	{
+		AL_DESTROY(g_alLib->m_audioEngine);
+	}
+
+	return g_alLib->m_audio;
+}
+
+alAudioBufferRAW* alLib::LoadAudio(const char*)
+{
+	return 0;
+}
+
+alAudioBufferRAW* alLib::LoadAudio(alFileBuffer*)
+{
+	return 0;
 }
 

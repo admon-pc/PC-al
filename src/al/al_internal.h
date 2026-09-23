@@ -3,6 +3,8 @@
 #include "Input/alInput.h"
 
 #include "System/alCursor.h"
+#include "Audio/alAudio.h"
+#include "Audio/alAudioEngine.h"
 #include "GUI/alGUI.h"
 
 #ifdef AL_PLATFORM_WIN32
@@ -13,6 +15,8 @@ struct IFileOpenDialog;
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+
+#include <thread>
 
 #ifdef LoadImage
 #undef LoadImage
@@ -76,6 +80,10 @@ public:
 
 	IFileSaveDialog* m_fileSaveDialog = 0;
 	IFileOpenDialog* m_fileOpenDialog = 0;
+
+	alAudio* m_audio = 0;
+	alAudioEngine* m_audioEngine = 0;
+	std::thread* m_audioThread = 0;
 };
 
 

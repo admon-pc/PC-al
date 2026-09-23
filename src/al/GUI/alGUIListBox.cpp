@@ -209,7 +209,7 @@ void alGUIListBox::Rebuild()
 	if (!areaHeight)
 		areaHeight = 10.f;
 
-	m_visibleItemsNum = areaHeight / m_itemHeight;
+	m_visibleItemsNum = (size_t)ceilf(areaHeight / m_itemHeight);
 	m_tooManyItems = false;
 	if(m_itemsNum > m_visibleItemsNum)
 		m_tooManyItems = true;

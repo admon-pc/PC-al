@@ -232,8 +232,8 @@ void alGUIElement::Rebuild()
 		m_sensorArea.y = 0.f;
 
 	if (m_sensorArea.z > m_context->GetWindow()->m_clientSize.x)
-		m_sensorArea.z = m_context->GetWindow()->m_clientSize.x;
+		m_sensorArea.z = (float32_t)m_context->GetWindow()->m_clientSize.x;
 	if (m_sensorArea.w > m_context->GetWindow()->m_clientSize.y)
-		m_sensorArea.w = m_context->GetWindow()->m_clientSize.y;
+		m_sensorArea.w = (float32_t)m_context->GetWindow()->m_clientSize.y;
 
 }

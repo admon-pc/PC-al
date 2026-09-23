@@ -108,8 +108,8 @@ void DemoExample_gui_all2_TextInput::OnRMBRelease()
 	alLib::GetCursor(alCursorType::Arrow)->Activate();
 	ex->m_textInput_editorPopup->Show(
 		g_demo->m_mainWindow,
-		input->m_cursorCoordsForGUI.x,
-		input->m_cursorCoordsForGUI.y);
+		input->m_cursorCoords.x,
+		input->m_cursorCoords.y);
 }
 
 void DemoExample_gui_all2_TextInput::OnAccept()

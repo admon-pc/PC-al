@@ -151,6 +151,13 @@ public:
 	static alSystemPopup* CreateSystemPopup();
 	static void Update();
 
+	// alAudio and the engine will be initialized only once.
+	// It will be available all the time until you close the programm
+	static alAudio* InitializeAudio();
+
+	static alAudioBufferRAW* LoadAudio(const char*);
+	static alAudioBufferRAW* LoadAudio(alFileBuffer*);
+
 	static uint32_t GetImageLoaderNum();
 	static alImageLoader* GetImageLoader(uint32_t);
 	static alImageLoader* GetImageLoaderPNG();

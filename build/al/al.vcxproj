@@ -173,6 +173,8 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\al\al.cpp" />
     <ClCompile Include="..\..\src\al\Archive\alArchive.cpp" />
+    <ClCompile Include="..\..\src\al\Audio\alAudio.cpp" />
+    <ClCompile Include="..\..\src\al\Audio\alAudioEngineWASAPI.cpp" />
     <ClCompile Include="..\..\src\al\Classes\alFileBuffer.cpp" />
     <ClCompile Include="..\..\src\al\Common\alAssert.cpp" />
     <ClCompile Include="..\..\src\al\Common\alLog.cpp" />

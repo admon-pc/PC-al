@@ -71,6 +71,8 @@ using real_t = float64_t;
 #define BIT(x)0x1<<(x)
 #endif
 
+#define AL_SAFERELEASE(x) if(x){x->Release();x=0;}
+
 typedef void* alDLLHandle;
 
 #endif

@@ -1001,7 +1001,7 @@ void FontTool::OnDraw()
 			float32_t linePos = position.y+ m_editorCellSize*m_fontHeightMax;
 
 			uint32_t pixelsNum = G_selected.m_width * (int)m_fontHeightMax;
-			uint32_t widthCounter = 0;
+			int32_t widthCounter = 0;
 			for (uint32_t i = 0; i < pixelsNum; ++i)
 			{
 				if (findUnderhangPos)
@@ -1296,7 +1296,6 @@ void FontTool::Run()
 {
 	float32_t* dt = alLib::GetDeltaTime();
 	alInput* input = alLib::GetInput();
-	char32_t char32Buf[100];
 
 	float timer = 0.f;
 	float timer_limit = 1.f / 60.f;
@@ -1411,8 +1410,8 @@ void FontTool::OnButtonOpen()
 					if (charCode < 0x10FFFF)
 					{
 						auto H = rightBotY - leftTopY;
-						if (H > m_fontHeightMax)
-							m_fontHeightMax = H;
+						if ((int32_t)H > m_fontHeightMax)
+							m_fontHeightMax = (int32_t)H;
 					}
 				}
 				tr.GoToBegin();
@@ -1445,9 +1444,9 @@ void FontTool::OnButtonOpen()
 						srcRGBA = srcRGBA + leftTopX;
 						srcRGBA += leftTopY * images.m_data[glyph->textureID]->m_width;
 						auto srcRGBABegin = srcRGBA;
-						for (uint32_t y = 0; y < m_fontHeightMax; ++y)
+						for (int32_t y = 0; y < m_fontHeightMax; ++y)
 						{
-							for (uint32_t x = 0; x < glyph->m_width; ++x)
+							for (int32_t x = 0; x < glyph->m_width; ++x)
 							{
 								*dstRGBA = *srcRGBA;
 
@@ -1674,8 +1673,8 @@ void FontTool::OnButtonGenerate()
 				}
 			}
 			
-			m_fontWidthMax = maxSizeX;
-			m_fontHeightMax = maxSizeY;
+			m_fontWidthMax = (float)maxSizeX;
+			m_fontHeightMax = (int32_t)maxSizeY;
 		//	printf("m_fontWidthMax %f\n", m_fontWidthMax);
 			InitCellTexture();
 
@@ -1707,7 +1706,7 @@ void FontTool::OnRebuild()
 	m_cellPanelWidth = float(m_cellsInRow) * float(m_cellSizeY);
 
 	m_cellPanelRect.z = m_cellPanelWidth;
-	m_cellPanelRect.w = m_mainWindow->m_clientSize.y;
+	m_cellPanelRect.w = (float32_t)m_mainWindow->m_clientSize.y;
 
 	if (m_guiPanel_edit)
 	{
@@ -1721,7 +1720,7 @@ void FontTool::OnRebuild()
 		
 
 		m_guiPanel_edit->m_size.x = m_mainWindow->m_clientSize.x - m_cellPanelWidth;
-		m_guiPanel_edit->m_size.y = m_mainWindow->m_clientSize.y;
+		m_guiPanel_edit->m_size.y = (float32_t)m_mainWindow->m_clientSize.y;
 		m_guiPanel_edit->m_position.x = m_mainWindow->m_clientSize.x - m_guiPanel_edit->m_size.x;
 		m_guiPanel_edit->m_position.y = 0;
 		/*FontTool_button* btn = dynamic_cast<FontTool_button*>(m_guiPanel_edit->GetElementByID(FontToolGUIID_btnSave));
@@ -1738,7 +1737,7 @@ void FontTool::OnRebuild()
 
 	m_editRect.x = m_cellPanelWidth;
 	m_editRect.y = 30;
-	m_editRect.z = m_mainWindow->m_clientSize.x;
+	m_editRect.z = (float32_t)m_mainWindow->m_clientSize.x;
 	m_editRect.w = m_editRect.y + 300;
 
 	
@@ -1772,7 +1771,7 @@ void FontTool::_moveUpView(uint32_t num)
 				break;
 
 			auto index = m_startDrawCellIndex;
-			for (int i = 0; i < m_cellsInRow; ++i)
+			for (uint32_t i = 0; i < m_cellsInRow; ++i)
 			{
 				if (m_glyphs[index].m_data)
 					return;
@@ -1806,7 +1805,7 @@ void FontTool::_moveDownView(uint32_t num)
 				break;
 
 			auto index = m_startDrawCellIndex;
-			for (int i = 0; i < m_cellsInRow; ++i)
+			for (uint32_t i = 0; i < m_cellsInRow; ++i)
 			{
 				if (m_glyphs[index].m_data)
 					return;
@@ -1918,9 +1917,9 @@ void FontTool::UpdateTestFont()
 			}
 
 			img.Fill(G.m_data, alVec2u(G.m_width, m_fontHeightMax), alVec2u(drawPositionX, drawPositionY), 0, &uv);
-			m_testFont->SetGlyph((char32_t)i, G.textureID, m_fontHeightMax, G.m_width, &uv);
-			m_testFont->GetGlyph((char32_t)i)->underhang = G.underhang;
-			m_testFont->GetGlyph((char32_t)i)->overhang = G.overhang;
+			m_testFont->SetGlyph((char32_t)i, G.textureID, (float32_t)m_fontHeightMax, (float32_t)G.m_width, &uv);
+			m_testFont->GetGlyph((char32_t)i)->underhang = (float)G.underhang;
+			m_testFont->GetGlyph((char32_t)i)->overhang = (float)G.overhang;
 
 			drawPositionX = rbX;
 		}
@@ -1977,7 +1976,7 @@ void FontTool::OnButtonSave_Save()
 				int rbX = drawPositionX + G.m_width;
 				int rbY = drawPositionY + m_fontHeightMax;
 
-				if (rbX > m_saveImageSize)
+				if (rbX > (int)m_saveImageSize)
 				{
 					drawPositionX = 0;
 					rbX = drawPositionX + G.m_width;
@@ -1985,7 +1984,7 @@ void FontTool::OnButtonSave_Save()
 					drawPositionY = rbY;
 					rbY = drawPositionY + m_fontHeightMax;
 
-					if (rbY > m_saveImageSize)
+					if (rbY > (int)m_saveImageSize)
 					{
 						char buf[100];
 						sprintf_s(buf, 100, "%s%i.png", name_string.c_str(), imageIndex);
@@ -2123,7 +2122,7 @@ void FontTool::OnComboSaveSize(uint32_t index)
 			int rbX = drawPositionX + G.m_width;
 			int rbY = drawPositionY + m_fontHeightMax;
 
-			if (rbX > m_saveImageSize)
+			if (rbX > (int)m_saveImageSize)
 			{
 				drawPositionX = 0;
 				rbX = drawPositionX + G.m_width;
@@ -2131,7 +2130,7 @@ void FontTool::OnComboSaveSize(uint32_t index)
 				drawPositionY = rbY;
 				rbY = drawPositionY + m_fontHeightMax;
 
-				if (rbY > m_saveImageSize)
+				if (rbY > (int)m_saveImageSize)
 				{
 					++imageNumber;
 					drawPositionY = 0;
@@ -2315,7 +2314,7 @@ void FontTool::OnPopupCommand(uint32_t cmd)
 		break;
 	case FontToolGUIID_popupCell_CopyAsChar:
 	{
-		wchar_t ch[2] = { m_selected,0 };
+		wchar_t ch[2] = { (wchar_t)m_selected,0 };
 		alLib::CopyTextToClipboard(ch, 1);
 	}break;
 	case FontToolGUIID_popupTextEdit_Copy:
@@ -2406,9 +2405,9 @@ void FontTool::CopyImageToClipboard(uint32_t index)
 				uint8_t* srcPtr = src;
 				alImage::rgba* src_rgba = (alImage::rgba*)(srcPtr);
 				alImage::rgba* dst_rgba = (alImage::rgba*)(dstPtr);
-				for (uint32_t y = 0; y < hdr->bV5Height; ++y)
+				for (LONG y = 0; y < hdr->bV5Height; ++y)
 				{
-					for (uint32_t x = 0; x < hdr->bV5Width; ++x)
+					for (LONG x = 0; x < hdr->bV5Width; ++x)
 					{
 						dst_rgba->r = src_rgba[x].b;
 						dst_rgba->g = src_rgba[x].g;
@@ -2645,11 +2644,11 @@ void FontTool::OnSliderSetWidth()
 		alImage::rgba* srcRGBA = (alImage::rgba*)src;
 		alImage::rgba* dstRGBA = (alImage::rgba*)dst;
 
-		for (uint32_t y = 0; y < m_fontHeightMax; ++y)
+		for (int32_t y = 0; y < m_fontHeightMax; ++y)
 		{
 			uint32_t src_width_counter = 0;
 
-			for (uint32_t x = 0; x < G->m_width; ++x)
+			for (int32_t x = 0; x < G->m_width; ++x)
 			{
 				*dstRGBA = *srcRGBA;
 

@@ -11,6 +11,9 @@
     <ClCompile Include="..\..\src\demo\example_gui_all2.cpp">
       <Filter>ex</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\demo\example_audio_1.cpp">
+      <Filter>ex</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ex">

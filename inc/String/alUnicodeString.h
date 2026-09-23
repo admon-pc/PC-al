@@ -62,6 +62,7 @@ public:
 	uint32_t Set(const alVec4_t<uint32_t>& c);
 	uint32_t Set(char16_t c1, char16_t c2);
 
+	// sz - is strlen,wcslen
 	static void wchar_to_char(const wchar_t* str, size_t sz, alStringA* out);
 	static void char_to_wchar(const char* str, size_t sz, alStringW* out);
 

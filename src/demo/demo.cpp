@@ -2,6 +2,7 @@
 #include "example_gui_all.h"
 #include "example_gui_all2.h"
 #include "example_genMesh.h"
+#include "example_audio_1.h"
 
 #include "System/alSystemWindowWin32.h"
 
@@ -191,6 +192,7 @@ bool alDemo::Init()
 
 	AddExample("GUI/", new DemoExample_gui_all(U"GUI 1", U"Part 1"));
 	AddExample("GUI/", new DemoExample_gui_all2(U"GUI 2", U"Part 2"));
+	AddExample("Audio/", new DemoExample_audio_1(U"Audio 1", U"Initializing Audio Device, loading and playing .wav"));
 	AddExample("/", new DemoExample_genMesh(U"Mesh generator", U"..."));
 	UpdatePathText();
 

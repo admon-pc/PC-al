@@ -122,6 +122,12 @@
     <ClCompile Include="..\..\src\al\GUI\alGUI2.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\al\Audio\alAudioEngineWASAPI.cpp">
+      <Filter>Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\al\Audio\alAudio.cpp">
+      <Filter>Audio</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Common">
@@ -156,6 +162,9 @@
     </Filter>
     <Filter Include="cstd">
       <UniqueIdentifier>{93bca4d4-5b8d-4ccf-9dd6-59df01379ae1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Audio">
+      <UniqueIdentifier>{0a1547ad-6da6-4815-8161-b6743eea2898}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
