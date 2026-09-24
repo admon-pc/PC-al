@@ -1355,7 +1355,7 @@ alAudio* alLib::InitializeAudio()
 	{
 		g_alLib->m_audio = alCreate<alAudio>();
 
-		g_alLib->m_audioThread = new std::thread(alAudioThreadFunction_WASAPI, g_alLib->m_audioEngine);
+		g_alLib->m_audioThread = new std::thread(alAudioThreadFunction_WASAPI, dynamic_cast<alAudioEngineWASAPI*>(g_alLib->m_audioEngine));
 	}
 	else
 	{
