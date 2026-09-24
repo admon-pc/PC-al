@@ -2,6 +2,8 @@
 
 #include "Input/alInput.h"
 
+#include "Containers/alFIFO.h"
+
 #include "System/alCursor.h"
 #include "Audio/alAudio.h"
 #include "Audio/alAudioEngine.h"
@@ -84,6 +86,7 @@ public:
 	alAudio* m_audio = 0;
 	alAudioEngine* m_audioEngine = 0;
 	std::thread* m_audioThread = 0;
+
 };
 
 

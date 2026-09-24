@@ -14,6 +14,10 @@ alAudioEngineWASAPI::alAudioEngineWASAPI()
 
 alAudioEngineWASAPI::~alAudioEngineWASAPI()
 {
+    if(m_audioClient)
+        m_audioClient->Stop();
+    AL_SAFERELEASE(m_audioClient);
+
    // AL_SAFERELEASE(m_deviceCollection);
     AL_SAFERELEASE(m_deviceEnumerator);
     AL_SAFERELEASE(m_device);
@@ -181,10 +185,32 @@ bool alAudioEngineWASAPI::Initialize()
         return false;
     }
 
+    {
+        BYTE* pData;
+        hr = m_renderClient->GetBuffer(m_bufferSize, &pData);
+        if (FAILED(hr))
+        {
+            printf("Failed to get buffer: %x.\n", hr);
+            return false;
+        }
+        hr = m_renderClient->ReleaseBuffer(m_bufferSize, AUDCLNT_BUFFERFLAGS_SILENT);
+        if (FAILED(hr))
+        {
+            printf("Failed to release buffer: %x.\n", hr);
+            return false;
+        }
+    }
+
     AL_SAFERELEASE(m_deviceEnumerator);
     return true;
 }
 
 void alAudioThreadFunction_WASAPI(alAudioEngineWASAPI* engine)
 {
+    engine->m_run = true;
+    
+    while (engine->m_run)
+    {
+        Sleep(10);
+    }
 }

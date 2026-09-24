@@ -34,6 +34,8 @@ public:
 	uint32_t m_bufferSize = 0;
 	uint32_t m_engineLatencyInMS = 50;
 
+	bool m_run = false;
+
 	enum RenderSampleType
 	{
 		SampleTypeFloat,

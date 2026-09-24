@@ -183,6 +183,27 @@ alLibImpl::~alLibImpl()
 
 	AL_SAFERELEASE(m_fileSaveDialog);
 	AL_SAFERELEASE(m_fileOpenDialog);
+
+	if (g_alLib->m_audio)
+	{
+		if (g_alLib->m_audioEngine)
+		{
+			alAudioEngineWASAPI* wasapi
+				= dynamic_cast<alAudioEngineWASAPI*>(g_alLib->m_audioEngine);
+			if (wasapi)
+			{
+				wasapi->m_run = false;
+
+				g_alLib->m_audioThread->join();
+				delete g_alLib->m_audioThread;
+			}
+
+			alDestroy(g_alLib->m_audioEngine);
+		}
+
+		alDestroy(g_alLib->m_audio);
+	}
+
 	CoUninitialize();
 }
 
