@@ -472,6 +472,10 @@ alImageLoader* alLib::GetImageLoaderPNG()
 	return g_alLib->m_imageLoader_PNG;
 }
 
+alImage* alLib::LoadALImage(alFileBuffer* fb, alImageLoader* il)
+{
+}
+
 alImage* alLib::LoadALImage(const char* fn)
 {
 	AL_ASSERT_ST(fn);
@@ -494,11 +498,12 @@ alImage* alLib::LoadALImage(const char* fn)
 			{
 				if (::strcmp(loader->GetExtension(ei), ext.data()) == 0)
 				{
-					alImage* img = loader->Load(fn);
+					/*alImage* img = loader->Load(fn);
 					if (img)
-						alLog::Print("Load Image: %s\n", fn);
-
-					return img;
+						alLog::Print("Load Image: %s\n", fn);*/
+					//return img;
+					alFileBuffer fb;
+					return LoadALImage(, loader);
 				}
 			}
 		}
@@ -1389,12 +1394,12 @@ alAudio* alLib::InitializeAudio()
 	return g_alLib->m_audio;
 }
 
-alAudioBufferRAW* alLib::LoadAudio(const char*)
+alAudioBufferRAW* alLib::LoadRAWAudio(const char* fn)
 {
 	return 0;
 }
 
-alAudioBufferRAW* alLib::LoadAudio(alFileBuffer*)
+alAudioBufferRAW* alLib::LoadRAWAudio(alFileBuffer*)
 {
 	return 0;
 }

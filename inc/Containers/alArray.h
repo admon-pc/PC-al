@@ -90,21 +90,28 @@ public:
 	void ShrinkToFit()
 	{
 		auto new_capacity = m_size;
-		auto tmp_size = new_capacity * sizeof(type);
-		type* new_data = static_cast<type*>(alMemory::Malloc(tmp_size));
-		memset(new_data, 0, tmp_size);
-
-		if (m_data)
+		if (new_capacity)
 		{
-			for (size_t i = 0; i < m_size; ++i)
+			auto tmp_size = new_capacity * sizeof(type);
+			type* new_data = static_cast<type*>(alMemory::Malloc(tmp_size));
+			memset(new_data, 0, tmp_size);
+
+			if (m_data)
 			{
-				new(&new_data[i]) type(m_data[i]);
-				(&m_data[i])->~type();
+				for (size_t i = 0; i < m_size; ++i)
+				{
+					new(&new_data[i]) type(m_data[i]);
+					(&m_data[i])->~type();
+				}
+				alMemory::Free(m_data);
 			}
-			alMemory::Free(m_data);
+			m_data = new_data;
+			m_allocated = new_capacity;
 		}
-		m_data = new_data;
-		m_allocated = new_capacity;
+		else
+		{
+			FreeMemory();
+		}
 	}
 
 	void reserve(size_t new_capacity)
