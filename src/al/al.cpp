@@ -192,7 +192,10 @@ alLibImpl::~alLibImpl()
 				= dynamic_cast<alAudioEngineWASAPI*>(g_alLib->m_audioEngine);
 			if (wasapi)
 			{
-				wasapi->m_run = false;
+				//wasapi->m_run = false;
+				alAudioEngineWASAPI::queue_data qd;
+				qd.m_cmd = alAudioEngineWASAPI::queueCMD_quit;
+				wasapi->m_queue.push(qd);
 
 				g_alLib->m_audioThread->join();
 				delete g_alLib->m_audioThread;

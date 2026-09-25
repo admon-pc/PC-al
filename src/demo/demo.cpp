@@ -426,39 +426,6 @@ int main(int argc, char* argv[])
 {
 	alLib::InitializeLib();
 
-	alFIFO<int, 4> fifo;
-	fifo.push(1);
-	int g = fifo.get();
-	fifo.push(2);
-	g = fifo.get();
-	fifo.push(3);
-	g = fifo.get();
-	fifo.push(4);
-	g = fifo.get();
-	fifo.push(5);
-	fifo.push(6);
-
-	g = fifo.get();
-	fifo.push(7);
-	fifo.push(8);
-	fifo.push(9);
-	g = fifo.get();
-	fifo.push(10);
-	fifo.push(11);
-	fifo.pop();
-	fifo.pop();
-	fifo.pop();
-	fifo.pop();
-	fifo.pop();
-	fifo.pop();
-	fifo.pop();
-	fifo.push(1);
-	fifo.push(2);
-	fifo.push(3);
-	fifo.push(4);
-	fifo.push(5);
-	fifo.push(6);
-
 	alDemo* dd = new alDemo;
 	if (dd->Init())
 	{
