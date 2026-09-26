@@ -155,15 +155,28 @@ public:
 	// It will be available all the time until you close the programm
 	static alAudio* InitializeAudio();
 
-	static alAudioBufferRAW* LoadRAWAudio(const char*);
-	static alAudioBufferRAW* LoadRAWAudio(alFileBuffer*);
+	// Load audio data without any conversion.
+	// info - optional. if you have only binary data and you know it's format,
+	//    set all information in info and read file.
+	// Audio Device has it's own format. For playing audio
+	//     the engine use alAudioBuffer. This class 100% has same type as device.
+	//     Use alAudio class for reading file into alAudioBuffer,
+	//     or for converting alAudioBufferRAW to alAudioBuffer.
+	// When reading, engine will determine format not by extension, but by
+	//  reading internal file headers.
+	static alAudioBufferRAW* LoadRAWAudio(const char*, alAudioBufferInfo* info);
+	static alAudioBufferRAW* LoadRAWAudio(alFileBuffer*, alAudioBufferInfo* info);
 
 	static uint32_t GetImageLoaderNum();
 	static alImageLoader* GetImageLoader(uint32_t);
 	static alImageLoader* GetImageLoaderPNG();
 
 	static alImage* LoadALImage(const char*);
-	static alImage* LoadALImage(alFileBuffer*, alImageLoader*);
+	
+	// no need this method.
+	// use alImageLoader directly
+	//static alImage* LoadALImage(alFileBuffer*, alImageLoader*);
+
 	static void SaveImage(const char* fileName, alImage*, alSaveImageType);
 
 	static void AddEvent(const alEvent&, bool uniq = true);

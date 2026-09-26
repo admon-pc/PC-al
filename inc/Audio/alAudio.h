@@ -104,8 +104,15 @@ public:
 	// They all will be deleted when program end.
 	alAudioMixer* GetNewMixer();
 
-	alAudioBufferRAW* LoadRAW(const char*);
-	alAudioBufferRAW* LoadRAW(alFileBuffer*);
+	// See comments in alLib::LoadRAWAudio
+	// These methods will call alLib::LoadRAWAudio
+	// Why like this? alAudio exists only when you call
+	// alLib::InitializeAudio()
+	// But you don't need running audio engine to just load
+	// audio data. It's ok, not perfect `feng shui` style.
+	// It just works and that's enough.
+	alAudioBufferRAW* LoadRAW(const char*, alAudioBufferInfo* info);
+	alAudioBufferRAW* LoadRAW(alFileBuffer*, alAudioBufferInfo* info);
 };
 
 #endif

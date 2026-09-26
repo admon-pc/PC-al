@@ -42,3 +42,13 @@ alAudioMixer* alAudio::GetNewMixer()
 	}
 	return mixer;
 }
+
+alAudioBufferRAW* alAudio::LoadRAW(const char* fn, alAudioBufferInfo* info)
+{
+	return alLib::LoadRAWAudio(fn, info);
+}
+
+alAudioBufferRAW* alAudio::LoadRAW(alFileBuffer* fb, alAudioBufferInfo* info)
+{
+	return alLib::LoadRAWAudio(fb, info);
+}
