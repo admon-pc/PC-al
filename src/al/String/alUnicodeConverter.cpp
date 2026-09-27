@@ -214,10 +214,10 @@ uint32_t alUnicodeConverter::Set(char16_t c1, char16_t c2)
 
 void alUnicodeConverter::wchar_to_char(const wchar_t* str, size_t sz, alStringA* out)
 {
+	out->clear();
 	alUnicodeConverter uc;
 	if (str && sz && out)
 	{
-		out->clear();
 		for (size_t i = 0; i < sz; )
 		{
 			if (!str[i])
@@ -242,10 +242,10 @@ void alUnicodeConverter::wchar_to_char(const wchar_t* str, size_t sz, alStringA*
 }
 void alUnicodeConverter::char_to_wchar(const char* str, size_t sz, alStringW* out)
 {
+	out->clear();
 	alUnicodeConverter uc;
 	if (str && sz && out)
 	{
-		out->clear();
 		for (size_t i = 0; i < sz; )
 		{
 			if (!str[i])
@@ -275,10 +275,10 @@ void alUnicodeConverter::char_to_wchar(const char* str, size_t sz, alStringW* ou
 
 void alUnicodeConverter::char32_to_wchar(const char32_t* str, size_t sz, alStringW* out)
 {
+	out->clear();
 	alUnicodeConverter uc;
 	if (str && sz && out)
 	{
-		out->clear();
 		for (size_t i = 0; i < sz; ++i)
 		{
 			if (!str[i])

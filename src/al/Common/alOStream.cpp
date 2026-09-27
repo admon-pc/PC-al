@@ -3,13 +3,14 @@
 #include "../al_internal.h"
 extern alLibImpl* g_alLib;
 
-alOStream& alOStream::get_default_ostream()
+alOStream* alOStream::get_default_ostream()
 {
-	return g_alLib->m_ostream_default;
+	return &g_alLib->m_ostream_default;
 }
 
 alOStream_default::alOStream_default()
 {
+	m_cb = this;
 }
 
 alOStream_default::~alOStream_default()
@@ -94,18 +95,33 @@ void alOStream_default::vprint(const char* format, va_list arg)
 {
 	vsnprintf(m_buffer8, m_buffer8Size, format, arg);
 	fprintf(m_stdout, m_buffer8);
+	m_cb->on_write(m_buffer8);
 }
 
 void alOStream_default::vprint(const wchar_t* format, va_list arg)
 {
 	vswprintf(m_buffer16, m_buffer16Size, format, arg);
 	wprintf_s(m_buffer16);
+	m_cb->on_write(m_buffer16);
 }
 
 void alOStream_default::vprint(const char32_t* format, va_list arg)
 {
 	uint32_t result = alLib::vsnprintf(m_buffer32, m_buffer32Size, format, arg);
 	alUnicodeConverter::char32_to_wchar(m_buffer32, m_buffer32Size, &g_alLib->m_ostream_bufferString);
-	print(g_alLib->m_ostream_bufferString.c_str());
+	wprintf_s(g_alLib->m_ostream_bufferString.c_str());
+	m_cb->on_write(m_buffer32);
+}
+
+void alOStream_default::on_write(const char* str)
+{
+}
+
+void alOStream_default::on_write(const wchar_t* str)
+{
+}
+
+void alOStream_default::on_write(const char32_t* str)
+{
 }
 

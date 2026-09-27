@@ -34,10 +34,16 @@ public:
 	virtual void vprint(const wchar_t* format, va_list arg) {}
 	virtual void vprint(const char32_t* format, va_list arg) {}
 
+	// set this and callbacks will be called
+	alOStream* m_cb = 0;
+	virtual void on_write(const char*) {}
+	virtual void on_write(const wchar_t*) {}
+	virtual void on_write(const char32_t*) {}
+
 	// Default alOStream will print text into stdio.
 	// You can set stderr or stdio using m_stdout
 	// alLog uses this.
-	static alOStream& get_default_ostream();
+	static alOStream* get_default_ostream();
 
 	FILE* m_stdout = stdout;
 

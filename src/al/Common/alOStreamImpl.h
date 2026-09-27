@@ -43,6 +43,10 @@ public:
 	virtual void vprint(const char* format, va_list arg) override;
 	virtual void vprint(const wchar_t* format, va_list arg) override;
 	virtual void vprint(const char32_t* format, va_list arg) override;
+
+	virtual void on_write(const char*) override;
+	virtual void on_write(const wchar_t*) override;
+	virtual void on_write(const char32_t*) override;
 };
 
 #endif

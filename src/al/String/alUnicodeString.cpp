@@ -486,6 +486,7 @@ float64_t alUnicodeString::ToFloat64()
 
 void alUnicodeString::ToUTF8(alStringA& str)
 {
+	str.clear();
 	alUnicodeConverter uc;
 	for (size_t i = 0; i < m_size; ++i)
 	{
@@ -503,6 +504,7 @@ void alUnicodeString::ToUTF8(alStringA& str)
 
 void alUnicodeString::ToUTF16(alStringW& str)
 {
+	str.clear();
 	alUnicodeConverter uc;
 	for (size_t i = 0; i < m_size; ++i)
 	{
@@ -519,6 +521,7 @@ void alUnicodeString::ToUTF16(alStringW& str)
 
 void alUnicodeString::ToUTF8(std::string& str)
 {
+	str.clear();
 	alUnicodeConverter uc;
 	for (size_t i = 0; i < m_size; ++i)
 	{
@@ -536,6 +539,7 @@ void alUnicodeString::ToUTF8(std::string& str)
 
 void alUnicodeString::ToUTF16(std::wstring& str)
 {
+	str.clear();
 	alUnicodeConverter uc;
 	for (size_t i = 0; i < m_size; ++i)
 	{
