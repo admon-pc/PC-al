@@ -1,6 +1,8 @@
 ﻿#include "demo.h"
 #include "example_audio_1.h"
 
+#include "Audio/alAudio.h"
+
 #include <filesystem>
 
 #define DEMOGUIALL2_ID_CUT 101
@@ -21,7 +23,9 @@ bool DemoExample_audio_1::Init()
 {
 	m_gs = g_demo->m_gs;
 	m_input = alLib::GetInput();
-	m_audio = alLib::InitializeAudio();
+
+	if(!g_demo->m_audio)
+		g_demo->m_audio = alLib::InitializeAudio();
 
 	return true;
 }
@@ -30,6 +34,8 @@ void DemoExample_audio_1::Shutdown()
 {
 	g_demo->m_GUI->DeleteAllPanels();
 	alLib::GetCursor(alCursorType::Arrow)->Activate();
+
+	//g_demo->m_audio->StopAll();
 }
 
 

@@ -18,11 +18,6 @@ alAudioMixer::~alAudioMixer()
 		alDestroy(m_buffer.m_data);
 }
 
-alAudioBufferRAW* alAudioMixer::GetBuffer()
-{
-	return &m_buffer; 
-}
-
 float32_t alAudioMixer::GetVolume()
 {
 	return m_volume;

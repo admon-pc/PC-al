@@ -218,6 +218,8 @@ void alLib::InitializeLib()
 	if (!g_alLib)
 	{
 		g_alLib = alCreate<alLibImpl>();
+		alLog::SetOStream(&g_alLib->m_ostream_default);
+
 		for (uint32_t i = 0; i < (uint32_t)alMatrixType::_count; ++i)
 		{
 			g_alLib->m_matrixPtrs[i] = 0;
@@ -1401,7 +1403,6 @@ alAudioBufferRAW* alLib::LoadRAWAudio(alFileBuffer* fb, alAudioBufferInfo* info)
 	AL_ASSERT_ST(fb);
 	if (fb)
 	{
-		
 	}
 	return 0;
 }

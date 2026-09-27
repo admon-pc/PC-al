@@ -46,6 +46,7 @@ public:
 #endif
 };
 
+#include "Common/alOStreamImpl.h"
 
 class alLibImpl
 {
@@ -87,6 +88,9 @@ public:
 	alAudioEngine* m_audioEngine = 0;
 	std::thread* m_audioThread = 0;
 	
+	alOStream_default m_ostream_default;
+
+	alStringW m_ostream_bufferString;
 };
 
 class alAudioEngineWASAPI : public alAudioEngine

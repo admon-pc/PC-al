@@ -1,89 +1,61 @@
 ﻿#include "al.h"
 
 #include <stdarg.h>
-void alLogDefaultPrintfFunction(const char* str);
+
 class alLogImpl
 {
 public:
 	alLogImpl()
 	{
-		m_buffer = new char[0xffff];
 	}
 
 	~alLogImpl()
 	{
-		delete[]m_buffer;
 	}
-
-	void Print()
-	{
-		m_printFunction(m_buffer);
-	}
-
-	void(*m_printFunction)(const char*) = alLogDefaultPrintfFunction;
-
-	char* m_buffer = 0;
-	size_t m_bufferSize = 0xffff;
-
-	FILE* m_outType = stdout;
+	alOStream* m_ostream = 0;
 }
 g_alLogImpl;
-void alLogDefaultPrintfFunction(const char* str)
-{
-	fprintf(g_alLogImpl.m_outType, "%s", str);
-}
 
-void alLog::SetPrintFunction(void(*f)(const char*))
+void alLog::SetOStream(alOStream* s)
 {
-	g_alLogImpl.m_printFunction = f;
-	if(!f)
-		g_alLogImpl.m_printFunction = alLogDefaultPrintfFunction;
+	g_alLogImpl.m_ostream = s;
 }
 
 void alLog::Print(const char* s, ...)
 {
 	va_list ap;
 	va_start(ap, s);
-	vsnprintf(g_alLogImpl.m_buffer, g_alLogImpl.m_bufferSize, s, ap);
-	g_alLogImpl.m_outType = stdout;
-	g_alLogImpl.Print();
+	g_alLogImpl.m_ostream->vprint(s, ap);
 	va_end(ap);
 
 }
 
 void alLog::PrintInfo(const char* s, ...)
 {
+	g_alLogImpl.m_ostream->print("Info: ");
 	va_list ap;
 	va_start(ap, s);
-	snprintf(g_alLogImpl.m_buffer, g_alLogImpl.m_bufferSize, "%s", "Info: ");
-	g_alLogImpl.Print();
-	vsnprintf(g_alLogImpl.m_buffer, g_alLogImpl.m_bufferSize, s, ap);
-	g_alLogImpl.m_outType = stdout;
-	g_alLogImpl.Print();
+	g_alLogImpl.m_ostream->vprint(s, ap);
 	va_end(ap);
 }
 
 void alLog::PrintWarning(const char* s, ...)
 {
+	g_alLogImpl.m_ostream->print("Warning: ");
 	va_list ap;
 	va_start(ap, s);
-	snprintf(g_alLogImpl.m_buffer, g_alLogImpl.m_bufferSize, "%s", "Warning: ");
-	g_alLogImpl.Print();
-	vsnprintf(g_alLogImpl.m_buffer, g_alLogImpl.m_bufferSize, s, ap);
-	g_alLogImpl.m_outType = stdout;
-	g_alLogImpl.Print();
+	g_alLogImpl.m_ostream->vprint(s, ap);
 	va_end(ap);
 }
 
 void alLog::PrintError(const char* s, ...)
 {
+	g_alLogImpl.m_ostream->m_stdout = stderr;
+	g_alLogImpl.m_ostream->print("Error: ");
 	va_list ap;
 	va_start(ap, s);
-	snprintf(g_alLogImpl.m_buffer, g_alLogImpl.m_bufferSize, "%s", "Error: ");
-	g_alLogImpl.Print();
-	vsnprintf(g_alLogImpl.m_buffer, g_alLogImpl.m_bufferSize, s, ap);
-	g_alLogImpl.m_outType = stderr;
-	g_alLogImpl.Print();
+	g_alLogImpl.m_ostream->vprint(s, ap);
 	va_end(ap);
+	g_alLogImpl.m_ostream->m_stdout = stdout;
 }
 

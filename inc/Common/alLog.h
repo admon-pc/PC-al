@@ -9,7 +9,8 @@ public:
 	static void PrintWarning(const char*, ...);
 	static void PrintError(const char*, ...);
 
-	static void SetPrintFunction(void(*)(const char*));
+	//static void SetPrintFunction(void(*)(const char*));
+	static void SetOStream(alOStream*);
 };
 
 #endif

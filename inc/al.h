@@ -13,6 +13,7 @@
 // al
 #include "Common/alBase.h"
 #include "Common/alConfig.h"
+#include "Common/alOStream.h"
 #include "Common/alStacktracer.h"
 #include "Common/alAssert.h"
 #include "Common/alMemory.h"

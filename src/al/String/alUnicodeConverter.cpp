@@ -220,6 +220,9 @@ void alUnicodeConverter::wchar_to_char(const wchar_t* str, size_t sz, alStringA*
 		out->clear();
 		for (size_t i = 0; i < sz; )
 		{
+			if (!str[i])
+				break;
+
 			wchar_t c1 = str[i];
 			wchar_t c2 = 0;
 			if (i + 1 < sz)
@@ -245,6 +248,9 @@ void alUnicodeConverter::char_to_wchar(const char* str, size_t sz, alStringW* ou
 		out->clear();
 		for (size_t i = 0; i < sz; )
 		{
+			if (!str[i])
+				break;
+
 			char c1 = str[i];
 			char c2 = 0;
 			char c3 = 0;
@@ -267,4 +273,26 @@ void alUnicodeConverter::char_to_wchar(const char* str, size_t sz, alStringW* ou
 	}
 }
 
+void alUnicodeConverter::char32_to_wchar(const char32_t* str, size_t sz, alStringW* out)
+{
+	alUnicodeConverter uc;
+	if (str && sz && out)
+	{
+		out->clear();
+		for (size_t i = 0; i < sz; ++i)
+		{
+			if (!str[i])
+				break;
+
+			uc.Set(str[i]);
+			if (uc.m_16Num)
+			{
+				for (size_t o = 0; o < uc.m_16Num; ++o)
+				{
+					out->push_back(uc.m_16[o]);
+				}
+			}
+		}
+	}
+}
 

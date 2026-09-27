@@ -110,6 +110,8 @@ public:
 	float32_t* m_dt = 0;
 	alSystemWindow* m_mainWindow = 0;
 
+	alAudio* m_audio = 0;
+
 	Shader_Simple3D m_shaderSimple3D = Shader_Simple3D(this);
 
 	bool Init();

@@ -181,6 +181,8 @@
     <ClCompile Include="..\..\src\al\Common\alAssert.cpp" />
     <ClCompile Include="..\..\src\al\Common\alLog.cpp" />
     <ClCompile Include="..\..\src\al\Common\alMemory.cpp" />
+    <ClCompile Include="..\..\src\al\Common\alOStream.cpp" />
+    <ClCompile Include="..\..\src\al\Common\alStackTracer.cpp" />
     <ClCompile Include="..\..\src\al\cstd\sprintf.cpp" />
     <ClCompile Include="..\..\src\al\Geometry\alAabb.cpp" />
     <ClCompile Include="..\..\src\al\Geometry\alMesh.cpp" />

@@ -134,6 +134,12 @@
     <ClCompile Include="..\..\src\al\Audio\alAudioObject.cpp">
       <Filter>Audio</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\al\Common\alStackTracer.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\al\Common\alOStream.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Common">

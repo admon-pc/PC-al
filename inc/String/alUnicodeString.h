@@ -65,6 +65,8 @@ public:
 	// sz - is strlen,wcslen
 	static void wchar_to_char(const wchar_t* str, size_t sz, alStringA* out);
 	static void char_to_wchar(const char* str, size_t sz, alStringW* out);
+	
+	static void char32_to_wchar(const char32_t* str, size_t sz, alStringW* out);
 
 	uint32_t m_32 = 0;
 	uint16_t m_16[2] = { 0, 0 };
