@@ -23,5 +23,6 @@ struct alGSShaderCreationInfo;
 struct alCompressDataInfo;
 struct alGUIColorTheme;
 struct alAudioBufferRAW;
+struct alAudioBufferInfo;
 
 #endif

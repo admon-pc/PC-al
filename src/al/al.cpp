@@ -1390,6 +1390,7 @@ alAudio* alLib::InitializeAudio()
 
 alAudioBufferRAW* alLib::LoadRAWAudio(const char* fn, alAudioBufferInfo* info)
 {
+	AL_ASSERT_ST(fn);
 	alFileBuffer fb;
 	fb.ReadFile(fn);
 	return LoadRAWAudio(&fb, info);
@@ -1397,6 +1398,7 @@ alAudioBufferRAW* alLib::LoadRAWAudio(const char* fn, alAudioBufferInfo* info)
 
 alAudioBufferRAW* alLib::LoadRAWAudio(alFileBuffer* fb, alAudioBufferInfo* info)
 {
+	AL_ASSERT_ST(fb);
 	if (fb)
 	{
 		
@@ -1404,3 +1406,8 @@ alAudioBufferRAW* alLib::LoadRAWAudio(alFileBuffer* fb, alAudioBufferInfo* info)
 	return 0;
 }
 
+void alLib::GetAudioInfo(const char* fn, alAudioBufferInfo* info)
+{
+	AL_ASSERT_ST(fn);
+	AL_ASSERT_ST(info);
+}

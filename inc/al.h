@@ -13,6 +13,7 @@
 // al
 #include "Common/alBase.h"
 #include "Common/alConfig.h"
+#include "Common/alStacktracer.h"
 #include "Common/alAssert.h"
 #include "Common/alMemory.h"
 #include "Common/alLog.h"
@@ -166,6 +167,10 @@ public:
 	//  reading internal file headers.
 	static alAudioBufferRAW* LoadRAWAudio(const char*, alAudioBufferInfo* info);
 	static alAudioBufferRAW* LoadRAWAudio(alFileBuffer*, alAudioBufferInfo* info);
+	
+	// Get information about audio file.
+	// it will be zeroed by memset so if something wrong everything will be 0
+	static void GetAudioInfo(const char*, alAudioBufferInfo*);
 
 	static uint32_t GetImageLoaderNum();
 	static alImageLoader* GetImageLoader(uint32_t);

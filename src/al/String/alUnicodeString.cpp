@@ -640,8 +640,26 @@ uint32_t alUnicodeString::_readFromFile(FILE* f)
 					break;
 
 				uint32_t b = uc.Set(alVec4u(buf[0], buf[1], buf[2], buf[3]));
-				if (!uc.m_32)
-					break;
+				bool maybeCodepage = false;
+				enum
+				{
+					cp_1251,
+				};
+				const uint32_t codepages[] =
+				{
+					0x350, // RUS
+				};
+				if (type == type_utf8)
+				{
+					maybeCodepage = ((uc.m_32 > 127) && (uc.m_32 < 256));
+				}
+
+				if ((!uc.m_32) || maybeCodepage)
+				{
+					b = 1;
+					uc.m_32 = buf[0];
+					uc.m_32 += codepages[cp_1251];
+				}
 
 				PushBack(uc.m_32);
 

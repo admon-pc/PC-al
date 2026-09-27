@@ -10,6 +10,33 @@ enum class alAudioFormat
 	PCM_32_float,
 };
 
+// Some additional information about the audio
+// This struct has information that, what we can call, not important.
+// Because, if you add this fields into alAudioBufferInfo,
+// then every time you use alAudioBufferInfo, you will think about
+// these fields, you will think 'do I relly need to initialize 
+// all these things?'. Yes you can use memset().
+// But it's still confusing. So, if you use alAudioBufferInfo,
+// 100% you must set correct information.
+// alAudioBufferInfo2 has some additional information.
+// It's depends when you need to set some of these fields, 
+// read comments for information.
+//
+struct alAudioBufferInfo2
+{
+	float32_t m_length = 0.f;
+
+	enum
+	{
+		fileType_unknown,
+		fileType_wav,
+	};
+	uint32_t m_fileType = 0;
+};
+
+// Important information about audio buffer.
+// For not so important information (like length in milliseconds)
+//  use alAudioBufferInfo2
 struct alAudioBufferInfo
 {
 	uint32_t m_sampleRate = 11000;
@@ -27,7 +54,11 @@ struct alAudioBufferInfo
 	// Sample rate is how many samples will be transferred to device for 1 second
 	// So bytes per second is m_sampleRate * m_bytesPerBlock
 	uint32_t m_bytesPerSecond = m_sampleRate * m_bytesPerBlock;
+
+	alAudioBufferInfo2 m_additionalInfo;
 };
+
+
 
 struct alAudioBufferRAW
 {
