@@ -149,7 +149,7 @@ bool alAudioEngineWASAPI::Initialize()
 			reinterpret_cast<WAVEFORMATEXTENSIBLE*>(m_mixFormat)->SubFormat == KSDATAFORMAT_SUBTYPE_IEEE_FLOAT))
 	{
 		m_renderSampleType = SampleTypeFloat;
-		m_audioDeviceInfo.m_format = alAudioFormat::PCM_32_float;
+		m_audioDeviceInfo.m_format = alAudioFormat::IEEE_float32;
 	}
 	else
 	{
@@ -157,6 +157,7 @@ bool alAudioEngineWASAPI::Initialize()
 		return false;
 	}
 
+	alLog::PrintInfo("Audio Device : wBitsPerSample [%u]\n", m_mixFormat->wBitsPerSample);
 	alLog::PrintInfo("Audio Device : channels [%u]\n", m_audioDeviceInfo.m_channels);
 	alLog::PrintInfo("Audio Device : sample rate [%u]\n", m_audioDeviceInfo.m_sampleRate);
 	switch (m_audioDeviceInfo.m_format)
@@ -165,8 +166,8 @@ bool alAudioEngineWASAPI::Initialize()
 		alLog::PrintInfo("Audio Device : format [%s]\n", "PCM_16");
 		m_audioDeviceInfo.m_bytesPerSample = 2;
 		break;
-	case alAudioFormat::PCM_32_float:
-		alLog::PrintInfo("Audio Device : format [%s]\n", "PCM_32_float");
+	case alAudioFormat::IEEE_float32:
+		alLog::PrintInfo("Audio Device : format [%s]\n", "IEEE_float");
 		m_audioDeviceInfo.m_bytesPerSample = 4;
 		break;
 	}
@@ -252,7 +253,7 @@ void alAudioThreadFunction_WASAPI(alAudioEngineWASAPI* engine)
 
 		float32_t* pcm32_ch1 = (float32_t*)wave_ptr;
 		float32_t* pcm32_ch2 = pcm32_ch1 + 1;
-
+		
 
 		float64_t angle_step = (240.0 * PIPI) / (float64_t)di.m_sampleRate;
 		float64_t angle = 0.f;
@@ -268,7 +269,7 @@ void alAudioThreadFunction_WASAPI(alAudioEngineWASAPI* engine)
 			{
 			case alAudioFormat::PCM_16:
 				break;
-			case alAudioFormat::PCM_32_float:
+			case alAudioFormat::IEEE_float32:
 				*pcm32_ch1 = sn;
 				if (di.m_channels == 2)
 				{

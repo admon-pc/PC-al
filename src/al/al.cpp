@@ -59,7 +59,9 @@ AL_LINK_LIBRARY(al.d3d11);
 #endif
 
 alLibImpl* g_alLib = 0;
+extern alLibImpl* g_alLib;
 void alAudioThreadFunction_WASAPI(alAudioEngineWASAPI* engine);
+
 
 namespace al_internal
 {
@@ -1370,6 +1372,7 @@ void alLib::OpenOpenFileDialog(
 		IID_IFileOpenDialog, reinterpret_cast<void**>(&g_alLib->m_fileOpenDialog));
 }
 
+
 alAudio* alLib::InitializeAudio()
 {
 	if (g_alLib->m_audio)
@@ -1388,27 +1391,4 @@ alAudio* alLib::InitializeAudio()
 	}
 
 	return g_alLib->m_audio;
-}
-
-alAudioBufferRAW* alLib::LoadRAWAudio(const char* fn, alAudioBufferInfo* info)
-{
-	AL_ASSERT_ST(fn);
-	alFileBuffer fb;
-	fb.ReadFile(fn);
-	return LoadRAWAudio(&fb, info);
-}
-
-alAudioBufferRAW* alLib::LoadRAWAudio(alFileBuffer* fb, alAudioBufferInfo* info)
-{
-	AL_ASSERT_ST(fb);
-	if (fb)
-	{
-	}
-	return 0;
-}
-
-void alLib::GetAudioInfo(const char* fn, alAudioBufferInfo* info)
-{
-	AL_ASSERT_ST(fn);
-	AL_ASSERT_ST(info);
 }

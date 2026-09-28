@@ -7,6 +7,7 @@
 extern alLibGlobalData g_alLibGlobalData;
 extern alLibImpl* g_alLib;
 
+
 alAudio::alAudio()
 {
 	m_mainMixer = GetNewMixer();
@@ -43,12 +44,202 @@ alAudioMixer* alAudio::GetNewMixer()
 	return mixer;
 }
 
-alAudioBufferRAW* alAudio::LoadRAW(const char* fn, alAudioBufferInfo* info)
+alAudioBufferRAW* alAudio::LoadRAWAudio(const char* fn)
 {
-	return alLib::LoadRAWAudio(fn, info);
+	AL_ASSERT_ST(fn);
+	if (fn)
+	{
+		alFileBuffer fb;
+		fb.ReadFile(fn);
+		return LoadRAWAudio(&fb);
+	}
+	return 0;
 }
 
-alAudioBufferRAW* alAudio::LoadRAW(alFileBuffer* fb, alAudioBufferInfo* info)
+alAudioBufferRAW* alAudio::LoadRAWAudio(alFileBuffer* fb)
 {
-	return alLib::LoadRAWAudio(fb, info);
+	AL_ASSERT_ST(fb);
+	if (fb)
+	{
+		alAudioBufferInfo info;
+		GetAudioInfo(fb, &info);
+
+		switch (info.m_additionalInfo.m_fileType)
+		{
+		case alAudioBufferInfo2::fileType_wav:
+			return g_alLib->LoadAudioWAV(fb, &info);
+		}
+	}
+	return 0;
 }
+
+void alAudio::GetAudioInfo(const char* fn, alAudioBufferInfo* i)
+{
+	AL_ASSERT_ST(fn);
+	AL_ASSERT_ST(i);
+	if (fn && i)
+	{
+		alFileBuffer fb;
+		fb.ReadFile(fn, 100);
+		GetAudioInfo(&fb, i);
+	}
+}
+
+void alAudio::GetAudioInfo(alFileBuffer* fb, alAudioBufferInfo* info)
+{
+	AL_ASSERT_ST(fb);
+	AL_ASSERT_ST(info);
+
+	alAudioBufferInfo inf;
+	memset(&inf, 0, sizeof(inf));
+
+	if (fb)
+	{
+		{
+			wav_header_t wav_header;
+			fb->Read(&wav_header, sizeof(wav_header_t));
+			if (wav_header.riff[0] == 'R'
+				&& wav_header.riff[1] == 'I'
+				&& wav_header.riff[2] == 'F'
+				&& wav_header.riff[3] == 'F')
+			{
+				if (wav_header.wave[0] == 'W'
+					&& wav_header.wave[1] == 'A'
+					&& wav_header.wave[2] == 'V'
+					&& wav_header.wave[3] == 'E')
+				{
+					if (wav_header.fmt_id[0] == 'f'
+						&& wav_header.fmt_id[1] == 'm'
+						&& wav_header.fmt_id[2] == 't'
+						&& wav_header.fmt_id[3] == ' ')
+					{
+						inf.m_channels = wav_header.num_channels;
+						inf.m_sampleRate = wav_header.sample_rate;
+
+						inf.m_format = alAudioFormat::Unknown;
+
+						// 2 channels; pcm8, pcm16, IEEE float
+						if (wav_header.audio_format == WAVE_FORMAT_PCM)
+						{
+							switch (wav_header.bits_per_sample)
+							{
+							case 8:
+								inf.m_format = alAudioFormat::PCM_8;
+								inf.m_bytesPerSample = 1;
+								break;
+							case 16:
+								inf.m_format = alAudioFormat::PCM_16;
+								inf.m_bytesPerSample = 2;
+								break;
+							}
+							inf.m_bytesPerBlock = inf.m_bytesPerSample * inf.m_channels;
+							inf.m_bytesPerSecond = inf.m_sampleRate * inf.m_bytesPerBlock;
+							inf.m_additionalInfo.m_length = (float)wav_header.data_size / (float)inf.m_bytesPerSecond;
+						}
+						else if (wav_header.audio_format == WAVE_FORMAT_IEEE_FLOAT)
+						{
+							wav_header_18_t* wav_header18 = (wav_header_18_t*)&wav_header;
+							fb->Seek(38, SEEK_SET);
+							fb->Seek(wav_header18->cb_size, SEEK_CUR);
+							auto pos = fb->Tell();
+							char datastr[5] = { 0,0,0,0,0 };
+							fb->Read(datastr, 4);
+							uint32_t datasz = 0;
+							fb->Read(&datasz, 4);
+							if (::strcmp(datastr, "data") == 0)
+							{
+								inf.m_format = alAudioFormat::IEEE_float32;
+								inf.m_bytesPerSample = 4;
+
+								inf.m_bytesPerBlock = inf.m_bytesPerSample * inf.m_channels;
+								inf.m_bytesPerSecond = inf.m_sampleRate * inf.m_bytesPerBlock;
+								inf.m_additionalInfo.m_length = (float)datasz / (float)inf.m_bytesPerSecond;
+							}
+							else
+							{
+								memset(&inf, 0, sizeof(inf));
+							}
+						}
+
+
+						inf.m_additionalInfo.m_fileType = alAudioBufferInfo2::fileType_wav;
+						
+						/*alLog::Print("\tchunk_size: %u\n", wav_header.chunk_size);
+						alLog::Print("\tfmt_size: %u\n", wav_header.fmt_size);
+						alLog::Print("\taudio_format: %u\n", wav_header.audio_format);
+						alLog::Print("\tnum_channels: %u\n", wav_header.num_channels);
+						alLog::Print("\tsample_rate: %u\n", wav_header.sample_rate);
+						alLog::Print("\tbyte_rate: %u\n", wav_header.byte_rate);
+						alLog::Print("\tblock_align: %u\n", wav_header.block_align);
+						alLog::Print("\tbits_per_sample: %u\n", wav_header.bits_per_sample);
+						alLog::Print("\t\tlen: %f\n", inf.m_additionalInfo.m_length);*/
+
+					}
+				}
+			}
+		}
+	}
+}
+
+alAudioBuffer* alAudio::LoadAudio(const char* fn)
+{
+	AL_ASSERT_ST(fn);
+	if (fn)
+	{
+		alFileBuffer fb;
+		fb.ReadFile(fn);
+
+		return LoadAudio(&fb);
+	}
+	return 0;
+}
+
+alAudioBuffer* alAudio::LoadAudio(alFileBuffer* fb)
+{
+	alAudioBuffer* newBuffer = 0;
+	auto raw = alAudio::LoadRAWAudio(fb);
+	if (raw)
+	{
+		auto bi = GetDeviceFormat();
+		ChangeFormat(raw, bi.m_format);
+		ChangeSampleRate(raw, bi.m_sampleRate);
+		switch (bi.m_channels)
+		{
+		case 1:
+			MakeMono(raw);
+			break;
+		case 2:
+			MakeStereo(raw);
+			break;
+		}
+
+		newBuffer = alCreate<alAudioBuffer>();
+		newBuffer->m_rawData = raw;
+	}
+	return newBuffer;
+}
+
+void alAudio::ChangeFormat(alAudioBufferRAW* raw, alAudioFormat fmt)
+{
+	AL_ASSERT_ST(raw);
+	AL_ASSERT_ST(raw->m_data);
+	AL_ASSERT_ST(raw->m_dataSize);
+	AL_ASSERT_ST(fmt != alAudioFormat::Unknown);
+	if (raw && (fmt != alAudioFormat::Unknown))
+	{
+
+	}
+}
+
+void alAudio::ChangeSampleRate(alAudioBufferRAW* raw, uint32_t newSampleRate)
+{
+}
+
+void alAudio::MakeMono(alAudioBufferRAW* raw)
+{
+}
+
+void alAudio::MakeStereo(alAudioBufferRAW* raw)
+{
+}
+

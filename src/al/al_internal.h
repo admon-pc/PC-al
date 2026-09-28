@@ -48,6 +48,45 @@ public:
 
 #include "Common/alOStreamImpl.h"
 
+#pragma pack(push, 1)  /* no padding */
+
+typedef struct {
+	/* RIFF header (12 bytes) */
+	char     riff[4];          /* "RIFF"             */
+	uint32_t chunk_size;       /* file size - 8      */
+	char     wave[4];          /* "WAVE"             */
+
+	/* fmt sub-chunk (24 bytes) */
+	char     fmt_id[4];        /* "fmt " (trailing space) */
+	uint32_t fmt_size;         /* 16 for PCM         */
+	uint16_t audio_format;     /* 1 = PCM            */
+	uint16_t num_channels;     /* 1 = mono, 2 = stereo */
+	uint32_t sample_rate;      /* e.g. 44100 Hz      */
+	uint32_t byte_rate;        /* sample_rate * num_channels * bits_per_sample / 8 */
+	uint16_t block_align;      /* num_channels * bits_per_sample / 8 */
+	uint16_t bits_per_sample;  /* e.g. 16            */
+
+	/* data sub-chunk (8 bytes) */
+	char     data_id[4];       /* "data"             */
+	uint32_t data_size;        /* byte count of audio data */
+} wav_header_t;
+typedef struct {
+	char     riff[4];
+	uint32_t chunk_size;
+	char     wave[4];
+	char     fmt_id[4];
+	uint32_t fmt_size;         /* 18 */
+	uint16_t audio_format;     /* 1 (PCM) or 3 (IEEE float) */
+	uint16_t num_channels;
+	uint32_t sample_rate;
+	uint32_t byte_rate;
+	uint16_t block_align;
+	uint16_t bits_per_sample;  /* e.g. 24 or 32 */
+	uint16_t cb_size;          /* 0 (no further extra fields) */
+} wav_header_18_t;             /* total: 46 bytes */
+
+#pragma pack(pop)
+
 class alLibImpl
 {
 public:
@@ -87,10 +126,12 @@ public:
 	alAudio* m_audio = 0;
 	alAudioEngine* m_audioEngine = 0;
 	std::thread* m_audioThread = 0;
+	alAudioBufferRAW* LoadAudioWAV(alFileBuffer* fb, alAudioBufferInfo* ai);
 	
 	alOStream_default m_ostream_default;
 
 	alStringW m_ostream_bufferString;
+
 };
 
 class alAudioEngineWASAPI : public alAudioEngine

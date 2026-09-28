@@ -24,6 +24,25 @@ bool DemoExample_audio_1::Init()
 	m_gs = g_demo->m_gs;
 	m_input = alLib::GetInput();
 
+	//const char* files[] =
+	//{
+	//	{"../data/sounds/001_pcm8bit_1ch.wav"},
+	//	{"../data/sounds/001_pcm8bit_2ch.wav"},
+	//	{"../data/sounds/001_pcm8bit_4ch.wav"},
+	//	{"../data/sounds/001_pcm16bit_2ch.wav"},
+	//	{"../data/sounds/001_pcm24bit_2ch.wav"},
+	//	{"../data/sounds/001_pcm32bit_2ch.wav"},
+	//	{"../data/sounds/001_IEEEf32bit_2ch.wav"},
+	//	//{"../data/sounds/001_IEEEf64bit_2ch.wav"},
+	//};
+
+	//alAudioBufferInfo inf;
+	//for (int i = 0; i < 7; ++i)
+	//{
+	//	alLog::Print("FILE %s\n", files[i]);
+	//	alAudio::GetAudioInfo(files[i], &inf);
+	//}
+
 	if(!g_demo->m_audio)
 		g_demo->m_audio = alLib::InitializeAudio();
 

@@ -44,6 +44,36 @@ bool alFileBuffer::ReadFile(const char* fn)
 	return ret;
 }
 
+bool alFileBuffer::ReadFile(const char* fn, size_t sizeLimit)
+{
+	bool ret = false;
+	AL_ASSERT_ST(fn);
+	AL_ASSERT_ST(sizeLimit);
+	if (fn && sizeLimit)
+	{
+		uint64_t fileSz = alLib::GetFileSize(fn);
+		if (fileSz)
+		{
+			if (fileSz > sizeLimit)
+				fileSz = sizeLimit;
+
+			FILE* f = 0;
+			fopen_s(&f, fn, "rb");
+			if (f)
+			{
+				m_size = (size_t)fileSz;
+				m_data = (uint8_t*)alMemory::Malloc(m_size);
+				m_pointer = m_data;
+				m_end = m_data + m_size;
+				fread_s(m_data, m_size, m_size, 1, f);
+				fclose(f);
+				ret = true;
+			}
+		}
+	}
+	return ret;
+}
+
 void alFileBuffer::Free()
 {
 	if (m_data)

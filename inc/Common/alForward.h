@@ -17,12 +17,13 @@ class alImage;
 class alGS;
 class alColor;
 class alGSMesh;
+class alAudioBufferRAW;
+class alAudioBuffer;
 //class alGSMeshInfo;
 class alAudio;
 struct alGSShaderCreationInfo;
 struct alCompressDataInfo;
 struct alGUIColorTheme;
-struct alAudioBufferRAW;
 struct alAudioBufferInfo;
 
 #endif

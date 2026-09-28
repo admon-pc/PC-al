@@ -173,6 +173,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\al\al.cpp" />
     <ClCompile Include="..\..\src\al\Archive\alArchive.cpp" />
+    <ClCompile Include="..\..\src\al\Audio\al.audio.cpp" />
     <ClCompile Include="..\..\src\al\Audio\alAudio.cpp" />
     <ClCompile Include="..\..\src\al\Audio\alAudioEngineWASAPI.cpp" />
     <ClCompile Include="..\..\src\al\Audio\alAudioMixer.cpp" />

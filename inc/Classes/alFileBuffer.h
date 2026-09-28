@@ -26,6 +26,7 @@ public:
 	bool IsOpen();
 
 	bool ReadFile(const char*);
+	bool ReadFile(const char*, size_t sizeLimit);
 	void Free();
 };
 

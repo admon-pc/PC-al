@@ -7,7 +7,7 @@ enum class alAudioFormat
 	Unknown,
 	PCM_8,
 	PCM_16,
-	PCM_32_float,
+	IEEE_float32,
 };
 
 // Some additional information about the audio
@@ -60,8 +60,12 @@ struct alAudioBufferInfo
 
 
 
-struct alAudioBufferRAW
+class alAudioBufferRAW
 {
+public:
+	alAudioBufferRAW() {}
+	~alAudioBufferRAW() { if (m_data) alMemory::Free(m_data); }
+
 	alAudioBufferInfo m_bufferInfo;
 
 	uint8_t* m_data = 0;
@@ -69,9 +73,13 @@ struct alAudioBufferRAW
 };
 
 // buffer that 100% has same format as device
-struct alAudioBuffer
+class alAudioBuffer
 {
-	alAudioBufferRAW m_rawData;
+public:
+	alAudioBuffer() {}
+	~alAudioBuffer() { AL_DESTROY(m_rawData); }
+
+	alAudioBufferRAW* m_rawData = 0;
 };
 
 // Object for playing the audio.
@@ -135,15 +143,36 @@ public:
 	// They all will be deleted when program end.
 	alAudioMixer* GetNewMixer();
 
-	// See comments in alLib::LoadRAWAudio
-	// These methods will call alLib::LoadRAWAudio
-	// Why like this? alAudio exists only when you call
-	// alLib::InitializeAudio()
-	// But you don't need running audio engine to just load
-	// audio data. It's ok, not perfect `feng shui` style.
-	// It just works and that's enough.
-	alAudioBufferRAW* LoadRAW(const char*, alAudioBufferInfo* info);
-	alAudioBufferRAW* LoadRAW(alFileBuffer*, alAudioBufferInfo* info);
+	// This methods will load audio and convert it
+	// into device's format
+	alAudioBuffer* LoadAudio(const char*);
+	alAudioBuffer* LoadAudio(alFileBuffer*);
+
+	//======================================================
+	// STATIC METHODS
+	// These methods you can use without audio engine initialization.
+	// 
+	// 
+	// Load audio data without any conversion.
+	// Audio Device has it's own format. For playing audio
+	//     the engine use alAudioBuffer. This class 100% has same type as device.
+	//     Use alAudio class for reading file into alAudioBuffer,
+	//     or for converting alAudioBufferRAW to alAudioBuffer.
+	// When reading, engine will determine format not by extension, but by
+	//  reading internal file headers.
+	static alAudioBufferRAW* LoadRAWAudio(const char*);
+	static alAudioBufferRAW* LoadRAWAudio(alFileBuffer*);
+
+	// Get information about audio file.
+	// it will be zeroed by memset so if something wrong everything will be 0
+	static void GetAudioInfo(const char*, alAudioBufferInfo*);
+	static void GetAudioInfo(alFileBuffer*, alAudioBufferInfo*);
+
+	static void ChangeFormat(alAudioBufferRAW*, alAudioFormat);
+	// From 100 to 192000
+	static void ChangeSampleRate(alAudioBufferRAW*, uint32_t);
+	static void MakeMono(alAudioBufferRAW*);
+	static void MakeStereo(alAudioBufferRAW*);
 };
 
 #endif

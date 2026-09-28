@@ -140,6 +140,9 @@
     <ClCompile Include="..\..\src\al\Common\alOStream.cpp">
       <Filter>Common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\al\Audio\al.audio.cpp">
+      <Filter>Audio</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Common">

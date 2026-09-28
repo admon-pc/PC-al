@@ -38,8 +38,8 @@ uint32_t alAudioObject::GetPosition()
 void alAudioObject::SetPosition(uint32_t p)
 {
 	m_position = p;
-	if (m_position >= m_buffer->m_rawData.m_dataSize)
-		m_position = m_buffer->m_rawData.m_dataSize - m_buffer->m_rawData.m_bufferInfo.m_bytesPerBlock;
+	if (m_position >= m_buffer->m_rawData->m_dataSize)
+		m_position = m_buffer->m_rawData->m_dataSize - m_buffer->m_rawData->m_bufferInfo.m_bytesPerBlock;
 }
 
 
