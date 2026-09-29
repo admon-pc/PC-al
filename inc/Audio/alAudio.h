@@ -126,6 +126,9 @@ public:
 
 	alAudioObject* GetNewAudioObject(alAudioBuffer*);
 	void DeleteAllAudioObjects();
+
+	size_t GetAudioObjectNum();
+	alAudioObject* GetAudioObject(size_t);
 };
 
 class alAudio
@@ -138,6 +141,8 @@ public:
 
 	alAudioBufferInfo GetDeviceFormat();
 	alAudioMixer* GetMainMixer();
+	size_t GetMixerNum();
+	alAudioMixer* GetMixer(size_t);
 
 	// this will create new mixer.
 	// They all will be deleted when program end.

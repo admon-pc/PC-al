@@ -126,6 +126,9 @@ public:
 	alAudio* m_audio = 0;
 	alAudioEngine* m_audioEngine = 0;
 	std::thread* m_audioThread = 0;
+	std::mutex m_audio_mtx;
+	std::condition_variable m_audio_cv;
+	bool m_audio_cv_ready = false;
 	alAudioBufferRAW* LoadAudioWAV(alFileBuffer* fb, alAudioBufferInfo* ai);
 	
 	alOStream_default m_ostream_default;
@@ -159,17 +162,9 @@ public:
 	RenderSampleType m_renderSampleType = SampleTypeFloat;
 
 
+
 	virtual bool Initialize() override;
-
-	struct queue_data
-	{
-		uint32_t m_cmd = 0;
-	};
-
-	enum
-	{
-		queueCMD_quit = 1,
-	};
+	virtual void AddCommand(const queue_data&) override;
 
 	alFIFO<queue_data, 10> m_queue;
 };

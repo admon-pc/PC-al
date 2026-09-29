@@ -45,12 +45,21 @@ bool DemoExample_audio_1::Init()
 
 	if(!g_demo->m_audio)
 		g_demo->m_audio = alLib::InitializeAudio();
+	if(!g_demo->m_audioMixer)
+		g_demo->m_audioMixer = g_demo->m_audio->GetNewMixer();
+
+	m_audioBuffer = g_demo->m_audio->LoadAudio("../data/sounds/001_IEEEf32bit_2ch_48000.wav");
+	m_audioObject = g_demo->m_audioMixer->GetNewAudioObject(m_audioBuffer);
 
 	return true;
 }
 
 void DemoExample_audio_1::Shutdown()
 {
+	if(g_demo->m_audioMixer)
+		g_demo->m_audioMixer->DeleteAllAudioObjects();
+	AL_DESTROY(m_audioBuffer);
+
 	g_demo->m_GUI->DeleteAllPanels();
 	alLib::GetCursor(alCursorType::Arrow)->Activate();
 

@@ -111,6 +111,8 @@ public:
 	alSystemWindow* m_mainWindow = 0;
 
 	alAudio* m_audio = 0;
+	alAudioMixer* m_audioMixer = 0;
+
 
 	Shader_Simple3D m_shaderSimple3D = Shader_Simple3D(this);
 

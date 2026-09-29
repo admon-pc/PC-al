@@ -34,15 +34,49 @@ alAudioMixer* alAudio::GetNewMixer()
 	alAudioMixer* mixer = alCreate<alAudioMixer>();
 	if (mixer)
 	{
+		if(g_alLib->m_audioThread)
+		{
+			alAudioEngine::queue_data cmd;
+			cmd.m_cmd = alAudioEngine::queueCMD_stop;
+			g_alLib->m_audioEngine->AddCommand(cmd);
+			std::unique_lock<std::mutex> lock(g_alLib->m_audio_mtx);
+			g_alLib->m_audio_cv.wait(lock, [] { return g_alLib->m_audio_cv_ready; });
+			g_alLib->m_audio_cv_ready = false;
+		}
+
 		auto bi = GetDeviceFormat();
 		mixer->m_buffer.m_bufferInfo = bi;
-		mixer->m_buffer.m_dataSize = bi.m_bytesPerSecond / 10;
-		mixer->m_buffer.m_data = (uint8_t*)alMemory::Calloc(mixer->m_buffer.m_dataSize);
+		mixer->m_buffer.m_dataSize = bi.m_bytesPerBlock * (bi.m_sampleRate / 10);
+		mixer->m_buffer.m_data = (uint8_t*)alMemory::Malloc(mixer->m_buffer.m_dataSize);
 
 		m_mixers.push_back(mixer);
+
+		if (g_alLib->m_audioThread) 
+		{
+			alAudioEngine::queue_data cmd;
+			cmd.m_cmd = alAudioEngine::queueCMD_resume;
+			g_alLib->m_audioEngine->AddCommand(cmd);
+			std::unique_lock<std::mutex> lock(g_alLib->m_audio_mtx);
+			g_alLib->m_audio_cv.wait(lock, [] { return g_alLib->m_audio_cv_ready; });
+			g_alLib->m_audio_cv_ready = false;
+		}
 	}
 	return mixer;
 }
+
+size_t alAudio::GetMixerNum()
+{
+	return m_mixers.size();
+}
+
+alAudioMixer* alAudio::GetMixer(size_t i)
+{
+	if (i < m_mixers.m_size)
+		return m_mixers.m_data[i];
+
+	return 0;
+}
+
 
 alAudioBufferRAW* alAudio::LoadRAWAudio(const char* fn)
 {
@@ -89,6 +123,8 @@ void alAudio::GetAudioInfo(alFileBuffer* fb, alAudioBufferInfo* info)
 {
 	AL_ASSERT_ST(fb);
 	AL_ASSERT_ST(info);
+
+	memset(info, 0, sizeof(alAudioBufferInfo));
 
 	alAudioBufferInfo inf;
 	memset(&inf, 0, sizeof(inf));
@@ -163,7 +199,7 @@ void alAudio::GetAudioInfo(alFileBuffer* fb, alAudioBufferInfo* info)
 
 
 						inf.m_additionalInfo.m_fileType = alAudioBufferInfo2::fileType_wav;
-						
+						*info = inf;
 						/*alLog::Print("\tchunk_size: %u\n", wav_header.chunk_size);
 						alLog::Print("\tfmt_size: %u\n", wav_header.fmt_size);
 						alLog::Print("\taudio_format: %u\n", wav_header.audio_format);

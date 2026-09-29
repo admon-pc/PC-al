@@ -150,6 +150,11 @@ alDemo::alDemo()
 
 alDemo::~alDemo()
 {
+	if (m_currExample)
+	{
+		m_currExample->Shutdown();
+	}
+
 	for (size_t i = 0; i < m_allDirectories.m_size; ++i)
 	{
 		delete m_allDirectories.m_data[i];
@@ -158,7 +163,6 @@ alDemo::~alDemo()
 	{
 		delete m_examples.m_data[i];
 	}
-
 	AL_DESTROY(m_GUI);
 	AL_DESTROY(m_guiFont);
 	AL_DESTROY(m_gs);
@@ -431,6 +435,7 @@ int main(int argc, char* argv[])
 	{
 		dd->Run();
 	}
+	delete dd;
 	return 1;
 }
 

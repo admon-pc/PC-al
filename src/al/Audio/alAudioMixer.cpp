@@ -14,8 +14,6 @@ alAudioMixer::alAudioMixer()
 alAudioMixer::~alAudioMixer()
 {
 	DeleteAllAudioObjects();
-	if (m_buffer.m_data)
-		alDestroy(m_buffer.m_data);
 }
 
 float32_t alAudioMixer::GetVolume()
@@ -30,6 +28,7 @@ void alAudioMixer::SetVolume(float32_t v)
 
 alAudioObject* alAudioMixer::GetNewAudioObject(alAudioBuffer* ab)
 {
+	AL_ASSERT_ST(ab);
 	alAudioObject* ao = 0;
 	if (ab)
 	{
@@ -42,11 +41,49 @@ alAudioObject* alAudioMixer::GetNewAudioObject(alAudioBuffer* ab)
 
 void alAudioMixer::DeleteAllAudioObjects()
 {
-	for (size_t i = 0; i < m_audioObjects.m_size; ++i)
+	if (m_audioObjects.m_size)
 	{
-		alDestroy(m_audioObjects.m_data[i]);
+
+		{
+			alAudioEngine::queue_data cmd;
+			cmd.m_cmd = alAudioEngine::queueCMD_stop;
+			g_alLib->m_audioEngine->AddCommand(cmd);
+			std::unique_lock<std::mutex> lock(g_alLib->m_audio_mtx);
+			g_alLib->m_audio_cv.wait(lock, [] { return g_alLib->m_audio_cv_ready; });
+			g_alLib->m_audio_cv_ready = false;
+		}
+
+		for (size_t i = 0; i < m_audioObjects.m_size; ++i)
+		{
+			alDestroy(m_audioObjects.m_data[i]);
+		}
+		m_audioObjects.clear();
+		m_audioObjects.ShrinkToFit();
+
+
+		{
+			alAudioEngine::queue_data cmd;
+			cmd.m_cmd = alAudioEngine::queueCMD_resume;
+			g_alLib->m_audioEngine->AddCommand(cmd);
+			std::unique_lock<std::mutex> lock(g_alLib->m_audio_mtx);
+			g_alLib->m_audio_cv.wait(lock, [] { return g_alLib->m_audio_cv_ready; });
+			g_alLib->m_audio_cv_ready = false;
+		}
 	}
-	m_audioObjects.clear();
-	m_audioObjects.ShrinkToFit();
+}
+
+size_t alAudioMixer::GetAudioObjectNum()
+{
+	return m_audioObjects.size();
+}
+
+alAudioObject* alAudioMixer::GetAudioObject(size_t i)
+{
+	if (i < m_audioObjects.size())
+	{
+		return m_audioObjects.m_data[i];
+	}
+
+	return 0;
 }
 

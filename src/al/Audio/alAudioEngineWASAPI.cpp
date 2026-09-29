@@ -3,8 +3,10 @@
 
 #include "alAudioEngine.h"
 #include <functiondiscoverykeys.h>
+
 #include "../al_internal.h"
 extern alLibGlobalData g_alLibGlobalData;
+extern alLibImpl* g_alLib;
 
 
 
@@ -229,6 +231,11 @@ bool alAudioEngineWASAPI::Initialize()
 	return true;
 }
 
+void alAudioEngineWASAPI::AddCommand(const queue_data& cmd)
+{
+	m_queue.push(cmd);
+}
+
 void alAudioThreadFunction_WASAPI(alAudioEngineWASAPI* engine)
 {
 	engine->m_run = true;
@@ -243,64 +250,141 @@ void alAudioThreadFunction_WASAPI(alAudioEngineWASAPI* engine)
 
 	Sleep(100);
 
-	uint8_t* wave = (uint8_t*)malloc(di.m_bytesPerSecond);
-	if (wave)
+	alAudio* audio = alLib::InitializeAudio();
+	auto mainMixer = audio->GetMainMixer();
+
+	struct _main_mixer_buffer_data
 	{
-		auto wave_ptr = wave;
+		alAudioBufferRAW m_buffer;
+		uint32_t m_position = 0;
+	};
 
-		uint16_t* pcm16_ch1 = (uint16_t*)wave_ptr;
-		uint16_t* pcm16_ch2 = pcm16_ch1 + 1;
+	_main_mixer_buffer_data mainMixerBuffers[2];
+	mainMixerBuffers[0].m_buffer.m_dataSize = mainMixer->GetBuffer()->m_dataSize;
+	mainMixerBuffers[0].m_buffer.m_data = (uint8_t*)alMemory::Calloc(mainMixerBuffers[0].m_buffer.m_dataSize);
+	mainMixerBuffers[1].m_buffer.m_dataSize = mainMixerBuffers[0].m_buffer.m_dataSize;
+	mainMixerBuffers[1].m_buffer.m_data = (uint8_t*)alMemory::Calloc(mainMixerBuffers[1].m_buffer.m_dataSize);
 
-		float32_t* pcm32_ch1 = (float32_t*)wave_ptr;
-		float32_t* pcm32_ch2 = pcm32_ch1 + 1;
-		
+	// number of blocks in mixer buffer
+	uint32_t blockNum = mainMixer->GetBuffer()->m_dataSize / di.m_bytesPerBlock;
 
-		float64_t angle_step = (240.0 * PIPI) / (float64_t)di.m_sampleRate;
-		float64_t angle = 0.f;
-		for (uint32_t i = 0; i < di.m_sampleRate; ++i)
-		{
-			float64_t sn = sin(angle);
-			
-			/*
-			float32_t t = (float32_t)i / (float32_t)di.m_sampleRate;
-			float sn = sinf(PIPIf*240.f*t);
-			*/
-			switch (di.m_format)
-			{
-			case alAudioFormat::PCM_16:
-				break;
-			case alAudioFormat::IEEE_float32:
-				*pcm32_ch1 = sn;
-				if (di.m_channels == 2)
-				{
-					*pcm32_ch2 = sn;
-				}
+	/*
+	* currentBuffer - this buffer will be copied into device.
+	*	In the beginning it will bbe empty.
+	* prepareBuffer - this buffer will copy data from other mixers.
+	*	While currentBuffer is working with device,
+	*	prepareBuffer must prepare itself - copy data from mixers.
+	*	When currentBuffer reach it's end, prepareBuffer must be prepared.
+	*	Prepared buffer is readyBuffer.
+	*	If buffer is not prepared, readyBuffer must be NULL. 
+	*/
+	_main_mixer_buffer_data* currentBuffer = &mainMixerBuffers[0];
+	_main_mixer_buffer_data* prepareBuffer = &mainMixerBuffers[1];
+	_main_mixer_buffer_data* readyBuffer = 0;
 
-				wave_ptr += di.m_bytesPerBlock;
-				pcm32_ch1 = (float32_t*)wave_ptr;
-				pcm32_ch2 = pcm32_ch1 + 1;
-				break;
-			}
+	//uint8_t* wave = (uint8_t*)malloc(di.m_bytesPerSecond);
+	//if (wave)
+	//{
+	//	auto wave_ptr = wave;
 
-			angle += angle_step;
-		}
+	//	uint16_t* pcm16_ch1 = (uint16_t*)wave_ptr;
+	//	uint16_t* pcm16_ch2 = pcm16_ch1 + 1;
 
-		/*FILE* f = 0;
-		fopen_s(&f, "wave.raw", "wb");
-		if (f)
-		{
-			fwrite(wave, 1, di.m_bytesPerSecond, f);
-			fclose(f);
-		}*/
-	}
+	//	float32_t* pcm32_ch1 = (float32_t*)wave_ptr;
+	//	float32_t* pcm32_ch2 = pcm32_ch1 + 1;
+	//	
+
+	//	float64_t angle_step = (240.0 * PIPI) / (float64_t)di.m_sampleRate;
+	//	float64_t angle = 0.f;
+	//	for (uint32_t i = 0; i < di.m_sampleRate; ++i)
+	//	{
+	//		float64_t sn = sin(angle);
+	//		
+	//		/*
+	//		float32_t t = (float32_t)i / (float32_t)di.m_sampleRate;
+	//		float sn = sinf(PIPIf*240.f*t);
+	//		*/
+	//		switch (di.m_format)
+	//		{
+	//		case alAudioFormat::PCM_16:
+	//			break;
+	//		case alAudioFormat::IEEE_float32:
+	//			*pcm32_ch1 = sn;
+	//			if (di.m_channels == 2)
+	//			{
+	//				*pcm32_ch2 = sn;
+	//			}
+
+	//			wave_ptr += di.m_bytesPerBlock;
+	//			pcm32_ch1 = (float32_t*)wave_ptr;
+	//			pcm32_ch2 = pcm32_ch1 + 1;
+	//			break;
+	//		}
+
+	//		angle += angle_step;
+	//	}
+
+	//	/*FILE* f = 0;
+	//	fopen_s(&f, "wave.raw", "wb");
+	//	if (f)
+	//	{
+	//		fwrite(wave, 1, di.m_bytesPerSecond, f);
+	//		fclose(f);
+	//	}*/
+	//}
 	//engine->m_audioClient->Start();
 
-	UINT32 data_position = 0;
+	bool isActive = true;
+	//UINT32 data_position = 0;
 	while (engine->m_run)
 	{
 		Sleep(10);
+		if (prepareBuffer && isActive)
+		{
+			for (size_t i = 0, sz = audio->GetMixerNum(); i < sz; ++i)
+			{
+				uint8_t* dstBlock = prepareBuffer->m_buffer.m_data;
 
-		if (wave)
+				for (uint32_t o = 0; o < blockNum; ++o)
+				{
+					auto mixer = audio->GetMixer(i);
+					if (mixer)
+					{
+						for (uint32_t k = 0, ksz = mixer->GetAudioObjectNum(); k < ksz; ++k)
+						{
+							auto sound = mixer->GetAudioObject(k);
+						}
+
+
+						uint8_t* srcBlock = mixer->GetBuffer()->m_data;
+						switch (di.m_format)
+						{
+						case alAudioFormat::IEEE_float32: {
+							float32_t* dstBlockF32 = (float32_t*)dstBlock;
+							float32_t* srcBlockF32 = (float32_t*)srcBlock;
+
+							dstBlockF32[0] += srcBlockF32[0];
+							if (dstBlockF32[0] > 1.f)
+								dstBlockF32[0] = 1.f;
+
+							if (di.m_channels > 1)
+							{
+								dstBlockF32[1] = srcBlockF32[1];
+								if (dstBlockF32[1] > 1.f)
+									dstBlockF32[1] = 1.f;
+							}
+						}break;
+						}
+
+						dstBlock += di.m_bytesPerBlock;;
+						srcBlock += di.m_bytesPerBlock;;
+					}
+				}
+			}
+		}
+		readyBuffer = prepareBuffer;
+		prepareBuffer = 0;
+		//if (wave)
 		{
 
 			BYTE* pData = 0;
@@ -318,38 +402,41 @@ void alAudioThreadFunction_WASAPI(alAudioEngineWASAPI* engine)
 					hr = engine->m_renderClient->GetBuffer(framesAvailable, &pData);
 					if (SUCCEEDED(hr))
 					{
-						//
-						//  Copy data from the render buffer to the output buffer and bump our render pointer.
-						uint32_t copy_sz = framesAvailable * di.m_bytesPerBlock;
-						/*if ((data_position + copy_sz) > di.m_bytesPerSecond)
+					//	printf("%u\n", framesAvailable);
+						
+						if (currentBuffer)
 						{
-							copy_sz = (data_position + copy_sz) - di.m_bytesPerSecond;
-							CopyMemory(pData, &wave[data_position], copy_sz);
-						}
-						else*/
-						{
-							uint32_t copy_available = di.m_bytesPerSecond - data_position;
+							//  Copy data from the render buffer to the output buffer and bump our render pointer.
+							uint32_t copy_sz = framesAvailable * di.m_bytesPerBlock;
+							uint32_t copy_available = di.m_bytesPerSecond - currentBuffer->m_position;
+
 							if (copy_sz > copy_available)
 							{
-								//copy_sz = copy_available;
-								printf("tik\n");
-								CopyMemory(pData, &wave[data_position], copy_available);
+								//	printf("tik\n");
+								CopyMemory(pData, &currentBuffer->m_buffer.m_data[currentBuffer->m_position], copy_available);
 
-								data_position = 0;
-								// if repeat
-								CopyMemory(&pData[copy_available], &wave[data_position], copy_sz - copy_available);
-								data_position = copy_sz - copy_available;
-								data_position -= copy_sz;
+								currentBuffer->m_position = 0;
+								
+								prepareBuffer = currentBuffer;
+								currentBuffer = readyBuffer;
+								readyBuffer = 0;
+
+								//		data_position = 0;
+								//		// if repeat
+								//		CopyMemory(&pData[copy_available], &wave[data_position], copy_sz - copy_available);
+								//		data_position = copy_sz - copy_available;
+								//		data_position -= copy_sz;
 							}
 							else
 							{
-								CopyMemory(pData, &wave[data_position], copy_sz);
+								CopyMemory(pData, &currentBuffer->m_buffer.m_data[currentBuffer->m_position], copy_sz);
 							}
-						}
+							//}
 
-						data_position += copy_sz;
-						if (data_position >= di.m_bytesPerSecond)
-							data_position = 0;
+						}
+					//	data_position += copy_sz;
+					//	if (data_position >= di.m_bytesPerSecond)
+					//		data_position = 0;
 
 						hr = engine->m_renderClient->ReleaseBuffer(framesAvailable, 0);
 						if (!SUCCEEDED(hr))
@@ -416,14 +503,31 @@ void alAudioThreadFunction_WASAPI(alAudioEngineWASAPI* engine)
 				engine->m_run = false;
 				//printf("Received\n");
 				break;
+			case alAudioEngineWASAPI::queueCMD_stop:
+			{
+				printf("queueCMD_stop\n");
+				isActive = false;
+				std::lock_guard<std::mutex> lock(g_alLib->m_audio_mtx);
+				g_alLib->m_audio_cv_ready = true;
+				g_alLib->m_audio_cv.notify_one();
+			}break;
+			case alAudioEngineWASAPI::queueCMD_resume:
+			{
+				printf("queueCMD_resume\n");
+				isActive = true;
+				std::lock_guard<std::mutex> lock(g_alLib->m_audio_mtx);
+				g_alLib->m_audio_cv_ready = true;
+				g_alLib->m_audio_cv.notify_one();
+			}break;
 			}
 		}
 	}
 
-	if (wave)
+	/*if (wave)
 	{
 		free(wave);
-	}
+	}*/
 
 	CoUninitialize();
+	printf("The End of Audio Thread\n");
 }

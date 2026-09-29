@@ -19,6 +19,8 @@ class alColor;
 class alGSMesh;
 class alAudioBufferRAW;
 class alAudioBuffer;
+class alAudioMixer;
+class alAudioObject;
 //class alGSMeshInfo;
 class alAudio;
 struct alGSShaderCreationInfo;
