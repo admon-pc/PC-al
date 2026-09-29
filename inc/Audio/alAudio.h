@@ -97,13 +97,15 @@ public:
 	alAudioObject();
 	~alAudioObject();
 	
-	float32_t GetVolume();
+	float32_t GetVolume() { return m_volume; }
 	void SetVolume(float32_t);
 
 	// Position is index in m_buffer->m_rawData.m_data[]
 	// So position in bytes.
-	uint32_t GetPosition();
+	uint32_t GetPosition() { return m_position; }
 	void SetPosition(uint32_t);
+
+	alAudioBuffer* GetBuffer() { return m_buffer; }
 };
 
 // All mixers have same format as device.

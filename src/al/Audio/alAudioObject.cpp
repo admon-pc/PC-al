@@ -15,11 +15,6 @@ alAudioObject::~alAudioObject()
 {
 }
 
-float32_t alAudioObject::GetVolume()
-{
-	return m_volume;
-}
-
 void alAudioObject::SetVolume(float32_t v)
 {
 	if (v > 1.f)
@@ -28,11 +23,6 @@ void alAudioObject::SetVolume(float32_t v)
 		m_volume = 0.f;
 	else
 		m_volume = v;
-}
-
-uint32_t alAudioObject::GetPosition()
-{
-	return m_position;
 }
 
 void alAudioObject::SetPosition(uint32_t p)

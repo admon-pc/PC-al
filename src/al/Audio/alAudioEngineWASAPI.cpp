@@ -345,18 +345,21 @@ void alAudioThreadFunction_WASAPI(alAudioEngineWASAPI* engine)
 			{
 				uint8_t* dstBlock = prepareBuffer->m_buffer.m_data;
 
-				for (uint32_t o = 0; o < blockNum; ++o)
+				auto mixer = audio->GetMixer(i);
+				if (mixer)
 				{
-					auto mixer = audio->GetMixer(i);
-					if (mixer)
+					uint8_t* srcBlock = mixer->GetBuffer()->m_data;
+
+					for (uint32_t o = 0; o < blockNum; ++o)
 					{
 						for (uint32_t k = 0, ksz = mixer->GetAudioObjectNum(); k < ksz; ++k)
 						{
 							auto sound = mixer->GetAudioObject(k);
+							auto soundBuffer = sound->GetBuffer();
+
+
 						}
 
-
-						uint8_t* srcBlock = mixer->GetBuffer()->m_data;
 						switch (di.m_format)
 						{
 						case alAudioFormat::IEEE_float32: {
