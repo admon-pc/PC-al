@@ -27,12 +27,12 @@ public:
 
 	_type& back() 
 	{
-		AL_ASSERT_ST(m_head)
+		AL_ASSERT_ST(m_head);
 		return m_head->m_left->m_data;
 	}
 	_type& front()
 	{
-		AL_ASSERT_ST(m_head)
+		AL_ASSERT_ST(m_head);
 		return m_head->m_data;
 	}
 

@@ -75,3 +75,4 @@ build/zlib/x64
 build/al/Release
 build/al/Debug
 *.raw
+tools/fonttool/Release

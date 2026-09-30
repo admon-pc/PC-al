@@ -179,10 +179,12 @@ bool alAudioEngineWASAPI::Initialize()
 	
 	m_audioDeviceInfo.m_bytesPerSecond = m_audioDeviceInfo.m_sampleRate * m_audioDeviceInfo.m_bytesPerBlock;
 	alLog::PrintInfo("Audio Device : bytes per second [%u]\n", m_audioDeviceInfo.m_bytesPerSecond);
+	
+	m_engineLatencyInMS = 5000;
 
 	hr = m_audioClient->Initialize(AUDCLNT_SHAREMODE_SHARED,
 		AUDCLNT_STREAMFLAGS_NOPERSIST,
-		m_engineLatencyInMS * 10000,
+		m_engineLatencyInMS,
 		0,
 		m_mixFormat,
 		NULL);
@@ -336,11 +338,23 @@ void alAudioThreadFunction_WASAPI(alAudioEngineWASAPI* engine)
 
 	bool isActive = true;
 	//UINT32 data_position = 0;
+	//SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
 	while (engine->m_run)
 	{
-		Sleep(10);
+		//Sleep(1);
+
 		if (prepareBuffer && isActive)
 		{
+			memset(prepareBuffer->m_buffer.m_data, 0, prepareBuffer->m_buffer.m_dataSize);
+			for (size_t i = 0, sz = audio->GetMixerNum(); i < sz; ++i)
+			{
+				auto mixer = audio->GetMixer(i);
+				if (mixer)
+				{
+					memset(mixer->GetBuffer()->m_data, 0, mixer->GetBuffer()->m_dataSize);
+				}
+			}
+
 			for (size_t i = 0, sz = audio->GetMixerNum(); i < sz; ++i)
 			{
 				uint8_t* dstBlock = prepareBuffer->m_buffer.m_data;
@@ -350,15 +364,61 @@ void alAudioThreadFunction_WASAPI(alAudioEngineWASAPI* engine)
 				{
 					uint8_t* srcBlock = mixer->GetBuffer()->m_data;
 
+					for (uint32_t k = 0, ksz = mixer->GetAudioObjectNum(); k < ksz; ++k)
+					{
+						auto sound = mixer->GetAudioObject(k);
+						auto soundBuffer = sound->GetBuffer()->m_rawData;
+						auto soundPos = sound->GetPosition();
+
+						// Check if this will be out of bounds.
+						// This will copy at least 1 block
+						if ( (soundPos + di.m_bytesPerBlock) < soundBuffer->m_dataSize)
+						{
+							auto mixerBuffer = mixer->GetBuffer();
+							uint8_t* soundDATA = (uint8_t*)&soundBuffer->m_data[soundPos];
+							uint8_t* mixerDATA = (uint8_t*)mixerBuffer->m_data;
+
+							for (uint32_t o = 0; o < blockNum; ++o)
+							{
+								switch (di.m_format)
+								{
+								case alAudioFormat::IEEE_float32: {
+									float32_t* srcBlockF32 = (float32_t*)soundDATA;
+									float32_t* dstBlockF32 = (float32_t*)mixerDATA;
+
+									dstBlockF32[0] += srcBlockF32[0];
+									if (dstBlockF32[0] > 1.f)
+										dstBlockF32[0] = 1.f;
+
+									if (di.m_channels > 1)
+									{
+										dstBlockF32[1] = srcBlockF32[1];
+										if (dstBlockF32[1] > 1.f)
+											dstBlockF32[1] = 1.f;
+									}
+								}break;
+								}
+
+
+								mixerDATA += di.m_bytesPerBlock;
+								soundDATA += di.m_bytesPerBlock;
+
+								soundPos += di.m_bytesPerBlock;
+								if ((soundPos + di.m_bytesPerBlock) >= soundBuffer->m_dataSize)
+								{
+									soundPos = soundBuffer->m_dataSize;
+									break;
+								}
+								sound->SetPosition(soundPos);
+							}
+							
+							
+						//	printf("-");
+						}
+					}
+
 					for (uint32_t o = 0; o < blockNum; ++o)
 					{
-						for (uint32_t k = 0, ksz = mixer->GetAudioObjectNum(); k < ksz; ++k)
-						{
-							auto sound = mixer->GetAudioObject(k);
-							auto soundBuffer = sound->GetBuffer();
-
-
-						}
 
 						switch (di.m_format)
 						{
@@ -382,11 +442,31 @@ void alAudioThreadFunction_WASAPI(alAudioEngineWASAPI* engine)
 						dstBlock += di.m_bytesPerBlock;;
 						srcBlock += di.m_bytesPerBlock;;
 					}
+					/*static bool ttt = true;
+					if (ttt)
+					{
+						ttt = false;
+						FILE* f = 0;
+						fopen_s(&f, "wave2.raw", "wb");
+						if (f)
+						{
+							fwrite(prepareBuffer->m_buffer.m_data, 1, prepareBuffer->m_buffer.m_dataSize, f);
+							fclose(f);
+						}
+					}
+					printf(".");*/
 				}
 			}
 		}
-		readyBuffer = prepareBuffer;
-		prepareBuffer = 0;
+		
+		if (prepareBuffer)
+		{
+			readyBuffer = prepareBuffer;
+			
+
+			prepareBuffer = 0;
+		}
+
 		//if (wave)
 		{
 
@@ -407,22 +487,22 @@ void alAudioThreadFunction_WASAPI(alAudioEngineWASAPI* engine)
 					{
 					//	printf("%u\n", framesAvailable);
 						
+
 						if (currentBuffer)
 						{
-							//  Copy data from the render buffer to the output buffer and bump our render pointer.
 							uint32_t copy_sz = framesAvailable * di.m_bytesPerBlock;
+							//  Copy data from the render buffer to the output buffer and bump our render pointer.
 							uint32_t copy_available = di.m_bytesPerSecond - currentBuffer->m_position;
 
 							if (copy_sz > copy_available)
 							{
-								//	printf("tik\n");
+								printf("\ntik\n");
 								CopyMemory(pData, &currentBuffer->m_buffer.m_data[currentBuffer->m_position], copy_available);
 
-								currentBuffer->m_position = 0;
-								
+								/*currentBuffer->m_position = 0;
 								prepareBuffer = currentBuffer;
 								currentBuffer = readyBuffer;
-								readyBuffer = 0;
+								readyBuffer = 0;*/
 
 								//		data_position = 0;
 								//		// if repeat
@@ -436,11 +516,16 @@ void alAudioThreadFunction_WASAPI(alAudioEngineWASAPI* engine)
 							}
 							//}
 
-						}
-					//	data_position += copy_sz;
-					//	if (data_position >= di.m_bytesPerSecond)
-					//		data_position = 0;
 
+							currentBuffer->m_position += copy_sz;
+							if (currentBuffer->m_position >= currentBuffer->m_buffer.m_dataSize)
+							{
+								currentBuffer->m_position = 0;
+								prepareBuffer = currentBuffer;
+								currentBuffer = readyBuffer;
+								readyBuffer = 0;
+							}
+						}
 						hr = engine->m_renderClient->ReleaseBuffer(framesAvailable, 0);
 						if (!SUCCEEDED(hr))
 						{

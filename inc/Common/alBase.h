@@ -52,7 +52,12 @@
 #define AL_LL_PLATFORM "_x86"
 #endif
 #define AL_LL_TOOLSET "_v142"
+
+#ifdef AL_DEBUG
 #define AL_LL_CONFIGURATION "_Debug"
+#else
+#define AL_LL_CONFIGURATION "_Release"
+#endif
 
 #define AL_LINK_LIBRARY(x) \
  __pragma(comment(lib, #x AL_LL_PLATFORM AL_LL_TOOLSET AL_LL_CONFIGURATION ".lib"))
