@@ -269,13 +269,87 @@ void alAudio::ChangeFormat(alAudioBufferRAW* raw, alAudioFormat fmt)
 
 void alAudio::ChangeSampleRate(alAudioBufferRAW* raw, uint32_t newSampleRate)
 {
+	AL_ASSERT_ST(raw);
+	AL_ASSERT_ST((newSampleRate>=100)&&(newSampleRate <= 192000));
 }
 
 void alAudio::MakeMono(alAudioBufferRAW* raw)
 {
+	AL_ASSERT_ST(raw);
 }
 
 void alAudio::MakeStereo(alAudioBufferRAW* raw)
 {
+	AL_ASSERT_ST(raw);
+	if (raw->m_bufferInfo.m_channels == 1)
+	{
+		uint32_t newNumOfChannels = 2;
+
+		uint32_t newBytesPerBlock = 0;
+		switch (raw->m_bufferInfo.m_format)
+		{
+		case alAudioFormat::PCM_8:
+			newBytesPerBlock = raw->m_bufferInfo.m_bytesPerSample * newNumOfChannels;
+			break;
+		case alAudioFormat::PCM_16:
+			newBytesPerBlock = raw->m_bufferInfo.m_bytesPerSample * newNumOfChannels;
+			break;
+		case alAudioFormat::IEEE_float32:
+			newBytesPerBlock = raw->m_bufferInfo.m_bytesPerSample * newNumOfChannels;
+			break;
+		default:
+			return;
+		}
+
+		uint32_t numOfBlocks = raw->m_dataSize / raw->m_bufferInfo.m_bytesPerBlock;
+		uint32_t newDataSize = numOfBlocks * newBytesPerBlock;
+		uint8_t* newData = (uint8_t*)alMemory::Malloc(newDataSize);
+		uint8_t* oldData = raw->m_data;
+
+		uint8_t* srcPCM8 = oldData;
+		uint8_t* dstPCM8 = newData;
+		uint16_t* srcPCM16 = (uint16_t*)oldData;
+		uint16_t* dstPCM16 = (uint16_t*)newData;
+		float32_t* srcIEEEF32 = (float32_t*)oldData;
+		float32_t* dstIEEEF32 = (float32_t*)newData;
+
+		for (uint32_t i = 0; i < numOfBlocks; ++i)
+		{
+			switch (raw->m_bufferInfo.m_format)
+			{
+			case alAudioFormat::PCM_8:
+				dstPCM8[0] = srcPCM8[0];
+				dstPCM8[1] = srcPCM8[0];
+
+				++srcPCM8;
+				++dstPCM8;
+				++dstPCM8;
+				break;
+			case alAudioFormat::PCM_16:
+				dstPCM16[0] = srcPCM16[0];
+				dstPCM16[1] = srcPCM16[0];
+
+				++srcPCM16;
+				++dstPCM16;
+				++dstPCM16;
+				break;
+			case alAudioFormat::IEEE_float32:
+				dstIEEEF32[0] = srcIEEEF32[0];
+				dstIEEEF32[1] = srcIEEEF32[0];
+
+				++srcIEEEF32;
+				++dstIEEEF32;
+				++dstIEEEF32;
+				break;
+			}
+
+		}
+
+		alMemory::Free(raw->m_data);
+		raw->m_data = newData;
+		raw->m_dataSize = newDataSize;
+		raw->m_bufferInfo.m_channels = newNumOfChannels;
+		raw->m_bufferInfo.m_bytesPerBlock = newBytesPerBlock;
+	}
 }
 

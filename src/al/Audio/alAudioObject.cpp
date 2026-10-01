@@ -7,12 +7,31 @@
 extern alLibGlobalData g_alLibGlobalData;
 extern alLibImpl* g_alLib;
 
+class alAudioObjectCallbackDefault : public alAudioObjectCallback
+{
+public:
+	alAudioObjectCallbackDefault() {}
+	virtual ~alAudioObjectCallbackDefault() {}
+
+	virtual void OnEnd() override {}
+}
+g_alAudioObjectCallbackDefault;
+
 alAudioObject::alAudioObject()
 {
+	SetCallback(&g_alAudioObjectCallbackDefault);
 }
 
 alAudioObject::~alAudioObject()
 {
+}
+
+void alAudioObject::SetCallback(alAudioObjectCallback* cb)
+{
+	if (cb)
+		m_cb = cb;
+	else
+		m_cb = &g_alAudioObjectCallbackDefault;
 }
 
 void alAudioObject::SetVolume(float32_t v)
@@ -29,7 +48,33 @@ void alAudioObject::SetPosition(uint32_t p)
 {
 	m_position = p;
 	if (m_position >= m_buffer->m_rawData->m_dataSize)
+	{
 		m_position = m_buffer->m_rawData->m_dataSize - m_buffer->m_rawData->m_bufferInfo.m_bytesPerBlock;
+	}
+	else
+	{
+		auto v = m_position / m_buffer->m_rawData->m_bufferInfo.m_bytesPerBlock;
+		m_position = v * m_buffer->m_rawData->m_bufferInfo.m_bytesPerBlock;
+	}
 }
 
+void alAudioObject::Play()
+{
+	m_playbackState = playbackState_play;
+}
 
+void alAudioObject::Pause()
+{
+	m_playbackState = playbackState_pause;
+}
+
+void alAudioObject::Reset()
+{
+	m_playbackState = playbackState_pause;
+	SetPosition(0);
+}
+
+bool alAudioObject::IsPlaying()
+{
+	return (m_playbackState == playbackState_play);
+}

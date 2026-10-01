@@ -367,53 +367,68 @@ void alAudioThreadFunction_WASAPI(alAudioEngineWASAPI* engine)
 					for (uint32_t k = 0, ksz = mixer->GetAudioObjectNum(); k < ksz; ++k)
 					{
 						auto sound = mixer->GetAudioObject(k);
-						auto soundBuffer = sound->GetBuffer()->m_rawData;
-						auto soundPos = sound->GetPosition();
-
-						// Check if this will be out of bounds.
-						// This will copy at least 1 block
-						if ( (soundPos + di.m_bytesPerBlock) < soundBuffer->m_dataSize)
+						if (sound->IsPlaying())
 						{
-							auto mixerBuffer = mixer->GetBuffer();
-							uint8_t* soundDATA = (uint8_t*)&soundBuffer->m_data[soundPos];
-							uint8_t* mixerDATA = (uint8_t*)mixerBuffer->m_data;
 
-							for (uint32_t o = 0; o < blockNum; ++o)
+							auto soundBuffer = sound->GetBuffer()->m_rawData;
+							auto soundPos = sound->GetPosition();
+
+							// Check if this will be out of bounds.
+							// This will copy at least 1 block
+							if ((soundPos + di.m_bytesPerBlock) < soundBuffer->m_dataSize)
 							{
-								switch (di.m_format)
+								auto mixerBuffer = mixer->GetBuffer();
+								uint8_t* soundDATA = (uint8_t*)&soundBuffer->m_data[soundPos];
+								uint8_t* mixerDATA = (uint8_t*)mixerBuffer->m_data;
+
+								for (uint32_t o = 0; o < blockNum; ++o)
 								{
-								case alAudioFormat::IEEE_float32: {
-									float32_t* srcBlockF32 = (float32_t*)soundDATA;
-									float32_t* dstBlockF32 = (float32_t*)mixerDATA;
-
-									dstBlockF32[0] += srcBlockF32[0];
-									if (dstBlockF32[0] > 1.f)
-										dstBlockF32[0] = 1.f;
-
-									if (di.m_channels > 1)
+									switch (di.m_format)
 									{
-										dstBlockF32[1] = srcBlockF32[1];
-										if (dstBlockF32[1] > 1.f)
-											dstBlockF32[1] = 1.f;
+									case alAudioFormat::IEEE_float32: {
+										float32_t* srcBlockF32 = (float32_t*)soundDATA;
+										float32_t* dstBlockF32 = (float32_t*)mixerDATA;
+
+										dstBlockF32[0] += srcBlockF32[0];
+										if (dstBlockF32[0] > 1.f)
+											dstBlockF32[0] = 1.f;
+
+										if (di.m_channels > 1)
+										{
+											if (soundBuffer->m_bufferInfo.m_channels > 1)
+											{
+												dstBlockF32[1] += srcBlockF32[1];
+												if (dstBlockF32[1] > 1.f)
+													dstBlockF32[1] = 1.f;
+											}
+											else
+											{
+												dstBlockF32[1] += srcBlockF32[0];
+												if (dstBlockF32[1] > 1.f)
+													dstBlockF32[1] = 1.f;
+											}
+										}
+									}break;
 									}
-								}break;
+
+
+									mixerDATA += di.m_bytesPerBlock;
+									soundDATA += di.m_bytesPerBlock;
+
+									soundPos += di.m_bytesPerBlock;
+									if ((soundPos + di.m_bytesPerBlock) >= soundBuffer->m_dataSize)
+									{
+										soundPos = soundBuffer->m_dataSize;
+										sound->Reset();
+										sound->GetCallback()->OnEnd();
+										break;
+									}
+									sound->SetPosition(soundPos);
 								}
 
 
-								mixerDATA += di.m_bytesPerBlock;
-								soundDATA += di.m_bytesPerBlock;
-
-								soundPos += di.m_bytesPerBlock;
-								if ((soundPos + di.m_bytesPerBlock) >= soundBuffer->m_dataSize)
-								{
-									soundPos = soundBuffer->m_dataSize;
-									break;
-								}
-								sound->SetPosition(soundPos);
+								//	printf("-");
 							}
-							
-							
-						//	printf("-");
 						}
 					}
 
@@ -432,7 +447,7 @@ void alAudioThreadFunction_WASAPI(alAudioEngineWASAPI* engine)
 
 							if (di.m_channels > 1)
 							{
-								dstBlockF32[1] = srcBlockF32[1];
+								dstBlockF32[1] += srcBlockF32[1];
 								if (dstBlockF32[1] > 1.f)
 									dstBlockF32[1] = 1.f;
 							}

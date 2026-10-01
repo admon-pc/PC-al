@@ -82,6 +82,16 @@ public:
 	alAudioBufferRAW* m_rawData = 0;
 };
 
+class alAudioObjectCallback
+{
+public:
+	alAudioObjectCallback() {}
+	virtual ~alAudioObjectCallback() {}
+
+	virtual void OnEnd() {}
+};
+
+
 // Object for playing the audio.
 // Object has buffer - it must be same format as device
 // Object has parameters for playing.
@@ -93,9 +103,22 @@ class alAudioObject
 	uint32_t m_position = 0;
 	
 	float32_t m_volume = 1.f;
+	alAudioObjectCallback* m_cb = 0;
+
+	enum
+	{
+		playbackState_pause,
+		playbackState_play,
+	};
+	uint32_t m_playbackState = playbackState_pause;
+	uint32_t m_numOfBlocks = 0;
+
 public:
 	alAudioObject();
 	~alAudioObject();
+
+	void SetCallback(alAudioObjectCallback*);
+	alAudioObjectCallback* GetCallback() { return m_cb; }
 	
 	float32_t GetVolume() { return m_volume; }
 	void SetVolume(float32_t);
@@ -106,6 +129,18 @@ public:
 	void SetPosition(uint32_t);
 
 	alAudioBuffer* GetBuffer() { return m_buffer; }
+
+	// start playing or resume if pause
+	void Play();
+	void Pause();
+	// pause and SetPosition(0)
+	void Reset();
+	bool IsPlaying();
+
+	// how many times this sound will be played again by itself
+	// if m_loop is 0 then sound will not play again
+	// if -1 then it will play always
+	uint32_t m_loop = 0;
 };
 
 // All mixers have same format as device.

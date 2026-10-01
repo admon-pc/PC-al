@@ -34,6 +34,7 @@ alAudioObject* alAudioMixer::GetNewAudioObject(alAudioBuffer* ab)
 	{
 		ao = alCreate<alAudioObject>();
 		ao->m_buffer = ab;
+		ao->m_numOfBlocks = ab->m_rawData->m_dataSize / ab->m_rawData->m_bufferInfo.m_bytesPerBlock;
 		m_audioObjects.push_back(ao);
 	}
 	return ao;

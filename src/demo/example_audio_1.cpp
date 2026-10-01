@@ -48,8 +48,10 @@ bool DemoExample_audio_1::Init()
 	if(!g_demo->m_audioMixer)
 		g_demo->m_audioMixer = g_demo->m_audio->GetNewMixer();
 
-	m_audioBuffer = g_demo->m_audio->LoadAudio("../data/sounds/001_IEEEf32bit_2ch_48000.wav");
+	m_audioBuffer = g_demo->m_audio->LoadAudio("../data/sounds/lever1b.wav");
+
 	m_audioObject = g_demo->m_audioMixer->GetNewAudioObject(m_audioBuffer);
+	m_audioObject2 = g_demo->m_audioMixer->GetNewAudioObject(m_audioBuffer);
 
 	//FILE* f = 0;
 	//fopen_s(&f, "wave.raw", "wb");
@@ -86,6 +88,28 @@ bool DemoExample_audio_1::Run()
 		Shutdown();
 		return false;
 	}
+
+	if (m_input->IsKeyHit(alInputKey::K_1))
+	{
+		if (m_audioObject)
+			m_audioObject->Play();
+	}
+	if (m_input->IsKeyHit(alInputKey::K_Q))
+	{
+		if (m_audioObject2)
+			m_audioObject2->Play();
+	}
+	if (m_input->IsKeyHit(alInputKey::K_2))
+	{
+		if (m_audioObject)
+			m_audioObject->Reset();
+	}
+	if (m_input->IsKeyHit(alInputKey::K_3))
+	{
+		if (m_audioObject)
+			m_audioObject->Pause();
+	}
+
 
 	m_gs->BeginDraw();
 	m_gs->ClearAll();
