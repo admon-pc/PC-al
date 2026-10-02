@@ -16,7 +16,11 @@ alAudioBufferRAW* alLibImpl::LoadAudioWAV(alFileBuffer* fb, alAudioBufferInfo* a
 	{
 	case alAudioFormat::PCM_8:
 	{
-		fb->Seek(36, SEEK_SET);
+		if(wav_header.fmt_size == 16)
+			fb->Seek(36, SEEK_SET);
+		else
+			fb->Seek(38, SEEK_SET);
+
 		char datastr[5] = { 0,0,0,0,0 };
 		fb->Read(datastr, 4);
 		uint32_t datasz = 0;

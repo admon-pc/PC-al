@@ -484,15 +484,21 @@ void alAudio::ChangeSampleRate(alAudioBufferRAW* raw, uint32_t newSampleRate)
 
 	if (newSampleRate > raw->m_bufferInfo.m_sampleRate)
 	{
-		int n = newSampleRate / raw->m_bufferInfo.m_sampleRate / 2;
+		int n = newSampleRate / raw->m_bufferInfo.m_sampleRate ;
 		uint32_t sr = 0;
 		for (int i = 0; i < n; ++i)
 		{
 			sr = raw->m_bufferInfo.m_sampleRate * 2;
+			bool last = false;
 			if (sr > newSampleRate)
+			{
 				sr = newSampleRate;
+				last = true;
+			}
 
 			alAudio_ChangeSampleRate(raw, sr);
+			if (last)
+				break;
 		}
 	}
 	else

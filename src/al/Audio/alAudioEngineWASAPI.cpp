@@ -366,6 +366,7 @@ void alAudioThreadFunction_WASAPI(alAudioEngineWASAPI* engine)
 
 					for (uint32_t k = 0, ksz = mixer->GetAudioObjectNum(); k < ksz; ++k)
 					{
+
 						auto sound = mixer->GetAudioObject(k);
 						if (sound->IsPlaying())
 						{
@@ -381,8 +382,10 @@ void alAudioThreadFunction_WASAPI(alAudioEngineWASAPI* engine)
 								uint8_t* soundDATA = (uint8_t*)&soundBuffer->m_data[soundPos];
 								uint8_t* mixerDATA = (uint8_t*)mixerBuffer->m_data;
 
+								bool needToFillToTheEnd = false;
 								for (uint32_t o = 0; o < blockNum; ++o)
 								{
+								up:;
 									switch (di.m_format)
 									{
 									case alAudioFormat::IEEE_float32: {
@@ -418,13 +421,73 @@ void alAudioThreadFunction_WASAPI(alAudioEngineWASAPI* engine)
 									soundPos += di.m_bytesPerBlock;
 									if ((soundPos + di.m_bytesPerBlock) >= soundBuffer->m_dataSize)
 									{
-										soundPos = soundBuffer->m_dataSize;
+										soundPos = 0;
 										sound->Reset();
 										sound->GetCallback()->OnEnd();
+
+										if (sound->m_loop)
+										{
+											sound->Play();
+											if (sound->m_loop != -1)
+												--sound->m_loop;
+											
+											if (o < blockNum - 1)
+											{
+												needToFillToTheEnd = true;
+												++o;
+												soundDATA = (uint8_t*)&soundBuffer->m_data[0];
+												goto up;
+											}
+										}
 										break;
 									}
 									sound->SetPosition(soundPos);
 								}
+								/*if (needToFillToTheEnd)
+								{
+									for (; o < blockNum; ++o)
+									{
+										switch (di.m_format)
+										{
+										case alAudioFormat::IEEE_float32: {
+											float32_t* srcBlockF32 = (float32_t*)soundDATA;
+											float32_t* dstBlockF32 = (float32_t*)mixerDATA;
+
+											dstBlockF32[0] += srcBlockF32[0];
+											if (dstBlockF32[0] > 1.f)
+												dstBlockF32[0] = 1.f;
+
+											if (di.m_channels > 1)
+											{
+												if (soundBuffer->m_bufferInfo.m_channels > 1)
+												{
+													dstBlockF32[1] += srcBlockF32[1];
+													if (dstBlockF32[1] > 1.f)
+														dstBlockF32[1] = 1.f;
+												}
+												else
+												{
+													dstBlockF32[1] += srcBlockF32[0];
+													if (dstBlockF32[1] > 1.f)
+														dstBlockF32[1] = 1.f;
+												}
+											}
+										}break;
+										}
+
+
+										mixerDATA += di.m_bytesPerBlock;
+										soundDATA += di.m_bytesPerBlock;
+
+										soundPos += di.m_bytesPerBlock;
+										if ((soundPos + di.m_bytesPerBlock) >= soundBuffer->m_dataSize)
+										{
+											soundPos = soundBuffer->m_dataSize;
+											break;
+										}
+										sound->SetPosition(soundPos);
+									}
+								}*/
 
 
 								//	printf("-");
