@@ -31,6 +31,15 @@ alAudioBufferRAW* alLibImpl::LoadAudioWAV(alFileBuffer* fb, alAudioBufferInfo* a
 		audioBuffer->m_dataSize = datasz;
 		audioBuffer->m_data = (uint8_t*)alMemory::Malloc(datasz);
 		fb->Read(audioBuffer->m_data, datasz);
+
+		/*FILE* f = 0;
+		fopen_s(&f, "wavex.raw", "wb");
+		if (f)
+		{
+			fwrite(audioBuffer->m_data, 1, audioBuffer->m_dataSize, f);
+			fclose(f);
+		}*/
+
 	}break;
 	case alAudioFormat::PCM_16:
 	{

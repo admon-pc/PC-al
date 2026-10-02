@@ -443,54 +443,6 @@ void alAudioThreadFunction_WASAPI(alAudioEngineWASAPI* engine)
 									}
 									sound->SetPosition(soundPos);
 								}
-								/*if (needToFillToTheEnd)
-								{
-									for (; o < blockNum; ++o)
-									{
-										switch (di.m_format)
-										{
-										case alAudioFormat::IEEE_float32: {
-											float32_t* srcBlockF32 = (float32_t*)soundDATA;
-											float32_t* dstBlockF32 = (float32_t*)mixerDATA;
-
-											dstBlockF32[0] += srcBlockF32[0];
-											if (dstBlockF32[0] > 1.f)
-												dstBlockF32[0] = 1.f;
-
-											if (di.m_channels > 1)
-											{
-												if (soundBuffer->m_bufferInfo.m_channels > 1)
-												{
-													dstBlockF32[1] += srcBlockF32[1];
-													if (dstBlockF32[1] > 1.f)
-														dstBlockF32[1] = 1.f;
-												}
-												else
-												{
-													dstBlockF32[1] += srcBlockF32[0];
-													if (dstBlockF32[1] > 1.f)
-														dstBlockF32[1] = 1.f;
-												}
-											}
-										}break;
-										}
-
-
-										mixerDATA += di.m_bytesPerBlock;
-										soundDATA += di.m_bytesPerBlock;
-
-										soundPos += di.m_bytesPerBlock;
-										if ((soundPos + di.m_bytesPerBlock) >= soundBuffer->m_dataSize)
-										{
-											soundPos = soundBuffer->m_dataSize;
-											break;
-										}
-										sound->SetPosition(soundPos);
-									}
-								}*/
-
-
-								//	printf("-");
 							}
 						}
 					}
@@ -574,7 +526,7 @@ void alAudioThreadFunction_WASAPI(alAudioEngineWASAPI* engine)
 
 							if (copy_sz > copy_available)
 							{
-								printf("\ntik\n");
+								//printf("\ntik\n");
 								CopyMemory(pData, &currentBuffer->m_buffer.m_data[currentBuffer->m_position], copy_available);
 
 								/*currentBuffer->m_position = 0;

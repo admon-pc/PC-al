@@ -48,19 +48,19 @@ bool DemoExample_audio_1::Init()
 	if(!g_demo->m_audioMixer)
 		g_demo->m_audioMixer = g_demo->m_audio->GetNewMixer();
 
-	m_audioBuffer = g_demo->m_audio->LoadAudio("../data/sounds/alien_beacon.wav");
+	m_audioBuffer = g_demo->m_audio->LoadAudio("../data/sounds/001_IEEEf32bit_2ch_48000.wav");
 
 	m_audioObject = g_demo->m_audioMixer->GetNewAudioObject(m_audioBuffer);
 	m_audioObject->m_loop = -1;
 	m_audioObject2 = g_demo->m_audioMixer->GetNewAudioObject(m_audioBuffer);
 
-	FILE* f = 0;
+	/*FILE* f = 0;
 	fopen_s(&f, "wave.raw", "wb");
 	if (f)
 	{
 		fwrite(m_audioBuffer->m_rawData->m_data, 1, m_audioBuffer->m_rawData->m_dataSize, f);
 		fclose(f);
-	}
+	}*/
 
 	return true;
 }
