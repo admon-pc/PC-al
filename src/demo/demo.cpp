@@ -429,7 +429,7 @@ void alDemo::OnWindowSizeChanged()
 int main(int argc, char* argv[])
 {
 	alLib::InitializeLib();
-
+	
 	alDemo* dd = new alDemo;
 	if (dd->Init())
 	{

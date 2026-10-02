@@ -48,18 +48,18 @@ bool DemoExample_audio_1::Init()
 	if(!g_demo->m_audioMixer)
 		g_demo->m_audioMixer = g_demo->m_audio->GetNewMixer();
 
-	m_audioBuffer = g_demo->m_audio->LoadAudio("../data/sounds/lever1b.wav");
+	m_audioBuffer = g_demo->m_audio->LoadAudio("../data/sounds/lever1.wav");
 
 	m_audioObject = g_demo->m_audioMixer->GetNewAudioObject(m_audioBuffer);
 	m_audioObject2 = g_demo->m_audioMixer->GetNewAudioObject(m_audioBuffer);
 
-	//FILE* f = 0;
-	//fopen_s(&f, "wave.raw", "wb");
-	//if (f)
-	//{
-	//	fwrite(m_audioBuffer->m_rawData->m_data, 1, m_audioBuffer->m_rawData->m_dataSize, f);
-	//	fclose(f);
-	//}
+	FILE* f = 0;
+	fopen_s(&f, "wave.raw", "wb");
+	if (f)
+	{
+		fwrite(m_audioBuffer->m_rawData->m_data, 1, m_audioBuffer->m_rawData->m_dataSize, f);
+		fclose(f);
+	}
 
 	return true;
 }

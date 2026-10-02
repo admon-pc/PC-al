@@ -267,10 +267,126 @@ void alAudio::ChangeFormat(alAudioBufferRAW* raw, alAudioFormat fmt)
 	}
 }
 
+void alAudio_ChangeSampleRate(alAudioBufferRAW* raw, uint32_t newSampleRate)
+{
+	if (newSampleRate != raw->m_bufferInfo.m_sampleRate)
+	{
+		uint32_t numOfBlocks = raw->m_dataSize / raw->m_bufferInfo.m_bytesPerBlock;
+
+		float32_t multipler = (float32_t)newSampleRate / (float32_t)raw->m_bufferInfo.m_sampleRate;
+		uint32_t newNumOfBlocks = (uint32_t)floorf((float32_t)numOfBlocks * multipler);
+
+		uint32_t newDataSize = newNumOfBlocks * raw->m_bufferInfo.m_bytesPerBlock;
+		uint8_t* newData = (uint8_t*)alMemory::Malloc(newDataSize);
+		uint8_t* oldData = raw->m_data;
+
+		uint8_t* srcPCM8 = oldData;
+		uint8_t* dstPCM8 = newData;
+		uint16_t* srcPCM16 = (uint16_t*)oldData;
+		uint16_t* dstPCM16 = (uint16_t*)newData;
+		float32_t* srcIEEEF32 = (float32_t*)oldData;
+		float32_t* dstIEEEF32 = (float32_t*)newData;
+
+		//if (newSampleRate < raw->m_bufferInfo.m_sampleRate)
+		{
+			uint32_t index = 0;
+			
+			float32_t prevL = 0.f;
+			float32_t prevR = 0.f;
+
+			float val = 0.f;
+			for (uint32_t i = 0; i < numOfBlocks; ++i)
+			{
+				switch (raw->m_bufferInfo.m_format)
+				{
+				case alAudioFormat::PCM_8:
+
+					break;
+				case alAudioFormat::PCM_16:
+					break;
+				case alAudioFormat::IEEE_float32:
+				{
+					float32_t* src = &srcIEEEF32[i];
+					uint32_t i2 = index;
+					if (raw->m_bufferInfo.m_channels == 2)
+					{
+						i2 = index * 2;
+					}
+
+					float32_t* dst = &dstIEEEF32[i2];
+
+					if (newSampleRate > raw->m_bufferInfo.m_sampleRate)
+					{
+						auto dstBetween = dst - 1;
+						if (raw->m_bufferInfo.m_channels == 2)
+							--dstBetween;
+
+						if (dstBetween >= dstIEEEF32)
+						{
+							dstBetween[0] = (prevL + src[0]) * 0.5f;
+							if (raw->m_bufferInfo.m_channels == 2)
+							{
+								dstBetween[1] = (prevR + src[1]) * 0.5f;
+							}
+						}
+					}
+
+					prevL = src[0];
+					dst[0] = src[0];
+					if (raw->m_bufferInfo.m_channels == 2)
+					{
+						dst[1] = src[1];
+						prevR = src[1];
+					}
+					
+					//i2prev = i2;
+
+				}break;
+				}
+
+				val += multipler;
+				if (val >= 1.f)
+				{
+					uint32_t ival = (uint32_t)val;
+					index += ival;
+
+					val -= ival;
+				}
+
+
+			}
+		}
+
+		alMemory::Free(raw->m_data);
+		raw->m_data = newData;
+		raw->m_dataSize = newDataSize;
+		raw->m_bufferInfo.m_sampleRate = newSampleRate;
+		raw->m_bufferInfo.m_bytesPerSecond = newSampleRate * raw->m_bufferInfo.m_bytesPerBlock;
+	}
+}
+
 void alAudio::ChangeSampleRate(alAudioBufferRAW* raw, uint32_t newSampleRate)
 {
 	AL_ASSERT_ST(raw);
 	AL_ASSERT_ST((newSampleRate>=100)&&(newSampleRate <= 192000));
+
+	if (newSampleRate > raw->m_bufferInfo.m_sampleRate)
+	{
+		int n = newSampleRate / raw->m_bufferInfo.m_sampleRate / 2;
+		uint32_t sr = 0;
+		for (int i = 0; i < n; ++i)
+		{
+			sr = raw->m_bufferInfo.m_sampleRate * 2;
+			if (sr > newSampleRate)
+				sr = newSampleRate;
+
+			alAudio_ChangeSampleRate(raw, sr);
+		}
+	}
+	else
+	{
+		alAudio_ChangeSampleRate(raw, newSampleRate);
+	}
 }
 
 void alAudio::MakeMono(alAudioBufferRAW* raw)
@@ -350,6 +466,7 @@ void alAudio::MakeStereo(alAudioBufferRAW* raw)
 		raw->m_dataSize = newDataSize;
 		raw->m_bufferInfo.m_channels = newNumOfChannels;
 		raw->m_bufferInfo.m_bytesPerBlock = newBytesPerBlock;
+		raw->m_bufferInfo.m_bytesPerSecond = raw->m_bufferInfo.m_sampleRate * raw->m_bufferInfo.m_bytesPerBlock;
 	}
 }
 

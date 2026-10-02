@@ -14,6 +14,10 @@ alAudioBufferRAW* alLibImpl::LoadAudioWAV(alFileBuffer* fb, alAudioBufferInfo* a
 	fb->Read(&wav_header, sizeof(wav_header_t));
 	switch (ai->m_format)
 	{
+	case alAudioFormat::PCM_8:
+	{
+
+	}break;
 	case alAudioFormat::IEEE_float32:
 	{
 		wav_header_18_t* wav_header18 = (wav_header_18_t*)&wav_header;
