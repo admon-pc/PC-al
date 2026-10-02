@@ -48,7 +48,7 @@ bool DemoExample_audio_1::Init()
 	if(!g_demo->m_audioMixer)
 		g_demo->m_audioMixer = g_demo->m_audio->GetNewMixer();
 
-	m_audioBuffer = g_demo->m_audio->LoadAudio("../data/sounds/lever1.wav");
+	m_audioBuffer = g_demo->m_audio->LoadAudio("../data/sounds/lever1e.wav");
 
 	m_audioObject = g_demo->m_audioMixer->GetNewAudioObject(m_audioBuffer);
 	m_audioObject2 = g_demo->m_audioMixer->GetNewAudioObject(m_audioBuffer);

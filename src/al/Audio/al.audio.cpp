@@ -28,6 +28,20 @@ alAudioBufferRAW* alLibImpl::LoadAudioWAV(alFileBuffer* fb, alAudioBufferInfo* a
 		audioBuffer->m_data = (uint8_t*)alMemory::Malloc(datasz);
 		fb->Read(audioBuffer->m_data, datasz);
 	}break;
+	case alAudioFormat::PCM_16:
+	{
+		fb->Seek(36, SEEK_SET);
+		char datastr[5] = { 0,0,0,0,0 };
+		fb->Read(datastr, 4);
+		uint32_t datasz = 0;
+		fb->Read(&datasz, 4);
+		audioBuffer = alCreate<alAudioBufferRAW>();
+		audioBuffer->m_bufferInfo = *ai;
+		audioBuffer->m_bufferInfo.m_additionalInfo.m_fileType = alAudioBufferInfo2::fileType_unknown;
+		audioBuffer->m_dataSize = datasz;
+		audioBuffer->m_data = (uint8_t*)alMemory::Malloc(datasz);
+		fb->Read(audioBuffer->m_data, datasz);
+	}break;
 	case alAudioFormat::IEEE_float32:
 	{
 		wav_header_18_t* wav_header18 = (wav_header_18_t*)&wav_header;

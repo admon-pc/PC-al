@@ -291,8 +291,8 @@ void alAudio::ChangeFormat(alAudioBufferRAW* raw, alAudioFormat fmt)
 
 		uint8_t* srcPCM8 = oldData;
 		uint8_t* dstPCM8 = newData;
-		uint16_t* srcPCM16 = (uint16_t*)oldData;
-		uint16_t* dstPCM16 = (uint16_t*)newData;
+		int16_t* srcPCM16 = (int16_t*)oldData;
+		int16_t* dstPCM16 = (int16_t*)newData;
 		float32_t* srcIEEEF32 = (float32_t*)oldData;
 		float32_t* dstIEEEF32 = (float32_t*)newData;
 
@@ -331,6 +331,36 @@ void alAudio::ChangeFormat(alAudioBufferRAW* raw, alAudioFormat fmt)
 		}break;
 		case alAudioFormat::PCM_16:
 		{
+			//0,000030517578125
+
+			float64_t mm = 0.000030517578125;
+			switch (fmt)
+			{
+			case alAudioFormat::PCM_8: {
+			}break;
+			case alAudioFormat::PCM_16: {
+			}break;
+			case alAudioFormat::IEEE_float32: {
+				for (uint32_t i = 0; i < numOfBlocks; ++i)
+				{
+					if (numOfChannels == 1)
+					{
+						dstIEEEF32[0] = (float32_t)((int)srcPCM16[0]) * mm;
+						++srcPCM16;
+						++dstIEEEF32;
+					}
+					else if (numOfChannels == 2)
+					{
+						dstIEEEF32[0] = (float32_t)((int)srcPCM16[0]) * mm;
+						dstIEEEF32[1] = (float32_t)((int)srcPCM16[1]) * mm;
+						++srcPCM16;
+						++srcPCM16;
+						++dstIEEEF32;
+						++dstIEEEF32;
+					}
+				}
+			}break;
+			}
 		}break;
 		case alAudioFormat::IEEE_float32:
 		{
