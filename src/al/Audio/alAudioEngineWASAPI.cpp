@@ -373,6 +373,7 @@ void alAudioThreadFunction_WASAPI(alAudioEngineWASAPI* engine)
 
 							auto soundBuffer = sound->GetBuffer()->m_rawData;
 							auto soundPos = sound->GetPosition();
+							auto soundBytesPerBlock = soundBuffer->m_bufferInfo.m_bytesPerBlock;
 
 							// Check if this will be out of bounds.
 							// This will copy at least 1 block
@@ -416,10 +417,10 @@ void alAudioThreadFunction_WASAPI(alAudioEngineWASAPI* engine)
 
 
 									mixerDATA += di.m_bytesPerBlock;
-									soundDATA += di.m_bytesPerBlock;
+									soundDATA += soundBytesPerBlock;
 
-									soundPos += di.m_bytesPerBlock;
-									if ((soundPos + di.m_bytesPerBlock) >= soundBuffer->m_dataSize)
+									soundPos += soundBytesPerBlock;
+									if ((soundPos + soundBytesPerBlock) >= soundBuffer->m_dataSize)
 									{
 										soundPos = 0;
 										sound->Reset();

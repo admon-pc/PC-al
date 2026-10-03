@@ -190,6 +190,7 @@ void alAudio::GetAudioInfo(alFileBuffer* fb, alAudioBufferInfo* info)
 								inf.m_bytesPerBlock = inf.m_bytesPerSample * inf.m_channels;
 								inf.m_bytesPerSecond = inf.m_sampleRate * inf.m_bytesPerBlock;
 								inf.m_additionalInfo.m_length = (float)datasz / (float)inf.m_bytesPerSecond;
+								inf.m_additionalInfo.m_numOfBlocks = datasz / inf.m_bytesPerBlock;
 							}
 							else
 							{
@@ -238,7 +239,7 @@ alAudioBuffer* alAudio::LoadAudio(alFileBuffer* fb)
 	{
 		auto bi = GetDeviceFormat();
 		ChangeFormat(raw, bi.m_format);
-		{
+		/*{
 			FILE* f = 0;
 			fopen_s(&f, "ChangeFormat.raw", "wb");
 			if (f)
@@ -246,9 +247,9 @@ alAudioBuffer* alAudio::LoadAudio(alFileBuffer* fb)
 				fwrite(raw->m_data, 1, raw->m_dataSize, f);
 				fclose(f);
 			}
-		}
+		}*/
 		ChangeSampleRate(raw, bi.m_sampleRate);
-		{
+		/*{
 			FILE* f = 0;
 			fopen_s(&f, "ChangeSampleRate.raw", "wb");
 			if (f)
@@ -256,17 +257,7 @@ alAudioBuffer* alAudio::LoadAudio(alFileBuffer* fb)
 				fwrite(raw->m_data, 1, raw->m_dataSize, f);
 				fclose(f);
 			}
-		}
-
-		switch (bi.m_channels)
-		{
-		case 1:
-			MakeMono(raw);
-			break;
-		case 2:
-			MakeStereo(raw);
-			break;
-		}
+		}*/
 
 		newBuffer = alCreate<alAudioBuffer>();
 		newBuffer->m_rawData = raw;
@@ -398,8 +389,11 @@ void alAudio::ChangeFormat(alAudioBufferRAW* raw, alAudioFormat fmt)
 	}
 }
 
-void alAudio_ChangeSampleRate(alAudioBufferRAW* raw, uint32_t newSampleRate)
+void alAudio::ChangeSampleRate(alAudioBufferRAW* raw, uint32_t newSampleRate)
 {
+	AL_ASSERT_ST(raw);
+	AL_ASSERT_ST((newSampleRate>=100)&&(newSampleRate <= 192000));
+
 	if (newSampleRate != raw->m_bufferInfo.m_sampleRate)
 	{
 		uint32_t numOfBlocks = raw->m_dataSize / raw->m_bufferInfo.m_bytesPerBlock;
@@ -421,10 +415,10 @@ void alAudio_ChangeSampleRate(alAudioBufferRAW* raw, uint32_t newSampleRate)
 		float32_t* srcIEEEF32 = (float32_t*)oldData;
 		float32_t* dstIEEEF32 = (float32_t*)newData;
 
-		
+
 		{
 			uint32_t index = 0;
-			
+
 			float32_t prevL = 0.f;
 			float32_t prevR = 0.f;
 
@@ -484,7 +478,7 @@ void alAudio_ChangeSampleRate(alAudioBufferRAW* raw, uint32_t newSampleRate)
 					case alAudioFormat::IEEE_float32:
 					{
 						uint32_t i2 = index * raw->m_bufferInfo.m_channels;
-						
+
 						float32_t* src = &srcIEEEF32[i2];
 						float32_t* dst = &dstIEEEF32[indexD];
 
@@ -514,34 +508,6 @@ void alAudio_ChangeSampleRate(alAudioBufferRAW* raw, uint32_t newSampleRate)
 		raw->m_dataSize = newDataSize;
 		raw->m_bufferInfo.m_sampleRate = newSampleRate;
 		raw->m_bufferInfo.m_bytesPerSecond = newSampleRate * raw->m_bufferInfo.m_bytesPerBlock;
-	}
-}
-
-void alAudio::ChangeSampleRate(alAudioBufferRAW* raw, uint32_t newSampleRate)
-{
-	AL_ASSERT_ST(raw);
-	AL_ASSERT_ST((newSampleRate>=100)&&(newSampleRate <= 192000));
-
-	if (newSampleRate > raw->m_bufferInfo.m_sampleRate)
-	{
-		int n = newSampleRate / raw->m_bufferInfo.m_sampleRate ;
-		uint32_t sr = 0;
-		for (int i = 0; i < n; ++i)
-		{
-			sr = raw->m_bufferInfo.m_sampleRate * 2;
-
-			alAudio_ChangeSampleRate(raw, sr);
-			if (sr > newSampleRate)
-			{
-				sr = newSampleRate;
-				alAudio_ChangeSampleRate(raw, sr);
-				break;
-			}
-		}
-	}
-	else
-	{
-		alAudio_ChangeSampleRate(raw, newSampleRate);
 	}
 }
 

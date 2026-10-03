@@ -32,6 +32,8 @@ struct alAudioBufferInfo2
 		fileType_wav,
 	};
 	uint32_t m_fileType = 0;
+	
+	uint32_t m_numOfBlocks = 0;
 };
 
 // Important information about audio buffer.
@@ -39,13 +41,13 @@ struct alAudioBufferInfo2
 //  use alAudioBufferInfo2
 struct alAudioBufferInfo
 {
-	uint32_t m_sampleRate = 11000;
-	uint32_t m_channels = 1;
-	alAudioFormat m_format = alAudioFormat::PCM_16;
+	uint32_t m_sampleRate = 0;
+	uint32_t m_channels = 0;
+	alAudioFormat m_format = alAudioFormat::Unknown;
 
 	// for 1 sample in 1 channel
 	// PCM_16 is uint16_t, is 2 bytes
-	uint32_t m_bytesPerSample = 2;
+	uint32_t m_bytesPerSample = 0;
 
 	// block is sample from each channel
 	// `bytes per block` means m_bytesPerSample * m_channels

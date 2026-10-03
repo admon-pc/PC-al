@@ -237,6 +237,73 @@ public:
 		return false;
 	}
 
+	// --- Custom Iterator Class ---
+	class Iterator {
+	private:
+		type* ptr;
+	public:
+		Iterator(type* p) : ptr(p) {}
+
+		// 1. Dereference
+		type& operator*() const { return *ptr; }
+		type* operator->() { return ptr; }
+
+		// 2. Pre-increment
+		Iterator& operator++() {
+			ptr++;
+			return *this;
+		}
+
+		// Post-increment
+		Iterator operator++(int) {
+			Iterator tmp = *this;
+			++(*this);
+			return tmp;
+		}
+
+		// 3. Comparison
+		bool operator==(const Iterator& other) const { return ptr == other.ptr; }
+		bool operator!=(const Iterator& other) const { return ptr != other.ptr; }
+	};
+
+	// --- Custom Const Iterator Class ---
+	class ConstIterator {
+	private:
+		const type* ptr;
+	public:
+		ConstIterator(const type* p) : ptr(p) {}
+
+		const type& operator*() const { return *ptr; }
+		const type* operator->() { return ptr; }
+
+		ConstIterator& operator++() {
+			ptr++;
+			return *this;
+		}
+
+		ConstIterator operator++(int) {
+			ConstIterator tmp = *this;
+			++(*this);
+			return tmp;
+		}
+
+		bool operator==(const ConstIterator& other) const { return ptr == other.ptr; }
+		bool operator!=(const ConstIterator& other) const { return ptr != other.ptr; }
+	};
+
+	// --- Container Begin / End Methods ---
+
+	// Mutable iterations
+	Iterator begin() { return Iterator(m_data); }
+	Iterator end() { return Iterator(m_data + m_size); }
+
+	// Const iterations
+	ConstIterator begin() const { return ConstIterator(m_data); }
+	ConstIterator end() const { return ConstIterator(m_data + m_size); }
+
+	ConstIterator cbegin() const { return ConstIterator(m_data); }
+	ConstIterator cend() const { return ConstIterator(m_data + m_size); }
+
 	type* m_data = 0;
 	size_t m_size = 0;
 };
