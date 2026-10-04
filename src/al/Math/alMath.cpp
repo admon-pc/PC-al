@@ -219,9 +219,35 @@ alVec2i alMath::WorldToScreen(const alMat4& VP, const alVec3& point3D, const alV
 	);
 }
 
+alVec2f alMath::WorldToScreen(const alMat4& VP, const alVec3f& point3D, const alVec2f& viewportSize, const alVec2f& offset)
+{
+	alVec4 point;
+	point.x = point3D.x;
+	point.y = point3D.y;
+	point.z = point3D.z;
+	point.w = 1.f;
+
+	point = alMath::Mul(point, VP);
+
+	return alVec2f
+	(
+		float32_t(offset.x + (viewportSize.x * 0.5f + point.x * viewportSize.x * 0.5f / point.w))
+		,
+		float32_t(offset.y + (viewportSize.y - (viewportSize.y * 0.5f + point.y * viewportSize.y * 0.5f / point.w)))
+	);
+}
+
 alVec2i alMath::ScreenToClient(const alVec2i& screen_coord, const alVec4i& client_rect)
 {
 	return alVec2i(
+		screen_coord.x - client_rect.x,
+		screen_coord.y - client_rect.y
+	);
+}
+
+alVec2f alMath::ScreenToClient(const alVec2f& screen_coord, const alVec4f& client_rect)
+{
+	return alVec2f(
 		screen_coord.x - client_rect.x,
 		screen_coord.y - client_rect.y
 	);

@@ -65,7 +65,9 @@ public:
 	static alQuaternion Slerp(const alQuaternion& pStart, const alQuaternion& pEnd, const float32_t pFactor);
 	static float32_t Normalize(float32_t max, float32_t val);
 	static alVec2i WorldToScreen(const alMat4& VP, const alVec3& point3D, const alVec2f& viewportSize, const alVec2f& offset);
+	static alVec2f WorldToScreen(const alMat4& VP, const alVec3f& point3D, const alVec2f& viewportSize, const alVec2f& offset);
 	static alVec2i ScreenToClient(const alVec2i& screen_coord, const alVec4i& client_rect);
+	static alVec2f ScreenToClient(const alVec2f& screen_coord, const alVec4f& client_rect);
 //	static void PerspectiveLHMatrix(alMat4& out, float32_t FOV, float32_t aspect, float32_t Near, float32_t Far);
 	static void PerspectiveRHMatrix(alMat4& out, float32_t FOV, float32_t aspect, float32_t Near, float32_t Far);
 	static void OrthoRHMatrix(alMat4& out, float32_t width, float32_t height, float32_t Near, float32_t Far);
