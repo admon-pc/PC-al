@@ -2753,6 +2753,8 @@ int main()
 		dd->Run();
 	}
 
+	delete dd;
+
 	return 1;
 }
 
