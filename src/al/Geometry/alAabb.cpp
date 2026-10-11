@@ -6,8 +6,8 @@ extern alLibGlobalData g_alLibGlobalData;
 
 alAabb::alAabb()
 	:
-	m_min(alVec4FltMax),
-	m_max(alVec4FltMaxNeg)
+	m_min(FLT_MAX, FLT_MAX, FLT_MAX, 0.f),
+	m_max(-FLT_MAX, -FLT_MAX, -FLT_MAX, 0.f)
 {}
 
 alAabb::alAabb(const alVec4& min, const alVec4& max) : m_min(min), m_max(max) { }
@@ -150,7 +150,7 @@ bool alAabb::IsEmpty() const
 
 void alAabb::Reset()
 {
-	m_min = alVec4FltMax;
-	m_max = alVec4FltMaxNeg;
+	m_min = alVec4(FLT_MAX, FLT_MAX, FLT_MAX, 0.f);
+	m_max = alVec4(-FLT_MAX, -FLT_MAX, -FLT_MAX, 0.f);
 }
 

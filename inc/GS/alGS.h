@@ -75,6 +75,13 @@ public:
 
 	// Same like with line 3D
 	virtual void BeginDrawLine2D() = 0;
+	// This method will use GUI projection matrix
+	// This matrix current window size.
+	// If you want to draw into render target texture, it will be drawn incorrectly,
+	// because size of texture probably not the same as size of the window.
+	// Use method SetViewport(0, 0, mainWindow->m_clientSize.x, mainWindow->m_clientSize.y);
+	// And it will be drawn correctly.
+	// Don't forget to set viewport back for your render target.
 	virtual void DrawLine2D(const alVec2f& _p1, const alVec2f& _p2, const alColor& color) = 0;
 
 	// This method will save preavious shader data and other previous data
