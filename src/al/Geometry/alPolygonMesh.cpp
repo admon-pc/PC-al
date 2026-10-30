@@ -268,6 +268,8 @@ alPolygonMesh<>::~alPolygonMesh()
 template<>
 void alPolygonMesh<>::Clear()
 {
+	m_aabb.Reset();
+
 	if (m_first_polygon)
 	{
 		auto p = m_first_polygon;

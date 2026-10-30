@@ -251,6 +251,19 @@ public:
 	void Clear();
 	void AddCube(float32_t size, const alMat4&);
 	void AddSphere(uint32_t segments, float32_t radius, const alMat4&);
+	
+	/*
+	* 
+	*/
+	/*void AddArrow(
+		float32_t length,
+		float32_t headLength,
+		float32_t tailHeight,
+		float32_t headHeight,
+		float32_t thickness,
+		uint32_t  tailSegments,
+		uint32_t  headSegments,
+		const alMat4&);*/
 
 	alPolygon* m_first_polygon = 0;
 	alVertex* m_first_vertex = 0;
